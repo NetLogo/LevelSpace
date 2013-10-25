@@ -2,7 +2,7 @@ import org.nlogo.api.CompilerException;
 import org.nlogo.lite.InterfaceComponent;
 
 
-public class LevelsModelInterface {
+public class LevelsModelComponent implements LevelsModelI {
 	
 	final javax.swing.JFrame frame = new javax.swing.JFrame();
     final InterfaceComponent myWS = new InterfaceComponent(frame);	
@@ -12,7 +12,7 @@ public class LevelsModelInterface {
 	
 	int levelsSpaceNumber;
 	
-	public LevelsModelInterface(final String url, int levelsSpaceNumber)
+	public LevelsModelComponent(final String url, int levelsSpaceNumber)
 	{
 		new Runnable() {
 			  public void run() {
@@ -56,7 +56,7 @@ public class LevelsModelInterface {
 		frame.dispose();
 	}
 	
-	public String reportString(String varName)
+	public String report (String varName)
 	{
 		Object reportedValue = null;
 		try {

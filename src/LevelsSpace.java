@@ -44,19 +44,19 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this returns the name (and path) of a model 
 		primitiveManager.addPrimitive("model-name", new ModelName());
 		// this opens up an image frame for the model
-		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
+//		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		// this returns a list of models and their paths
 		primitiveManager.addPrimitive("model-names", new AllModelsFull());
 		// this closes a model
 		primitiveManager.addPrimitive("close-model", new CloseModel());
 		// this updates graphics of a model
-		primitiveManager.addPrimitive("display", new UpdateView());
+//		primitiveManager.addPrimitive("display", new UpdateView());
 		// this returns a list of model IDs
 		primitiveManager.addPrimitive("all-models", new AllModels());
 		// this returns a boolean - does the model exist
 		primitiveManager.addPrimitive("model-exists?", new ModelExists());
 		// this creates a copy of a model
-		primitiveManager.addPrimitive("copy-model", new CopyModel());
+//		primitiveManager.addPrimitive("copy-model", new CopyModel());
 		// this resets the the levelsspace extension
 		primitiveManager.addPrimitive("reset", new Reset());
 		// this returns the last model id number
@@ -179,71 +179,71 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}	
 
-	public static class UpdateView extends DefaultCommand {
-		public Syntax getSyntax() {
-			return Syntax.commandSyntax(
-					new int[] { Syntax.NumberType() });	        
-		}
-
-		public void perform(Argument args[], Context context)
-				throws ExtensionException, org.nlogo.api.LogoException {
-			// get model number from args
-			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, update graphics 
-			if(myModels.containsKey(modelNumber))
-			{
-				LevelsModel aModel = myModels.get(modelNumber);
-				aModel.updateView();
-			}
-
-		}
-	}	
-
-	public static class CopyModel extends DefaultCommand {
-		public Syntax getSyntax() {
-			return Syntax.commandSyntax(
-					new int[] { Syntax.NumberType() });	        
-		}
-
-		public void perform(Argument args[], Context context)
-				throws ExtensionException, org.nlogo.api.LogoException {
-			// get model number from args
-			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, run the command 
-			if(myModels.containsKey(modelNumber))
-			{
-				LevelsModel aModel = new LevelsModel(myModels.get(modelNumber), modelCounter);
-				myModels.put(modelCounter, aModel);
-				// add to models counter
-				modelCounter ++;
-				aModel.myWS.breathe();
-				App.app().workspace().breathe();
-
-			}
-		}
-	}
-	
-	public static class OpenImageFrame extends DefaultCommand {
-		public Syntax getSyntax() {
-			return Syntax.commandSyntax(
-					new int[] { Syntax.NumberType() });	        
-		}
-
-		public void perform(Argument args[], Context context)
-				throws ExtensionException, org.nlogo.api.LogoException {
-			// get model number from args
-			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, run the command 
-			if(myModels.containsKey(modelNumber))
-			{
-				LevelsModel aModel = myModels.get(modelNumber);
-				aModel.createImageFrame();
-				aModel.myWS.breathe();
-				App.app().workspace().breathe();
-			}
-
-		}
-	}
+//	public static class UpdateView extends DefaultCommand {
+//		public Syntax getSyntax() {
+//			return Syntax.commandSyntax(
+//					new int[] { Syntax.NumberType() });	        
+//		}
+//
+//		public void perform(Argument args[], Context context)
+//				throws ExtensionException, org.nlogo.api.LogoException {
+//			// get model number from args
+//			int modelNumber = (int) args[0].getDoubleValue();
+//			// find the model. if it exists, update graphics 
+//			if(myModels.containsKey(modelNumber))
+//			{
+//				LevelsModel aModel = myModels.get(modelNumber);
+//				aModel.updateView();
+//			}
+//
+//		}
+//	}	
+//
+//	public static class CopyModel extends DefaultCommand {
+//		public Syntax getSyntax() {
+//			return Syntax.commandSyntax(
+//					new int[] { Syntax.NumberType() });	        
+//		}
+//
+//		public void perform(Argument args[], Context context)
+//				throws ExtensionException, org.nlogo.api.LogoException {
+//			// get model number from args
+//			int modelNumber = (int) args[0].getDoubleValue();
+//			// find the model. if it exists, run the command 
+//			if(myModels.containsKey(modelNumber))
+//			{
+//				LevelsModel aModel = new LevelsModel(myModels.get(modelNumber), modelCounter);
+//				myModels.put(modelCounter, aModel);
+//				// add to models counter
+//				modelCounter ++;
+//				aModel.myWS.breathe();
+//				App.app().workspace().breathe();
+//
+//			}
+//		}
+////	}
+//	
+//	public static class OpenImageFrame extends DefaultCommand {
+//		public Syntax getSyntax() {
+//			return Syntax.commandSyntax(
+//					new int[] { Syntax.NumberType() });	        
+//		}
+//
+//		public void perform(Argument args[], Context context)
+//				throws ExtensionException, org.nlogo.api.LogoException {
+//			// get model number from args
+//			int modelNumber = (int) args[0].getDoubleValue();
+//			// find the model. if it exists, run the command 
+//			if(myModels.containsKey(modelNumber))
+//			{
+//				LevelsModel aModel = myModels.get(modelNumber);
+//				aModel.createImageFrame();
+//				aModel.myWS.breathe();
+//				App.app().workspace().breathe();
+//			}
+//
+//		}
+//	}
 	// this returns the path of the model
 	public static class ModelName extends DefaultReporter{
 		public Syntax getSyntax(){

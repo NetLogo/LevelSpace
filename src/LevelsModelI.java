@@ -2,8 +2,10 @@
 public interface LevelsModelI {
 	
 	
-	void runCommand(String command);
+	void command(String command);
 	Object report(String reporter);
 	void kill();
+	String getPath();
+	String getName();
 	
 }
