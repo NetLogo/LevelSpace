@@ -39,24 +39,16 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this loads a model
 		primitiveManager.addPrimitive("load-headless-model", new LoadHeadlessModel());
 		primitiveManager.addPrimitive("load-gui-model", new LoadGUIModel());
-		// this runs a turtle's own procedure for it
-//		primitiveManager.addPrimitive("own-procedure", new OwnProcedure());
 		// this returns the name (and path) of a model 
 		primitiveManager.addPrimitive("model-name", new ModelName());
-		// this opens up an image frame for the model
-//		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		// this returns a list of models and their paths
 		primitiveManager.addPrimitive("model-names", new AllModelsFull());
 		// this closes a model
 		primitiveManager.addPrimitive("close-model", new CloseModel());
-		// this updates graphics of a model
-//		primitiveManager.addPrimitive("display", new UpdateView());
 		// this returns a list of model IDs
 		primitiveManager.addPrimitive("all-models", new AllModels());
 		// this returns a boolean - does the model exist
 		primitiveManager.addPrimitive("model-exists?", new ModelExists());
-		// this creates a copy of a model
-//		primitiveManager.addPrimitive("copy-model", new CopyModel());
 		// this resets the the levelsspace extension
 		primitiveManager.addPrimitive("reset", new Reset());
 		// this returns the last model id number
@@ -456,7 +448,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}
 			return myLLB.toLogoList();
 		}
-
 	}
 
 	@Override
