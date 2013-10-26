@@ -2,14 +2,12 @@ import org.nlogo.api.CompilerException;
 import org.nlogo.lite.InterfaceComponent;
 
 
-public class LevelsModelComponent implements LevelsModelI {
+public class LevelsModelComponent extends LevelsModelAbstract {
 	
 	final javax.swing.JFrame frame = new javax.swing.JFrame();
     final InterfaceComponent myWS = new InterfaceComponent(frame);	
 	String name;
 	String path;
-
-	
 	int levelsSpaceNumber;
 	
 	public LevelsModelComponent(final String url, int levelsSpaceNumber)
@@ -20,8 +18,7 @@ public class LevelsModelComponent implements LevelsModelI {
 			    frame.add(myWS);
 			    frame.setVisible(true);
 			    try {
-			      myWS.open
-				  (url);
+			      myWS.open(url);
 			    }
 			    catch(Exception ex) {
 			      ex.printStackTrace();
@@ -52,11 +49,11 @@ public class LevelsModelComponent implements LevelsModelI {
 	
 	public void kill()
 	{
-		myWS.workspace().dispose();
+//		myWS.workspace().dispose();
 		frame.dispose();
 	}
 	
-	public String report (String varName)
+	public Object report (String varName)
 	{
 		Object reportedValue = null;
 		try {
@@ -65,7 +62,7 @@ public class LevelsModelComponent implements LevelsModelI {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return reportedValue.toString();
+		return reportedValue;
 	}
 
 	public String getName()
@@ -75,6 +72,13 @@ public class LevelsModelComponent implements LevelsModelI {
 	
 	public String getPath(){
 		return path;
+	}
+
+	@Override
+	void breathe() {
+		myWS.workspace().breathe();
+		// TODO Auto-generated method stub
+		
 	}
 	
 

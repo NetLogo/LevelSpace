@@ -4,7 +4,7 @@ import org.nlogo.api.CompilerException;
 import org.nlogo.api.LogoException;
 import org.nlogo.headless.HeadlessWorkspace;
 
-public class LevelsModel implements LevelsModelI {
+public class LevelsModel extends LevelsModelAbstract {
 	
 	HeadlessWorkspace myWS;
 	ImageFrame frame;
@@ -172,6 +172,12 @@ public class LevelsModel implements LevelsModelI {
 	public String getPath() {
 		// TODO Auto-generated method stub
 		return path;
+	}
+
+	@Override
+	void breathe() {
+		myWS.breathe();
+		
 	}
 	
 	

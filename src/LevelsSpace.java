@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.nlogo.agent.Agent;
 import org.nlogo.api.Argument;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.Context;
@@ -24,7 +23,7 @@ import org.nlogo.app.App;
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 	// hashtable with all loaded models
-	static Hashtable<Integer, LevelsModel> myModels;
+	static Hashtable<Integer, LevelsModelAbstract> myModels;
 
 	// counter for keeping track of new models
 	static int modelCounter;
@@ -38,9 +37,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this allows you to run a command in another model
 		primitiveManager.addPrimitive("ask", new RunCommand());
 		// this loads a model
-		primitiveManager.addPrimitive("load-model", new LoadAModel());
+		primitiveManager.addPrimitive("load-headless-model", new LoadHeadlessModel());
+		primitiveManager.addPrimitive("load-gui-model", new LoadGUIModel());
 		// this runs a turtle's own procedure for it
-		primitiveManager.addPrimitive("own-procedure", new OwnProcedure());
+//		primitiveManager.addPrimitive("own-procedure", new OwnProcedure());
 		// this returns the name (and path) of a model 
 		primitiveManager.addPrimitive("model-name", new ModelName());
 		// this opens up an image frame for the model
@@ -66,7 +66,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this returns just the path of a model
 		primitiveManager.addPrimitive("model-path", new ModelPath());
 		
-		myModels = new Hashtable<Integer, LevelsModel>();
+		myModels = new Hashtable<Integer, LevelsModelAbstract>();
 
 		modelCounter = 0;
 	}
@@ -78,14 +78,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		Iterator<Integer> iter =  set.iterator();
 		while(iter.hasNext())
 		{
-			LevelsModel aModel = myModels.get(iter.next());
+			LevelsModelAbstract aModel = myModels.get(iter.next());
 			aModel.kill();
 		}
 		myModels.clear();
 	}
 
 	
-	public static class LoadAModel extends DefaultCommand {
+	public static class LoadHeadlessModel extends DefaultCommand {
 		public Syntax getSyntax() {
 			return Syntax.commandSyntax(
 					// we take in int[] {number, string} 
@@ -100,6 +100,31 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			String modelURL = args[0].getString();
 
 			LevelsModel aModel = new LevelsModel(modelURL, modelCounter);
+			// add it to models
+			myModels.put(modelCounter, aModel);
+			// save the last number
+			lastModel = modelCounter;
+			// add to models counter
+			modelCounter ++;
+			// stop up, take a breath. You will be okay.
+			App.app().workspace().breathe();
+		}
+	}
+	public static class LoadGUIModel extends DefaultCommand {
+		public Syntax getSyntax() {
+			return Syntax.commandSyntax(
+					// we take in int[] {number, string} 
+					new int[] { Syntax.StringType()});
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// saving current modelCounter as that will be the hashtable key to the 
+			// model we are making
+			// make a new LevelsModel
+			String modelURL = args[0].getString();
+
+			LevelsModelComponent aModel = new LevelsModelComponent(modelURL, modelCounter);
 			// add it to models
 			myModels.put(modelCounter, aModel);
 			// save the last number
@@ -126,7 +151,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			{
 				int modelNumber = iter.next();
 				// get each model
-				LevelsModel aModel = myModels.get(modelNumber);
+				LevelsModelAbstract aModel = myModels.get(modelNumber);
 				// kill it
 				aModel.kill();
 				iter.remove();
@@ -151,7 +176,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// find the model. if it exists, run the command 
 			if(myModels.containsKey(modelNumber))
 			{
-				LevelsModel aModel = myModels.get(modelNumber);
+				LevelsModelAbstract aModel = myModels.get(modelNumber);
 				aModel.command(command);
 			}
 			App.app().workspace().breathe();			
@@ -171,7 +196,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// find the model. if it exists, kill it 
 			if(myModels.containsKey(modelNumber))
 			{
-				LevelsModel aModel = myModels.get(modelNumber);
+				LevelsModelAbstract aModel = myModels.get(modelNumber);
 				aModel.kill();
 			}
 			// and remove it from the hashtable
@@ -336,15 +361,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// find the model. if it exists, update graphics 
 			if(myModels.containsKey(modelNumber))
 			{
-				LevelsModel aModel = myModels.get(modelNumber);
-				try {
-					return aModel.myWS.report(varName);
-				} catch (CompilerException e) {
-
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return null;
-				}
+				LevelsModelAbstract aModel = myModels.get(modelNumber);
+				return aModel.report(varName);
 			}
 			else {return null;}
 		}
@@ -352,44 +370,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 
 
-	public static class OwnProcedure extends DefaultCommand{
-		public Syntax getSyntax(){
-			return Syntax.reporterSyntax(new int[] {Syntax.StringType()}, Syntax.WildcardType());
-		}
-
-		@Override
-		public void perform(Argument[] arg0, Context arg1)
-				throws ExtensionException, LogoException {
-			Agent anAgent = (Agent) arg1.getAgent();
-			String procedureName = arg0[0].getString().toUpperCase();			
-			//Procedure theProcedure = null;
-			// if it ever returns -1, it didn't find the agent
-			// TODO Auto-generated method stub
-			Set<Integer> modelsKeyset = myModels.keySet();
-			// make iterator
-			Iterator<Integer> iter = modelsKeyset.iterator();
-			// iterate through
-			while (iter.hasNext())
-			{
-				int modelNumber = iter.next();
-				// get each model
-				LevelsModel aModel = myModels.get(modelNumber);
-				// see if the turtle is from this model
-				if (aModel.myWS.world().turtles().contains(anAgent)){
-					//  This is pretty inefficient, and it would be great if there were another way
-					// of doing it. Maybe finding the actual procedure, and then call it.
-					// It looks like it is possible to get the actual procedure like this:
-					//theProcedure = aModel.myWS.getProcedures().get(procedureName);
-					try {
-						aModel.myWS.command("ask turtle " + anAgent.id() + " [" + procedureName + "]");
-					} catch (CompilerException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
 
 	public static class ModelExists extends DefaultReporter {
 		public Syntax getSyntax() {
@@ -468,7 +448,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			{
 				LogoListBuilder modelLLB = new LogoListBuilder();
 				int nextModel = iter.next();
-				LevelsModel aModel = myModels.get(nextModel);
+				LevelsModelAbstract aModel = myModels.get(nextModel);
 				String modelUrl = aModel.getName();
 				modelLLB.add(new Double(nextModel));
 				modelLLB.add(modelUrl);
