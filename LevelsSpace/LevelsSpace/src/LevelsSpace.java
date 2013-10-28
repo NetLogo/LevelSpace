@@ -1,38 +1,25 @@
 
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+import java.util.concurrent.*;
 
-import org.nlogo.api.Argument;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.Context;
-import org.nlogo.api.DefaultCommand;
-import org.nlogo.api.DefaultReporter;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.ExtensionManager;
-import org.nlogo.api.ExtensionObject;
-import org.nlogo.api.ImportErrorHandler;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoListBuilder;
-import org.nlogo.api.PrimitiveManager;
-import org.nlogo.api.Syntax;
-import org.nlogo.api.World;
+import org.nlogo.api.*;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 
-	final static HashMap<Double, LevelsModelAbstract> myModels = new HashMap<Double, LevelsModelAbstract>(); 
+	// hashtable with all loaded models
+	static Hashtable<Integer, LevelsModelAbstract> myModels;
 
 	// counter for keeping track of new models
-	static double modelCounter = 0;
+	static int modelCounter;
+
+	// number of last model added to myModels
+	private static double lastModel;
 
 
 	@Override
@@ -60,6 +47,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("report", new Report());	
 		// this returns just the path of a model
 		primitiveManager.addPrimitive("model-path", new ModelPath());
+		
+		myModels = new Hashtable<Integer, LevelsModelAbstract>();
 
 		modelCounter = 0;
 	}
@@ -67,8 +56,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void unload(ExtensionManager arg0) throws ExtensionException {
 		// iterate through models and kill them
-		Set<Double> set = myModels.keySet();
-		Iterator<Double> iter =  set.iterator();
+		Set<Integer> set = myModels.keySet();
+		Iterator<Integer> iter =  set.iterator();
 		while(iter.hasNext())
 		{
 			LevelsModelAbstract aModel = myModels.get(iter.next());
@@ -95,6 +84,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			LevelsModel aModel = new LevelsModel(modelURL, modelCounter);
 			// add it to models
 			myModels.put(modelCounter, aModel);
+			// save the last number
+			lastModel = modelCounter;
 			// add to models counter
 			modelCounter ++;
 			// stop up, take a breath. You will be okay.
@@ -118,6 +109,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			LevelsModelComponent aModel = new LevelsModelComponent(modelURL, modelCounter);
 			// add it to models
 			myModels.put(modelCounter, aModel);
+			// save the last number
+			lastModel = modelCounter;
 			// add to models counter
 			modelCounter ++;
 			// stop up, take a breath. You will be okay.
@@ -132,13 +125,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			modelCounter = 0;
 			// stop all running models
 			// get keys
-			Set<Double> modelsKeyset = myModels.keySet();
+			Set<Integer> modelsKeyset = myModels.keySet();
 			// make iterator
-			Iterator<Double> iter = modelsKeyset.iterator();
+			Iterator<Integer> iter = modelsKeyset.iterator();
 			// iterate through
 			while (iter.hasNext())
 			{
-				double modelNumber = iter.next();
+				int modelNumber = iter.next();
 				// get each model
 				LevelsModelAbstract aModel = myModels.get(modelNumber);
 				// kill it
@@ -288,8 +281,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-//			if(myModels.contains(modelNumber)){
-			if(myModels.containsKey(modelNumber)){
+			if(myModels.contains(modelNumber)){
 				modelName = myModels.get(modelNumber).getName();
 			}
 			return modelName;
@@ -317,7 +309,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if(myModels.containsKey(modelNumber)){
+			if(myModels.contains(modelNumber)){
 				modelName = myModels.get(modelNumber).getPath();
 			}
 			return modelName;
@@ -335,13 +327,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					// no parameters 
 					new int[] {},
 					// and return a number
-					Syntax.NumberType());
+					Syntax.StringType());
 		}
 
 		public Object report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
 
-			return modelCounter - 1;
+			return lastModel;
 
 		}
 	}
@@ -421,8 +413,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			LogoListBuilder myLLB = new LogoListBuilder();
 
-			Set<Double> set = myModels.keySet();
-			Iterator<Double> iter =  set.iterator();
+			Set<Integer> set = myModels.keySet();
+			Iterator<Integer> iter =  set.iterator();
 			while(iter.hasNext())
 			{
 				myLLB.add(new Double(iter.next()));
@@ -449,13 +441,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			LogoListBuilder myLLB = new LogoListBuilder();
 
-			Set<Double> set = myModels.keySet();
+			Set<Integer> set = myModels.keySet();
 			
-			Iterator<Double> iter =  set.iterator();
+			Iterator<Integer> iter =  set.iterator();
 			while(iter.hasNext())
 			{
 				LogoListBuilder modelLLB = new LogoListBuilder();
-				double nextModel = iter.next();
+				int nextModel = iter.next();
 				LevelsModelAbstract aModel = myModels.get(nextModel);
 				String modelUrl = aModel.getName();
 				modelLLB.add(new Double(nextModel));

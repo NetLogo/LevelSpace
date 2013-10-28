@@ -8,9 +8,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	final InterfaceComponent myWS = new InterfaceComponent(frame);	
 	String name;
 	String path;
-	double levelsSpaceNumber;
+	int levelsSpaceNumber;
 
-	public LevelsModelComponent(final String path, double levelsSpaceNumber)
+	public LevelsModelComponent(final String path, int levelsSpaceNumber)
 	{
 		try {
 			java.awt.EventQueue.invokeAndWait(
