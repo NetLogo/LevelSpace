@@ -1,3 +1,5 @@
+import javax.swing.SwingUtilities;
+
 import org.nlogo.api.CompilerException;
 import org.nlogo.lite.InterfaceComponent;
 
@@ -13,10 +15,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	public LevelsModelComponent(final String path, double levelsSpaceNumber)
 	{
 		try {
-			java.awt.EventQueue.invokeAndWait(
+			SwingUtilities.invokeAndWait(
 					new Runnable() {
 						public void run() {
-//							frame.setSize(1000, 700);
 							frame.add(myWS);
 							frame.setVisible(true);
 							try {
