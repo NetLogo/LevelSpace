@@ -34,6 +34,12 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	}
 
 
+	/**
+	 * Runs the given comman in this model.
+	 * WARNING: Not safe. Must be run via LevelsSpace.runSafely().
+	 * See AppletPanel.command() for more information.
+	 * @param command
+	 */
 	public void command (String command)
 	{
 		try {
@@ -51,6 +57,13 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		frame.dispose();
 	}
 
+	/**
+	 * Runs the reporter in this model and returns the result
+	 * WARNING: Not safe. Must be run via LevelsSpace.runSafely().
+	 * See AppletPanel.report() for more information.g
+	 * @param varName
+	 * @return
+	 */
 	public Object report (String varName)
 	{
 		Object reportedValue = null;

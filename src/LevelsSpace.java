@@ -3,21 +3,11 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.*;
 
-import org.nlogo.api.Argument;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.Context;
-import org.nlogo.api.DefaultCommand;
-import org.nlogo.api.DefaultReporter;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.ExtensionManager;
-import org.nlogo.api.ExtensionObject;
-import org.nlogo.api.ImportErrorHandler;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoListBuilder;
-import org.nlogo.api.PrimitiveManager;
-import org.nlogo.api.Syntax;
+import org.nlogo.api.*;
 import org.nlogo.app.App;
+import org.nlogo.nvm.HaltException;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
@@ -164,14 +154,24 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
 			// get the command to run
-			String command = args[1].getString();
+			final String command = args[1].getString();
 			// find the model. if it exists, run the command 
 			if(myModels.containsKey(modelNumber))
 			{
-				LevelsModelAbstract aModel = myModels.get(modelNumber);
-				aModel.command(command);
+				final LevelsModelAbstract aModel = myModels.get(modelNumber);
+				try {
+					LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
+						@Override
+						public Object call() throws Exception {
+							aModel.command(command);
+							return null;
+						}
+					});
+				} catch (ExecutionException e) {
+					throw new RuntimeException(e);
+				}
 			}
-			App.app().workspace().breathe();			
+			App.app().workspace().breathe();
 		}
 	}
 
@@ -345,16 +345,24 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.WildcardType());
 		}
 
-		public Object report(Argument args[], Context context) throws ExtensionException, LogoException{
-
+		public Object report(Argument args[], Context context) throws ExtensionException,  LogoException{
 			int modelNumber = (int) args[0].getDoubleValue();
 			// get var name
-			String varName = args[1].getString();
+			final String varName = args[1].getString();
 			// find the model. if it exists, update graphics 
 			if(myModels.containsKey(modelNumber))
 			{
-				LevelsModelAbstract aModel = myModels.get(modelNumber);
-				return aModel.report(varName);
+				final LevelsModelAbstract aModel = myModels.get(modelNumber);
+				try {
+					return LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
+						@Override
+						public Object call() throws Exception {
+							return aModel.report(varName);
+						}
+					});
+				} catch (ExecutionException e) {
+					throw new RuntimeException(e);
+				}
 			}
 			else {return null;}
 		}
@@ -485,6 +493,47 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void runOnce(ExtensionManager arg0) throws ExtensionException {
 
+	}
+
+	// Probably only want a single job to run at a time.
+	private static Executor safeExecutor = Executors.newSingleThreadExecutor();
+	/**
+	 * Runs the given callable such that it doesn't create a deadlock between
+	 * the AWT event thread and the JobThread. It does this using a similar
+	 * technique as ThreadUtils.waitForResponse().
+	 * @param world The world to synchronize on. Should be the main model's world.
+	 * @param callable What to run.
+	 * @return
+	 */
+	public static <T> T runSafely(final World world, final Callable<T> callable) throws HaltException, ExecutionException {
+		final FutureTask<T> reporterTask = new FutureTask<T>(new Callable<T>() {
+			@Override
+			public T call() throws Exception {
+				T result = callable.call();
+				synchronized (world) {
+					world.notify();
+				}
+				return result;
+			}
+		});
+		safeExecutor.execute(reporterTask);
+		while (!reporterTask.isDone()) {
+			synchronized (world) {
+				try {
+					world.wait(50);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new HaltException(false);
+				}
+
+			}
+		}
+		try {
+			return reporterTask.get();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new HaltException(false);
+		}
 	}
 
 }
