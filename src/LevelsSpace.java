@@ -9,30 +9,17 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-import org.nlogo.api.Argument;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.Context;
-import org.nlogo.api.DefaultCommand;
-import org.nlogo.api.DefaultReporter;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.ExtensionManager;
-import org.nlogo.api.ExtensionObject;
-import org.nlogo.api.ImportErrorHandler;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoListBuilder;
-import org.nlogo.api.PrimitiveManager;
-import org.nlogo.api.Syntax;
-import org.nlogo.api.World;
+import org.nlogo.api.*;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 
-	final static HashMap<Double, LevelsModelAbstract> myModels = new HashMap<Double, LevelsModelAbstract>(); 
+	final static HashMap<Integer, LevelsModelAbstract> myModels = new HashMap<Integer, LevelsModelAbstract>();
 
 	// counter for keeping track of new models
-	static double modelCounter = 0;
+	static int modelCounter = 0;
 
 
 	@Override
@@ -70,12 +57,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void unload(ExtensionManager arg0) throws ExtensionException {
 		// iterate through models and kill them
-		Set<Double> set = myModels.keySet();
-		Iterator<Double> iter =  set.iterator();
-		while(iter.hasNext())
-		{
-			LevelsModelAbstract aModel = myModels.get(iter.next());
-			aModel.kill();
+		Set<Integer> set = myModels.keySet();
+		for (LevelsModelAbstract model : myModels.values()) {
+			model.kill();
 		}
 		myModels.clear();
 	}
@@ -134,19 +118,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// resets the counter
 			modelCounter = 0;
 			// stop all running models
-			// get keys
-			Set<Double> modelsKeyset = myModels.keySet();
-			// make iterator
-			Iterator<Double> iter = modelsKeyset.iterator();
-			// iterate through
-			while (iter.hasNext())
-			{
-				double modelNumber = iter.next();
-				// get each model
-				LevelsModelAbstract aModel = myModels.get(modelNumber);
-				// kill it
-				aModel.kill();
-				iter.remove();
+			for (LevelsModelAbstract model : myModels.values()) {
+				model.kill();
 			}
 			myModels.clear();
 		}
@@ -344,10 +317,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.NumberType());
 		}
 
-		public Object report(Argument args[], Context context)
+		public Double report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
 
-			return modelCounter - 1;
+			return (double) modelCounter - 1;
 
 		}
 	}
@@ -427,11 +400,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			LogoListBuilder myLLB = new LogoListBuilder();
 
-			Set<Double> set = myModels.keySet();
-			Iterator<Double> iter =  set.iterator();
-			while(iter.hasNext())
-			{
-				myLLB.add(new Double(iter.next()));
+			for (Integer id :  myModels.keySet()) {
+				myLLB.add(new Double(id));
 			}
 			return myLLB.toLogoList();
 		}
@@ -455,13 +425,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			LogoListBuilder myLLB = new LogoListBuilder();
 
-			Set<Double> set = myModels.keySet();
-			
-			Iterator<Double> iter =  set.iterator();
-			while(iter.hasNext())
-			{
+			for (Integer modelId : myModels.keySet()) {
 				LogoListBuilder modelLLB = new LogoListBuilder();
-				double nextModel = iter.next();
+				double nextModel = modelId;
 				LevelsModelAbstract aModel = myModels.get(nextModel);
 				String modelUrl = aModel.getName();
 				modelLLB.add(new Double(nextModel));
