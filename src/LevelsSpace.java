@@ -317,10 +317,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.NumberType());
 		}
 
-		public Object report(Argument args[], Context context)
+		public Double report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
 
-			return modelCounter - 1;
+			return (double) modelCounter - 1;
 
 		}
 	}
