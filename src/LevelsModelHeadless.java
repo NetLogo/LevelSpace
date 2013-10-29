@@ -71,18 +71,9 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		frame = null;
 	}
 	
-	public void command (String command)
+	public void command (String command) throws CompilerException, LogoException
 	{
-		// run the command
-		try {
-			myWS.command(command);
-		} catch (CompilerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (LogoException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		myWS.command(command);
 	}
 	
 	

@@ -142,17 +142,19 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if(myModels.containsKey(modelNumber))
 			{
 				final LevelsModelAbstract aModel = myModels.get(modelNumber);
-				try {
-					LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
-						@Override
-						public Object call() throws Exception {
-							aModel.command(command);
-							return null;
-						}
-					});
-				} catch (ExecutionException e) {
-					throw new RuntimeException(e);
-				}
+
+					try {
+						LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
+							@Override
+							public Object call() throws CompilerException, LogoException {
+								aModel.command(command);
+								return null;
+							}
+						});
+					} catch (ExecutionException e) {
+						// TODO Auto-generated catch block
+						new ExtensionException(e);
+					}
 			}
 			App.app().workspace().breathe();
 		}
@@ -453,7 +455,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public StringBuilder exportWorld() {
 		// TODO Auto-generated method stub
-		return null;
+		StringBuilder sb = new StringBuilder();
+		return sb;
 	}
 
 	@Override
