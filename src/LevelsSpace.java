@@ -162,6 +162,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					} catch (ExecutionException e) {
 					}
 			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+			
 			App.app().workspace().breathe();
 		}
 	}
@@ -182,6 +186,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				LevelsModelAbstract aModel = myModels.get(modelNumber);
 				aModel.kill();
 			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}			
 			// and remove it from the hashtable
 			myModels.remove(modelNumber);
 		}
@@ -206,6 +213,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				}
 
 			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+			
 
 		}
 	}	
@@ -228,6 +239,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				aModel.myWS.breathe();
 				App.app().workspace().breathe();
 			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+			
 
 		}
 	}
@@ -238,7 +253,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.StringType());
 			
 		}
-		public Object report(Argument[] args, Context context){
+		public Object report(Argument[] args, Context context) throws ExtensionException{
 			String modelName = new String();
 			// get model number
 			int modelNumber = -1;
@@ -251,9 +266,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-//			if(myModels.contains(modelNumber)){
 			if(myModels.containsKey(modelNumber)){
 				modelName = myModels.get(modelNumber).getName();
+			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
 			return modelName;
 			
@@ -267,7 +284,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.StringType());
 			
 		}
-		public Object report(Argument[] args, Context context){
+		public Object report(Argument[] args, Context context) throws ExtensionException{
 			String modelName = new String();
 			// get model number
 			int modelNumber = -1;
@@ -283,6 +300,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if(myModels.containsKey(modelNumber)){
 				modelName = myModels.get(modelNumber).getPath();
 			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+
 			return modelName;
 			
 		}
@@ -336,7 +357,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				}
 				
 			}
-			else {return null;}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+
 		}
 	}
 
@@ -354,18 +378,18 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		public Object report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
-			// 
-			boolean returnVal = false;
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
 
 			// find the model. if it exists, update graphics 
 			if(myModels.containsKey(modelNumber))
 			{
-				returnVal = true;
+				return true;
+			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
 
-			return returnVal;
 		}
 	}
 
