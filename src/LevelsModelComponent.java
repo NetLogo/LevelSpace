@@ -27,7 +27,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							catch(Exception ex) {
 								ex.printStackTrace();
 							}
-							frame.setSize(frame.getPreferredSize());
+							frame.pack();
 						}});
 		}
 		catch(Exception ex) {
