@@ -61,7 +61,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// 
 		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
-
+		
 		modelCounter = 0;
 	}
 

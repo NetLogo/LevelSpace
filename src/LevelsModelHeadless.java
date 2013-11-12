@@ -31,7 +31,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 			e.printStackTrace();
 		}
 		path = url;
-		
+				
 		this.levelsSpaceNumber = levelsSpaceNumber;
 		
         // find the name of the model - it is the bit past the last 

@@ -1,7 +1,10 @@
+import java.awt.Component;
+
 import javax.swing.SwingUtilities;
 
 import org.nlogo.api.CompilerException;
 import org.nlogo.lite.InterfaceComponent;
+import org.nlogo.window.SpeedSliderPanel;
 
 
 public class LevelsModelComponent extends LevelsModelAbstract {
@@ -27,8 +30,16 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							catch(Exception ex) {
 								ex.printStackTrace();
 							}
+							Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
+							for (Component co : c){
+								if (co instanceof SpeedSliderPanel){
+									co.setVisible(false);
+								}
+							}
 							frame.setTitle("LevelsSpace model no. " + String.valueOf(levelsSpaceNumber));
 							frame.pack();
+							myWS.workspace().speedSliderPosition(110);
+							
 						}});
 		}
 		catch(Exception ex) {
@@ -38,7 +49,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 
 
 	/**
-	 * Runs the given comman in this model.
+	 * Runs the given command in this model.
 	 * WARNING: Not safe. Must be run via LevelsSpace.runSafely().
 	 * See AppletPanel.command() for more information.
 	 * @param command
