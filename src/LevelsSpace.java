@@ -1,15 +1,26 @@
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-import org.nlogo.api.*;
+import org.nlogo.api.Argument;
+import org.nlogo.api.CompilerException;
+import org.nlogo.api.Context;
+import org.nlogo.api.DefaultCommand;
+import org.nlogo.api.DefaultReporter;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.ExtensionManager;
+import org.nlogo.api.ExtensionObject;
+import org.nlogo.api.ImportErrorHandler;
+import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoListBuilder;
+import org.nlogo.api.PrimitiveManager;
+import org.nlogo.api.Syntax;
+import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
 
@@ -57,7 +68,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void unload(ExtensionManager arg0) throws ExtensionException {
 		// iterate through models and kill them
-		Set<Integer> set = myModels.keySet();
 		for (LevelsModelAbstract model : myModels.values()) {
 			model.kill();
 		}
@@ -203,31 +213,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}	
-//
-//	public static class CopyModel extends DefaultCommand {
-//		public Syntax getSyntax() {
-//			return Syntax.commandSyntax(
-//					new int[] { Syntax.NumberType() });	        
-//		}
-//
-//		public void perform(Argument args[], Context context)
-//				throws ExtensionException, org.nlogo.api.LogoException {
-//			// get model number from args
-//			int modelNumber = (int) args[0].getDoubleValue();
-//			// find the model. if it exists, run the command 
-//			if(myModels.containsKey(modelNumber))
-//			{
-//				LevelsModel aModel = new LevelsModel(myModels.get(modelNumber), modelCounter);
-//				myModels.put(modelCounter, aModel);
-//				// add to models counter
-//				modelCounter ++;
-//				aModel.myWS.breathe();
-//				App.app().workspace().breathe();
-//
-//			}
-//		}
-////	}
-//	
+
 	public static class OpenImageFrame extends DefaultCommand {
 		public Syntax getSyntax() {
 			return Syntax.commandSyntax(
