@@ -10,9 +10,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	final InterfaceComponent myWS = new InterfaceComponent(frame);	
 	String name;
 	String path;
-	double levelsSpaceNumber;
+	int levelsSpaceNumber;
 
-	public LevelsModelComponent(final String path, double levelsSpaceNumber)
+	public LevelsModelComponent(final String path, final int levelsSpaceNumber)
 	{
 		try {
 			SwingUtilities.invokeAndWait(
@@ -27,6 +27,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							catch(Exception ex) {
 								ex.printStackTrace();
 							}
+							frame.setTitle("LevelsSpace model no. " + String.valueOf(levelsSpaceNumber));
 							frame.pack();
 						}});
 		}

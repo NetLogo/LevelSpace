@@ -11,9 +11,9 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	ImageFrame frame;
 	String name;
 	String path;
-	double levelsSpaceNumber;
+	int levelsSpaceNumber;
 	
-	public LevelsModelHeadless(String url, double levelsSpaceNumber)
+	public LevelsModelHeadless(String url, int levelsSpaceNumber)
 	{
 		// make a new headless workspace
 		myWS = HeadlessWorkspace.newInstance();
