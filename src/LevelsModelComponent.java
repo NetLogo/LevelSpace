@@ -3,6 +3,7 @@ import java.awt.Component;
 import javax.swing.SwingUtilities;
 
 import org.nlogo.api.CompilerException;
+import org.nlogo.api.ExtensionException;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.window.SpeedSliderPanel;
 
@@ -54,16 +55,11 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	 * WARNING: Not safe. Must be run via LevelsSpace.runSafely().
 	 * See AppletPanel.command() for more information.
 	 * @param command
+	 * @throws CompilerException 
 	 */
-	public void command (String command)
+	public void command (String command) throws CompilerException
 	{
-		try {
-			myWS.command(command);
-		} catch (CompilerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		myWS.command(command);	
 	}
 
 
@@ -78,15 +74,16 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	 * See AppletPanel.report() for more information.g
 	 * @param varName
 	 * @return
+	 * @throws ExtensionException 
 	 */
-	public Object report (String varName)
+	public Object report (String varName) throws ExtensionException
 	{
 		Object reportedValue = null;
 		try {
 			reportedValue = myWS.report(varName);
 		} catch (CompilerException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ExtensionException("That reporter does not exist in this child model.");
 		}
 		return reportedValue;
 	}
@@ -103,11 +100,5 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	@Override
 	void breathe() {
 		myWS.workspace().breathe();
-		// TODO Auto-generated method stub
-
 	}
-
-
-
-
 }

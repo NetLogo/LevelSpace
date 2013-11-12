@@ -2,6 +2,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import org.nlogo.api.CompilerException;
+import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
 import org.nlogo.headless.HeadlessWorkspace;
 
@@ -94,17 +95,14 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		}
 	}
 	
-	public Object report (String varName)
+	public Object report (String varName) throws LogoException, ExtensionException
 	{
 		Object reportedValue = null;
 		try {
 			reportedValue = myWS.report(varName);
 		} catch (CompilerException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (LogoException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ExtensionException("That reporter does not exist in this child model.");
 		}
 		return reportedValue;
 	}

@@ -156,14 +156,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					try {
 						LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
 							@Override
-							public Object call() throws CompilerException, LogoException {
+							public Object call() throws CompilerException, LogoException, ExtensionException {
 								aModel.command(command);
 								return null;
 							}
 						});
 					} catch (ExecutionException e) {
-						// TODO Auto-generated catch block
-						new ExtensionException(e);
 					}
 			}
 			App.app().workspace().breathe();
@@ -338,6 +336,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				} catch (ExecutionException e) {
 					throw new RuntimeException(e);
 				}
+				
 			}
 			else {return null;}
 		}
