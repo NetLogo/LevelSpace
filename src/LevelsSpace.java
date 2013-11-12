@@ -42,8 +42,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("load-gui-model", new LoadGUIModel());
 		// this returns the name (and path) of a model 
 		primitiveManager.addPrimitive("model-name", new ModelName());
-		// this returns a list of models and their paths
-		primitiveManager.addPrimitive("model-names", new AllModelsFull());
 		// this closes a model
 		primitiveManager.addPrimitive("close-model", new CloseModel());
 		// this returns a list of model IDs
@@ -393,36 +391,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			return myLLB.toLogoList();
 		}
 
-	}
-	
-
-	
-	public static class AllModelsFull extends DefaultReporter {
-
-		public Syntax getSyntax() {
-			return Syntax.reporterSyntax(
-					// no parameters 
-					new int[] {},
-					// and return a logolist
-					Syntax.ListType());	        
-		}		
-
-		// returns a logo list with all model numbers
-		public Object report(Argument args[], Context context)
-				throws ExtensionException, org.nlogo.api.LogoException {
-			LogoListBuilder myLLB = new LogoListBuilder();
-
-			for (Integer modelId : myModels.keySet()) {
-				LogoListBuilder modelLLB = new LogoListBuilder();
-				double nextModel = modelId;
-				LevelsModelAbstract aModel = myModels.get(nextModel);
-				String modelUrl = aModel.getName();
-				modelLLB.add(new Double(nextModel));
-				modelLLB.add(modelUrl);
-				myLLB.add(modelLLB.toLogoList());
-			}
-			return myLLB.toLogoList();
-		}
 	}
 
 	@Override

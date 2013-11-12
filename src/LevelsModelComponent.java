@@ -18,6 +18,13 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 
 	public LevelsModelComponent(final String path, final int levelsSpaceNumber)
 	{
+		this.levelsSpaceNumber = levelsSpaceNumber;
+		// find the name of the model - it is the bit past the last dash
+		int lastDashPosition = path.lastIndexOf("/") + 1;
+		int lastDotPosition = path.lastIndexOf(".");
+		name = path.substring(lastDashPosition, lastDotPosition);
+		this.path = path;
+
 		try {
 			SwingUtilities.invokeAndWait(
 					new Runnable() {
@@ -38,7 +45,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 									co.setVisible(false);
 								}
 							}
-							frame.setTitle("LevelsSpace model no. " + String.valueOf(levelsSpaceNumber));
+							frame.setTitle(name + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
 							frame.pack();
 							// Set speed slider to 110, so that child models never throttle their parents
 							myWS.workspace().speedSliderPosition(110);
@@ -47,6 +54,8 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		catch(Exception ex) {
 			ex.printStackTrace();
 		}
+
+
 	}
 
 

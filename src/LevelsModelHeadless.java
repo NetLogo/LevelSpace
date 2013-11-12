@@ -14,13 +14,19 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	String path;
 	int levelsSpaceNumber;
 	
-	public LevelsModelHeadless(String url, int levelsSpaceNumber)
+	public LevelsModelHeadless(String path, int levelsSpaceNumber)
 	{
+		this.levelsSpaceNumber = levelsSpaceNumber;		
+        // find the name of the model - it is the bit past the last dash
+        int lastDashPosition = path.lastIndexOf("/") + 1;
+        name = path.substring(lastDashPosition);
+        this.path = path;
+				
 		// make a new headless workspace
 		myWS = HeadlessWorkspace.newInstance();
 		// load the model inthe headless workspace
 		try {
-			myWS.open(url);
+			myWS.open(path);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -31,15 +37,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		path = url;
 				
-		this.levelsSpaceNumber = levelsSpaceNumber;
-		
-        // find the name of the model - it is the bit past the last 
-        // dash
-        int lastDashPosition = url.lastIndexOf("/") + 1;
-        name = url.substring(lastDashPosition);
-		
 	}
 
 	public void createImageFrame(){
