@@ -30,6 +30,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							catch(Exception ex) {
 								ex.printStackTrace();
 							}
+							// get all components, find the speed slider, and hide it.
 							Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
 							for (Component co : c){
 								if (co instanceof SpeedSliderPanel){
@@ -38,8 +39,8 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							}
 							frame.setTitle("LevelsSpace model no. " + String.valueOf(levelsSpaceNumber));
 							frame.pack();
+							// Set speed slider to 110, so that child models never throttle their parents
 							myWS.workspace().speedSliderPosition(110);
-							
 						}});
 		}
 		catch(Exception ex) {
