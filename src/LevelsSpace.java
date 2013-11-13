@@ -19,12 +19,14 @@ import org.nlogo.api.ExtensionManager;
 import org.nlogo.api.ExtensionObject;
 import org.nlogo.api.ImportErrorHandler;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
+
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
@@ -360,7 +362,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 							else if (returnValue instanceof AgentSet){
 								throw new ExtensionException("You cannot report turtle-, patch-, or linksets. If you want to do something" +
 										"with turtlesets, patchsets, or linkset, use the ls:ask instead.");							
-							}							
+							}
+							else if (returnValue instanceof LogoList){
+								checkAgentsAndSets((LogoList)returnValue);								
+							}
+							
 							return returnValue;
 						}
 					});
@@ -372,6 +378,18 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
 
+		}
+		
+		private void checkAgentsAndSets(LogoList ll) throws ExtensionException{
+			for (Object o : ll){
+				if (o instanceof Agent || o instanceof AgentSet){
+					throw new ExtensionException("You cannot report agents or agentsets.");
+				}
+				if(o instanceof LogoList){
+					checkAgentsAndSets((LogoList)o);
+				}
+			}
+			
 		}
 	}
 
