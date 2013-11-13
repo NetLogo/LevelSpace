@@ -7,6 +7,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
+import org.nlogo.agent.Agent;
+import org.nlogo.agent.AgentSet;
 import org.nlogo.api.Argument;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.Context;
@@ -349,13 +351,22 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					return LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
 						@Override
 						public Object call() throws Exception {
-							return aModel.report(varName);
+							Object returnValue = aModel.report(varName);
+							if (returnValue instanceof Agent)
+							{
+								throw new ExtensionException("You cannot report turtles, patches, or links. If you want to do something" +
+										"with turtles, patches, or links, use the ls:ask instead.");
+							} 
+							else if (returnValue instanceof AgentSet){
+								throw new ExtensionException("You cannot report turtle-, patch-, or linksets. If you want to do something" +
+										"with turtles, patches, or links, use the ls:ask instead.");							
+							}							
+							return returnValue;
 						}
 					});
 				} catch (ExecutionException e) {
 					throw new RuntimeException(e);
 				}
-				
 			}
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
