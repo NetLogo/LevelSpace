@@ -359,7 +359,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 							} 
 							else if (returnValue instanceof AgentSet){
 								throw new ExtensionException("You cannot report turtle-, patch-, or linksets. If you want to do something" +
-										"with turtles, patches, or links, use the ls:ask instead.");							
+										"with turtlesets, patchsets, or linksets, use the ls:ask instead.");							
 							}							
 							return returnValue;
 						}
