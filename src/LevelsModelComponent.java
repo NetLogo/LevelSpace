@@ -92,7 +92,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 			reportedValue = myWS.report(varName);
 		} catch (CompilerException e) {
 			// TODO Auto-generated catch block
-			throw new ExtensionException("That reporter does not exist in this child model.");
+			throw new ExtensionException("The reporter \'" + varName + "\' does not exist in the model with ID " + levelsSpaceNumber);
 		}
 		return reportedValue;
 	}
