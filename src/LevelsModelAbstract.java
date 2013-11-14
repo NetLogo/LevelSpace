@@ -7,7 +7,7 @@ public abstract class LevelsModelAbstract {
 	Object myWS;
 
 	abstract void command(String command) throws CompilerException, LogoException, ExtensionException;
-	abstract Object report(String reporter) throws ExtensionException, LogoException;
+	abstract Object report(String reporter) throws ExtensionException, LogoException, CompilerException;
 	abstract void kill();
 	abstract String getPath();
 	abstract String getName();

@@ -85,15 +85,10 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	 * @return
 	 * @throws ExtensionException 
 	 */
-	public Object report (String varName) throws ExtensionException
+	public Object report (String varName) throws ExtensionException, CompilerException
 	{
 		Object reportedValue = null;
-		try {
-			reportedValue = myWS.report(varName);
-		} catch (CompilerException e) {
-			// TODO Auto-generated catch block
-			throw new ExtensionException("The reporter \'" + varName + "\' does not exist in the model with ID " + levelsSpaceNumber);
-		}
+		reportedValue = myWS.report(varName);
 		return reportedValue;
 	}
 

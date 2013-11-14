@@ -93,15 +93,10 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		}
 	}
 	
-	public Object report (String varName) throws LogoException, ExtensionException
+	public Object report (String varName) throws LogoException, ExtensionException, CompilerException
 	{
 		Object reportedValue = null;
-		try {
-			reportedValue = myWS.report(varName);
-		} catch (CompilerException e) {
-			// TODO Auto-generated catch block
-			throw new ExtensionException("That reporter does not exist in this child model.");
-		}
+		reportedValue = myWS.report(varName);
 		return reportedValue;
 	}
 

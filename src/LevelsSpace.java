@@ -372,7 +372,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 						}
 					});
 				} catch (ExecutionException e) {
-					throw new RuntimeException(e);
+					throw new RuntimeException("The reporter \'" + varName + "\' does not exist in the model with ID " + modelNumber);
 				}
 			}
 			else{
