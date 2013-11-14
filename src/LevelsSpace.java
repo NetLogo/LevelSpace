@@ -164,6 +164,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 							}
 						});
 					} catch (ExecutionException e) {
+						throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
 					}
 			}
 			else{
