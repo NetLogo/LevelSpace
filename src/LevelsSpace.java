@@ -60,7 +60,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("report", new Report());	
 		// this returns just the path of a model
 		primitiveManager.addPrimitive("model-path", new ModelPath());
-		// 
+		// These should probably go.
 		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
 		
@@ -522,5 +522,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			throw new HaltException(false);
 		}
 	}
+	
+	public static void killClosedModel(int levelsSpaceNumber){
+		LevelsModelAbstract aModel = myModels.get(levelsSpaceNumber);
+		myModels.remove(levelsSpaceNumber);
+		aModel.kill();
+	}
+
 
 }

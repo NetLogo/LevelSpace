@@ -1,5 +1,7 @@
 import java.awt.Component;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.nlogo.api.CompilerException;
@@ -49,6 +51,25 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							frame.pack();
 							// Set speed slider to 110, so that child models never throttle their parents
 							myWS.workspace().speedSliderPosition(110);
+
+							// Make sure that the model doesn't close if people accidentally click the close button
+							frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+							// Adding window listener so that the model calls the method that removes it from
+							// the extension if closed.
+							frame.addWindowListener(new java.awt.event.WindowAdapter() {
+							    @Override
+							    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+							        if (JOptionPane.showConfirmDialog(frame, 
+							            "Closing the window will close the model. Are you sure?", "", 
+							            JOptionPane.YES_NO_OPTION,
+							            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+							            LevelsSpace.killClosedModel(levelsSpaceNumber);
+							        }
+							    }
+							});
+//							
+							
+							
 						}});
 		}
 		catch(Exception ex) {
