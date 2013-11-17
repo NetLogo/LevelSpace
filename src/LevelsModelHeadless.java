@@ -116,6 +116,10 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		
 	}
 	
+	void setSpeed(double d){
+		
+	}
+	
 	
 	
 }

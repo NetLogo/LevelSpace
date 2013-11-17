@@ -12,5 +12,6 @@ public abstract class LevelsModelAbstract {
 	abstract String getPath();
 	abstract String getName();
 	abstract void breathe();
+	abstract void setSpeed(double d);
 
 }

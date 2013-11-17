@@ -1,4 +1,6 @@
 
+import java.awt.Component;
+import java.awt.Container;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -6,6 +8,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.nlogo.agent.Agent;
 import org.nlogo.agent.AgentSet;
@@ -26,6 +32,9 @@ import org.nlogo.api.Syntax;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace.OutputDestination;
+import org.nlogo.window.SpeedSliderPanel;
+import org.nlogo.window.ViewUpdatePanel;
 
 
 
@@ -63,9 +72,51 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// These should probably go.
 		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
-		
+		// this is a test reporter. just fill it in with whatever you want to look at
+		primitiveManager.addPrimitive("test-reporter", new TestReporter());
+
 		modelCounter = 0;
+		//
+		//		String mssg = "LevelsSpace loaded";
+		//		try {
+		//			App.app().workspace().outputObject(mssg, null, true, true, OutputDestination.NORMAL);
+		//		} catch (LogoException e) {
+		//			// TODO Auto-generated catch block
+		//			e.printStackTrace();
+		//
+		//		}
+
+
+		Component[] c = App.app().tabs().interfaceTab().getComponents();
+		for (Component co : c){
+			Component[] c2 = ((Container) co).getComponents();
+			for (Component co2 : c2){
+				if (co2 instanceof ViewUpdatePanel){
+					Component[] c3 = ((Container) co2).getComponents();
+					for(Component co3 : c3){
+						if (co3 instanceof SpeedSliderPanel){
+							SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel)co3;
+							JSlider slider = (JSlider)speedSliderPanel.getComponents()[0];
+							try {
+								App.app().workspace().outputObject(slider instanceof JSlider, null, true, true, OutputDestination.NORMAL);
+							} catch (LogoException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}			
+							slider.addChangeListener(new ChangeListener(){
+								@Override
+								public void stateChanged(ChangeEvent arg0) {
+									updateChildModelsSpeed();
+
+								}
+							});
+						}
+					}
+				}
+			}
+		}
 	}
+
 
 	@Override
 	public void unload(ExtensionManager arg0) throws ExtensionException {
@@ -76,7 +127,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		myModels.clear();
 	}
 
-	
+
 	public static class LoadHeadlessModel extends DefaultCommand {
 		public Syntax getSyntax() {
 			return Syntax.commandSyntax(
@@ -155,22 +206,22 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			{
 				final LevelsModelAbstract aModel = myModels.get(modelNumber);
 
-					try {
-						LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
-							@Override
-							public Object call() throws CompilerException, LogoException, ExtensionException {
-								aModel.command(command);
-								return null;
-							}
-						});
-					} catch (ExecutionException e) {
-						throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
-					}
+				try {
+					LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
+						@Override
+						public Object call() throws CompilerException, LogoException, ExtensionException {
+							aModel.command(command);
+							return null;
+						}
+					});
+				} catch (ExecutionException e) {
+					throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
+				}
 			}
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
-			
+
 			App.app().workspace().breathe();
 		}
 	}
@@ -221,7 +272,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
-			
+
 
 		}
 	}	
@@ -247,7 +298,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
-			
+
 
 		}
 	}
@@ -256,7 +307,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public Syntax getSyntax(){
 			return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
 					Syntax.StringType());
-			
+
 		}
 		public Object report(Argument[] args, Context context) throws ExtensionException{
 			String modelName = new String();
@@ -278,16 +329,16 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
 			return modelName;
-			
+
 		}
-		
+
 	}
 	// this returns the path of the model
 	public static class ModelPath extends DefaultReporter{
 		public Syntax getSyntax(){
 			return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
 					Syntax.StringType());
-			
+
 		}
 		public Object report(Argument[] args, Context context) throws ExtensionException{
 			String modelName = new String();
@@ -310,11 +361,46 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}
 
 			return modelName;
-			
+
 		}
-		
+
 	}
-	
+
+
+	public static class TestReporter extends DefaultReporter{
+		public Syntax getSyntax(){
+			return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
+					Syntax.NumberType());
+
+		}
+		public Object report(Argument[] args, Context context) throws ExtensionException{
+			Object reporterValue = 0;
+			// get model number
+			int modelNumber = -1;
+			try {
+				modelNumber = args[0].getIntValue();
+			} catch (ExtensionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (LogoException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(myModels.containsKey(modelNumber)){
+				LevelsModelComponent aModel = (LevelsModelComponent) myModels.get(modelNumber);
+				reporterValue = aModel.myWS.workspace().speedSliderPosition();
+			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+
+			return reporterValue;
+
+		}
+
+	}
+
+
 	/*
 	 * This primitive returns the last created model number
 	 */
@@ -367,7 +453,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 							else if (returnValue instanceof LogoList){
 								checkAgentsAndSets((LogoList)returnValue);								
 							}
-							
+
 							return returnValue;
 						}
 					});
@@ -380,7 +466,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}
 
 		}
-		
+
 		private void checkAgentsAndSets(LogoList ll) throws ExtensionException{
 			for (Object o : ll){
 				if (o instanceof Agent || o instanceof AgentSet){
@@ -390,7 +476,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					checkAgentsAndSets((LogoList)o);
 				}
 			}
-			
+
 		}
 	}
 
@@ -522,12 +608,19 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			throw new HaltException(false);
 		}
 	}
-	
+
 	public static void killClosedModel(int levelsSpaceNumber){
 		LevelsModelAbstract aModel = myModels.get(levelsSpaceNumber);
 		myModels.remove(levelsSpaceNumber);
 		aModel.kill();
 	}
 
+	void updateChildModelsSpeed(){
+		double theSpeed = App.app().workspace().speedSliderPosition();
+		for (LevelsModelAbstract model : myModels.values()){
+			model.setSpeed(theSpeed);
+
+		}
+	}
 
 }

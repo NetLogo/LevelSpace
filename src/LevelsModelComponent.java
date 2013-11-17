@@ -45,13 +45,11 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							for (Component co : c){
 								if (co instanceof SpeedSliderPanel){
 									co.setVisible(false);
+									((SpeedSliderPanel) co).setValue(0);
 								}
 							}
 							frame.setTitle(name + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
 							frame.pack();
-							// Set speed slider to 110, so that child models never throttle their parents
-							myWS.workspace().speedSliderPosition(110);
-
 							// Make sure that the model doesn't close if people accidentally click the close button
 							frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 							// Adding window listener so that the model calls the method that removes it from
@@ -125,5 +123,15 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	@Override
 	void breathe() {
 		myWS.workspace().breathe();
+	}
+	
+	void setSpeed(double d){
+		Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
+		for (Component co : c){
+			if (co instanceof SpeedSliderPanel){
+				((SpeedSliderPanel) co).setValue((int)d);
+			}
+		}
+
 	}
 }
