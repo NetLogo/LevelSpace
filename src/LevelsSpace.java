@@ -32,7 +32,6 @@ import org.nlogo.api.Syntax;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -72,21 +71,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// These should probably go.
 		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
-		// this is a test reporter. just fill it in with whatever you want to look at
-		primitiveManager.addPrimitive("test-reporter", new TestReporter());
 
 		modelCounter = 0;
-		//
-		//		String mssg = "LevelsSpace loaded";
-		//		try {
-		//			App.app().workspace().outputObject(mssg, null, true, true, OutputDestination.NORMAL);
-		//		} catch (LogoException e) {
-		//			// TODO Auto-generated catch block
-		//			e.printStackTrace();
-		//
-		//		}
-
-
+		
+		// Attaching a ChangeEventListener to the main model's speed slider so we can 
+		// update child models' speed sliders at the same time.
 		Component[] c = App.app().tabs().interfaceTab().getComponents();
 		for (Component co : c){
 			Component[] c2 = ((Container) co).getComponents();
@@ -97,12 +86,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 						if (co3 instanceof SpeedSliderPanel){
 							SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel)co3;
 							JSlider slider = (JSlider)speedSliderPanel.getComponents()[0];
-							try {
-								App.app().workspace().outputObject(slider instanceof JSlider, null, true, true, OutputDestination.NORMAL);
-							} catch (LogoException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}			
 							slider.addChangeListener(new ChangeListener(){
 								@Override
 								public void stateChanged(ChangeEvent arg0) {
@@ -365,41 +348,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 
 	}
-
-
-	public static class TestReporter extends DefaultReporter{
-		public Syntax getSyntax(){
-			return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
-					Syntax.NumberType());
-
-		}
-		public Object report(Argument[] args, Context context) throws ExtensionException{
-			Object reporterValue = 0;
-			// get model number
-			int modelNumber = -1;
-			try {
-				modelNumber = args[0].getIntValue();
-			} catch (ExtensionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (LogoException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if(myModels.containsKey(modelNumber)){
-				LevelsModelComponent aModel = (LevelsModelComponent) myModels.get(modelNumber);
-				reporterValue = aModel.myWS.workspace().speedSliderPosition();
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
-
-			return reporterValue;
-
-		}
-
-	}
-
 
 	/*
 	 * This primitive returns the last created model number
