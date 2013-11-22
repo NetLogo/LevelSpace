@@ -14,7 +14,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	String path;
 	int levelsSpaceNumber;
 	
-	public LevelsModelHeadless(String path, int levelsSpaceNumber)
+	public LevelsModelHeadless(String path, int levelsSpaceNumber) throws IOException, CompilerException, LogoException
 	{
 		this.levelsSpaceNumber = levelsSpaceNumber;		
         // find the name of the model - it is the bit past the last dash
@@ -24,20 +24,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 				
 		// make a new headless workspace
 		myWS = HeadlessWorkspace.newInstance();
-		// load the model inthe headless workspace
-		try {
-			myWS.open(path);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CompilerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (LogoException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-				
+		myWS.open(path);				
 	}
 
 	public void createImageFrame(){

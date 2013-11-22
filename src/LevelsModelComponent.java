@@ -1,4 +1,5 @@
 import java.awt.Component;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -7,6 +8,7 @@ import javax.swing.SwingUtilities;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.lite.InterfaceComponent;
+import org.nlogo.window.InvalidVersionException;
 import org.nlogo.window.SpeedSliderPanel;
 
 
@@ -36,9 +38,11 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							try {
 								myWS.open
 								(path);
-							}
-							catch(Exception ex) {
-								ex.printStackTrace();
+							} catch (IOException e) {
+								e.printStackTrace();
+								// TODO Auto-generated catch block
+							} catch (InvalidVersionException e) {
+								e.printStackTrace();
 							}
 							// get all components, find the speed slider, and hide it.
 							Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
@@ -73,7 +77,6 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		catch(Exception ex) {
 			ex.printStackTrace();
 		}
-
 
 	}
 

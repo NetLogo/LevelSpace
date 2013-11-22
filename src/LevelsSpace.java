@@ -1,6 +1,7 @@
 
 import java.awt.Component;
 import java.awt.Container;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -124,9 +125,17 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// model we are making
 			// make a new LevelsModel
 			String modelURL = args[0].getString();
+			LevelsModelHeadless aModel = null;
+			try {
+				aModel = new LevelsModelHeadless(modelURL, modelCounter);
+			} catch (IOException e) {
+				throw new ExtensionException ("There was no .nlogo file at the path: \"" + modelURL + "\"");
+			} catch (CompilerException e) {
+				throw new ExtensionException (modelURL + " did not compile properly. There is probably something wrong " +
+						"with its code.");
+			} catch (LogoException e) {
+			}
 
-			LevelsModelHeadless aModel = new LevelsModelHeadless(modelURL, modelCounter);
-			// add it to models
 			myModels.put(modelCounter, aModel);
 			// add to models counter
 			modelCounter ++;
@@ -169,8 +178,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}
 			myModels.clear();
 		}
-	}	
-
+	}
 
 	public static class RunCommand extends DefaultCommand {
 		public Syntax getSyntax() {
