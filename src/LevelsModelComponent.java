@@ -62,22 +62,19 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							    @Override
 							    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 							        if (JOptionPane.showConfirmDialog(frame, 
-							            "Closing the window will close the model. Are you sure?", "", 
+							            "Closing the window will not close the model but simply keep it running" +
+							            " in the background. Are you sure you want to close the window?", "", 
 							            JOptionPane.YES_NO_OPTION,
 							            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
-							            LevelsSpace.killClosedModel(levelsSpaceNumber);
+							        	frame.setVisible(false);
 							        }
 							    }
 							});
-//							
-							
-							
 						}});
 		}
 		catch(Exception ex) {
 			ex.printStackTrace();
 		}
-
 	}
 
 
@@ -136,5 +133,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 			}
 		}
 
+	}
+	
+	void showGUI(){
+		frame.setVisible(true);
 	}
 }

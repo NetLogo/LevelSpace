@@ -72,6 +72,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// These should probably go.
 		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
+		primitiveManager.addPrimitive("show-gui", new ShowGUI());
 
 		modelCounter = 0;
 		
@@ -284,6 +285,36 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				LevelsModelHeadless aModel = (LevelsModelHeadless)myModels.get(modelNumber);
 				aModel.createImageFrame();
 				aModel.myWS.breathe();
+				App.app().workspace().breathe();
+			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+
+
+		}
+	}
+	public static class ShowGUI extends DefaultCommand {
+		public Syntax getSyntax() {
+			return Syntax.commandSyntax(
+					new int[] { Syntax.NumberType() });	        
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// get model number from args
+			int modelNumber = (int) args[0].getDoubleValue();
+			// find the model. if it exists, run the command 
+			if(myModels.containsKey(modelNumber))
+			{
+				if (myModels.get(modelNumber) instanceof LevelsModelComponent){
+					LevelsModelComponent aModel = (LevelsModelComponent)myModels.get(modelNumber); 
+					aModel.showGUI();
+				}
+				else {
+					throw new ExtensionException("You can only show the GUI of GUI models. Model with ID " +
+							modelNumber + " is not a GUI model");
+				}
 				App.app().workspace().breathe();
 			}
 			else{
