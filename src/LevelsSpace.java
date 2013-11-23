@@ -73,6 +73,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
 		primitiveManager.addPrimitive("show-gui", new ShowGUI());
+		primitiveManager.addPrimitive("hide-gui", new HideGUI());
 
 		modelCounter = 0;
 		
@@ -320,10 +321,37 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
-
-
 		}
 	}
+	public static class HideGUI extends DefaultCommand {
+		public Syntax getSyntax() {
+			return Syntax.commandSyntax(
+					new int[] { Syntax.NumberType() });	        
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// get model number from args
+			int modelNumber = (int) args[0].getDoubleValue();
+			// find the model. if it exists, run the command 
+			if(myModels.containsKey(modelNumber))
+			{
+				if (myModels.get(modelNumber) instanceof LevelsModelComponent){
+					LevelsModelComponent aModel = (LevelsModelComponent)myModels.get(modelNumber); 
+					aModel.hideGUI();
+				}
+				else {
+					throw new ExtensionException("You can only hide the GUI of GUI models. Model with ID " +
+							modelNumber + " is not a GUI model");
+				}
+				App.app().workspace().breathe();
+			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+			}
+		}
+	}
+	
 	// this returns the path of the model
 	public static class ModelName extends DefaultReporter{
 		public Syntax getSyntax(){

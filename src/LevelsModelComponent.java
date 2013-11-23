@@ -138,4 +138,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	void showGUI(){
 		frame.setVisible(true);
 	}
+	void hideGUI(){
+		frame.setVisible(true);
+	}
 }
