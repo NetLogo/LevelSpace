@@ -1,5 +1,6 @@
 import java.awt.Component;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -20,7 +21,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	String path;
 	int levelsSpaceNumber;
 
-	public LevelsModelComponent(final String path, final int levelsSpaceNumber)
+	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException 
 	{
 		this.levelsSpaceNumber = levelsSpaceNumber;
 		// find the name of the model - it is the bit past the last dash
@@ -29,52 +30,46 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		name = path.substring(lastDashPosition, lastDotPosition);
 		this.path = path;
 
-		try {
-			SwingUtilities.invokeAndWait(
-					new Runnable() {
-						public void run() {
-							frame.add(myWS);
-							frame.setVisible(true);
-							try {
-								myWS.open
-								(path);
-							} catch (IOException e) {
-								e.printStackTrace();
-								// TODO Auto-generated catch block
-							} catch (InvalidVersionException e) {
-								e.printStackTrace();
+		SwingUtilities.invokeAndWait(
+				new Runnable() {
+					public void run() {					
+						frame.add(myWS);
+						frame.setVisible(true);
+						try {
+							myWS.open
+							(path);
+						} catch (IOException e) {
+						} catch (InvalidVersionException e) {
+						}
+						// get all components, find the speed slider, and hide it.
+						Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
+						for (Component co : c){
+							if (co instanceof SpeedSliderPanel){
+								co.setVisible(false);
+								((SpeedSliderPanel) co).setValue(0);
 							}
-							// get all components, find the speed slider, and hide it.
-							Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
-							for (Component co : c){
-								if (co instanceof SpeedSliderPanel){
-									co.setVisible(false);
-									((SpeedSliderPanel) co).setValue(0);
+						}
+						frame.setTitle(name + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
+						frame.pack();
+						// Make sure that the model doesn't close if people accidentally click the close button
+						frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+						// Adding window listener so that the model calls the method that removes it from
+						// the extension if closed.
+						frame.addWindowListener(new java.awt.event.WindowAdapter() {
+							@Override
+							public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+								if (JOptionPane.showConfirmDialog(frame, 
+										"Closing the window will not close the model but simply keep it running" +
+												" in the background. Are you sure you want to close the window? " +
+												"Use ls:close-model  <model-number> to close the model.", "", 
+												JOptionPane.YES_NO_OPTION,
+												JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+									frame.setVisible(false);
 								}
 							}
-							frame.setTitle(name + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
-							frame.pack();
-							// Make sure that the model doesn't close if people accidentally click the close button
-							frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-							// Adding window listener so that the model calls the method that removes it from
-							// the extension if closed.
-							frame.addWindowListener(new java.awt.event.WindowAdapter() {
-							    @Override
-							    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-							        if (JOptionPane.showConfirmDialog(frame, 
-							            "Closing the window will not close the model but simply keep it running" +
-							            " in the background. Are you sure you want to close the window?", "", 
-							            JOptionPane.YES_NO_OPTION,
-							            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
-							        	frame.setVisible(false);
-							        }
-							    }
-							});
-						}});
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
+						});
+					}});
+
 	}
 
 
@@ -124,7 +119,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	void breathe() {
 		myWS.workspace().breathe();
 	}
-	
+
 	void setSpeed(double d){
 		Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
 		for (Component co : c){
@@ -134,11 +129,11 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		}
 
 	}
-	
+
 	void showGUI(){
 		frame.setVisible(true);
 	}
 	void hideGUI(){
-		frame.setVisible(true);
+		frame.setVisible(false);
 	}
 }

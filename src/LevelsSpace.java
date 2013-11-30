@@ -2,6 +2,7 @@
 import java.awt.Component;
 import java.awt.Container;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -134,7 +135,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throw new ExtensionException ("There was no .nlogo file at the path: \"" + modelURL + "\"");
 			} catch (CompilerException e) {
 				throw new ExtensionException (modelURL + " did not compile properly. There is probably something wrong " +
-						"with its code.");
+						"with its code. Exception said" + e.getMessage());
 			} catch (LogoException e) {
 			}
 
@@ -154,18 +155,38 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		public void perform(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
-			// saving current modelCounter as that will be the hashtable key to the 
-			// model we are making
-			// make a new LevelsModel
+			// Get the path for the model
 			String modelURL = args[0].getString();
-
-			LevelsModelComponent aModel = new LevelsModelComponent(modelURL, modelCounter);
+			// Because ComponentInterfaces are loaded in Runnables, and throwing exception from
+			// them is a lot of work, I use the headless to check if the mdoel works
+			// and if it loads and compiles properly 
+			// This adds around 20% time to loading a GUI model which isn't great but also not terrible
+			try {
+				LevelsModelHeadless dummyModel = new LevelsModelHeadless(modelURL, modelCounter);
+				App.app().workspace().breathe();
+			} catch (IOException e) {
+				throw new ExtensionException ("There was no .nlogo file at the path: \"" + modelURL + "\"");
+			} catch (CompilerException e) {
+				throw new ExtensionException (modelURL + " did not compile properly. There is probably something wrong " +
+						"with its code. Exception said" + e.getMessage());
+			} catch (LogoException e) {
+				throw new ExtensionException (e.getMessage());
+			}
+			// If we got down here, the model exists, and loads and compiles properly.
+			LevelsModelComponent aModel = null;
+			try {
+				aModel = new LevelsModelComponent(modelURL, modelCounter);
+			} catch (InterruptedException e) {
+				new ExtensionException(e.getMessage());
+			} catch (InvocationTargetException e) {
+				new ExtensionException(e.getMessage());
+			}
 			// add it to models
 			myModels.put(modelCounter, aModel);
 			// add to models counter
 			modelCounter ++;
 			// stop up, take a breath. You will be okay.
-			App.app().workspace().breathe();
+//			App.app().workspace().breathe();
 		}
 	}
 
@@ -177,6 +198,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// stop all running models
 			for (LevelsModelAbstract model : myModels.values()) {
 				model.kill();
+				App.app().workspace().breathe();
 			}
 			myModels.clear();
 		}
@@ -240,7 +262,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}			
 			// and remove it from the hashtable
 			myModels.remove(modelNumber);
+			App.app().workspace().breathe();
 		}
+
 	}	
 
 	public static class UpdateView extends DefaultCommand {
@@ -633,6 +657,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	void updateChildModelsSpeed(){
 		double theSpeed = App.app().workspace().speedSliderPosition();
 		for (LevelsModelAbstract model : myModels.values()){
+			// find out if they have a LevelsSpace extension loaded
+			if (model instanceof LevelsModelComponent){
+				LevelsModelComponent lmodel = (LevelsModelComponent)model;
+				lmodel.myWS.getComponents();
+			}else
+			{
+				
+			}
 			model.setSpeed(theSpeed);
 
 		}
