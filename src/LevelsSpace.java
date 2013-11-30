@@ -138,7 +138,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 						"with its code. Exception said" + e.getMessage());
 			} catch (LogoException e) {
 			}
-
+			updateChildModelSpeed(aModel);
 			myModels.put(modelCounter, aModel);
 			// add to models counter
 			modelCounter ++;
@@ -181,12 +181,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			} catch (InvocationTargetException e) {
 				new ExtensionException(e.getMessage());
 			}
+			updateChildModelSpeed(aModel);
 			// add it to models
 			myModels.put(modelCounter, aModel);
 			// add to models counter
 			modelCounter ++;
 			// stop up, take a breath. You will be okay.
-//			App.app().workspace().breathe();
+			App.app().workspace().breathe();
 		}
 	}
 
@@ -669,5 +670,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
-
+	
+	static void updateChildModelSpeed(LevelsModelAbstract model){
+		double theSpeed = App.app().workspace().speedSliderPosition();
+		model.setSpeed(theSpeed);
+	}	
 }

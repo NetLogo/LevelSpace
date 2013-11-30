@@ -38,8 +38,8 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 						try {
 							myWS.open
 							(path);
-						} catch (IOException e) {
-						} catch (InvalidVersionException e) {
+						} catch (Exception e) {
+							
 						}
 						// get all components, find the speed slider, and hide it.
 						Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
