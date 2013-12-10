@@ -34,6 +34,7 @@ import org.nlogo.api.Syntax;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -157,35 +158,19 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			// Get the path for the model
 			String modelURL = args[0].getString();
-			// Because ComponentInterfaces are loaded in Runnables, and throwing exception from
-			// them is a lot of work, I use the headless to check if the mdoel works
-			// and if it loads and compiles properly 
-			// This adds around 20% time to loading a GUI model which isn't great but also not terrible
-			try {
-				LevelsModelHeadless dummyModel = new LevelsModelHeadless(modelURL, modelCounter);
-				App.app().workspace().breathe();
-			} catch (IOException e) {
-				throw new ExtensionException ("There was no .nlogo file at the path: \"" + modelURL + "\"");
-			} catch (CompilerException e) {
-				throw new ExtensionException (modelURL + " did not compile properly. There is probably something wrong " +
-						"with its code. Exception said" + e.getMessage());
-			} catch (LogoException e) {
-				throw new ExtensionException (e.getMessage());
-			}
-			// If we got down here, the model exists, and loads and compiles properly.
 			LevelsModelComponent aModel = null;
 			try {
 				aModel = new LevelsModelComponent(modelURL, modelCounter);
+				updateChildModelSpeed(aModel);
+				// add it to models
+				myModels.put(modelCounter, aModel);
+				// add to models counter
+				modelCounter ++;
 			} catch (InterruptedException e) {
-				new ExtensionException(e.getMessage());
+				new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
 			} catch (InvocationTargetException e) {
-				new ExtensionException(e.getMessage());
-			}
-			updateChildModelSpeed(aModel);
-			// add it to models
-			myModels.put(modelCounter, aModel);
-			// add to models counter
-			modelCounter ++;
+				new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
+			} 
 			// stop up, take a breath. You will be okay.
 			App.app().workspace().breathe();
 		}
@@ -671,8 +656,16 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}
 	
+	static void killModelWithID(int modelId){
+		LevelsModelAbstract aModel = myModels.get(modelId);
+		aModel.kill();
+		myModels.remove(aModel);
+		App.app().workspace().breathe();		
+	}
+	
 	static void updateChildModelSpeed(LevelsModelAbstract model){
 		double theSpeed = App.app().workspace().speedSliderPosition();
 		model.setSpeed(theSpeed);
 	}	
+
 }

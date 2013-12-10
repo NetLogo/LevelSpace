@@ -1,5 +1,4 @@
 import java.awt.Component;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JFrame;
@@ -9,7 +8,6 @@ import javax.swing.SwingUtilities;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.lite.InterfaceComponent;
-import org.nlogo.window.InvalidVersionException;
 import org.nlogo.window.SpeedSliderPanel;
 
 
@@ -19,16 +17,18 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	final InterfaceComponent myWS = new InterfaceComponent(frame);	
 	String name;
 	String path;
-	int levelsSpaceNumber;
+	final int levelsSpaceNumber;
 
-	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException 
+	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException, ExtensionException 
 	{
 		this.levelsSpaceNumber = levelsSpaceNumber;
 		// find the name of the model - it is the bit past the last dash
-		int lastDashPosition = path.lastIndexOf("/") + 1;
-		int lastDotPosition = path.lastIndexOf(".");
-		name = path.substring(lastDashPosition, lastDotPosition);
+//		int lastDashPosition = path.lastIndexOf("/") + 1;
+//		int lastDotPosition = path.lastIndexOf(".");
+//		name = path.substring(lastDashPosition, lastDotPosition);
 		this.path = path;
+	
+		final Exception[] ex = new Exception[] { null };
 
 		SwingUtilities.invokeAndWait(
 				new Runnable() {
@@ -39,7 +39,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 							myWS.open
 							(path);
 						} catch (Exception e) {
-							
+							ex[0] = e;
 						}
 						// get all components, find the speed slider, and hide it.
 						Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
@@ -49,6 +49,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 								((SpeedSliderPanel) co).setValue(0);
 							}
 						}
+						name = myWS.workspace().modelNameForDisplay();
 						frame.setTitle(name + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
 						frame.pack();
 						// Make sure that the model doesn't close if people accidentally click the close button
@@ -58,18 +59,30 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 						frame.addWindowListener(new java.awt.event.WindowAdapter() {
 							@Override
 							public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-								if (JOptionPane.showConfirmDialog(frame, 
-										"Closing the window will not close the model but simply keep it running" +
-												" in the background. Are you sure you want to close the window? " +
-												"Use ls:close-model  <model-number> to close the model.", "", 
-												JOptionPane.YES_NO_OPTION,
-												JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
-									frame.setVisible(false);
+								Object[] options = {"Close Model", "Run in Background", "Cancel"};
+								int n = JOptionPane.showOptionDialog(frame,
+										"Close the model, run it in the background, or do nothing?",
+										null, JOptionPane.YES_NO_CANCEL_OPTION,
+										JOptionPane.QUESTION_MESSAGE,
+										null,
+										options,
+										options[2]);	
+								switch (n){
+								case 0 : LevelsSpace.killClosedModel(levelsSpaceNumber);
+									break;
+								case 1 : hideGUI();
+								
 								}
+									
+
 							}
 						});
 					}});
-
+		if (ex[0] != null){
+			frame.dispose();
+			Exception e = ex[0];
+			throw new ExtensionException(e.getMessage());
+		}
 	}
 
 
@@ -86,7 +99,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	}
 
 
-	public void kill()
+	final public void kill()
 	{
 		frame.dispose();
 	}
