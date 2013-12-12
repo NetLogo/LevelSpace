@@ -1,6 +1,8 @@
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -11,13 +13,16 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
+import javax.swing.JMenuItem;
 import javax.swing.JSlider;
+import javax.swing.MenuElement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.nlogo.agent.Agent;
 import org.nlogo.agent.AgentSet;
 import org.nlogo.api.Argument;
+import org.nlogo.api.ClassManager;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.Context;
 import org.nlogo.api.DefaultCommand;
@@ -33,10 +38,11 @@ import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
+import org.nlogo.app.ToolsMenu;
 import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
+
 
 
 
@@ -79,6 +85,21 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		modelCounter = 0;
 		
+		// Adding event listener to Halt for halting child models
+		MenuElement[] elements = App.app().frame().getJMenuBar().getSubElements();
+		for (MenuElement e : elements){
+			if (e instanceof ToolsMenu){
+				ToolsMenu tm = (ToolsMenu)e;
+				JMenuItem item = tm.getItem(0);
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						haltChildModels(myModels);
+					}
+				});
+			}
+		}
+				
 		// Attaching a ChangeEventListener to the main model's speed slider so we can 
 		// update child models' speed sliders at the same time.
 		Component[] c = App.app().tabs().interfaceTab().getComponents();
@@ -95,7 +116,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 								@Override
 								public void stateChanged(ChangeEvent arg0) {
 									updateChildModelsSpeed();
-
 								}
 							});
 						}
@@ -182,10 +202,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// resets the counter
 			modelCounter = 0;
 			// stop all running models
-			for (LevelsModelAbstract model : myModels.values()) {
-				model.kill();
-				App.app().workspace().breathe();
-			}
+//			for (LevelsModelAbstract model : myModels.values()) {
+//				killChildModels(myModels);
+//				model.kill();
+//				App.app().workspace().breathe();
+//			}
 			myModels.clear();
 		}
 	}
@@ -667,5 +688,38 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		double theSpeed = App.app().workspace().speedSliderPosition();
 		model.setSpeed(theSpeed);
 	}	
-
+	
+	static void haltChildModels( HashMap<Integer, LevelsModelAbstract> models){
+		// Iterate through child models
+		// First stop the child model, then get its (potential) child models and 
+		// send them here too
+		for (LevelsModelAbstract aModel : models.values()){
+			if (aModel instanceof LevelsModelComponent){
+				LevelsModelComponent theModel = (LevelsModelComponent)aModel;
+				Iterable<ClassManager> extensions = theModel.myWS.workspace().getExtensionManager().loadedExtensions();
+				for (ClassManager cm : extensions){
+					if (cm instanceof LevelsSpace){
+						// If I access this statically, I will keep accessing the myModels
+						// in the main App. So just ignore the warning.
+						HashMap<Integer, LevelsModelAbstract> theModels = ((LevelsSpace) cm).myModels;
+						haltChildModels(theModels);
+					}
+				}
+				theModel.myWS.workspace().halt();
+			}
+			if (aModel instanceof LevelsModelHeadless){
+				LevelsModelHeadless theModel = (LevelsModelHeadless)aModel;
+				Iterable<ClassManager> extensions = theModel.myWS.getExtensionManager().loadedExtensions();
+				for (ClassManager cm : extensions){
+					if (cm instanceof LevelsSpace){
+						// If I access this statically, I will keep accessing the myModels
+						// in the main App. So just ignore the warning.
+						HashMap<Integer, LevelsModelAbstract> theModels = ((LevelsSpace) cm).myModels;
+						haltChildModels(theModels);
+					}
+				}
+				theModel.myWS.halt();				
+			}
+		}
+	}
 }
