@@ -1,13 +1,21 @@
 import java.awt.Component;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.nlogo.api.ClassManager;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
+import org.nlogo.app.App;
 import org.nlogo.lite.InterfaceComponent;
+import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 
 
@@ -18,16 +26,14 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	String name;
 	String path;
 	final int levelsSpaceNumber;
+	LevelsSpace myLS;
 
 	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException, ExtensionException 
 	{
 		this.levelsSpaceNumber = levelsSpaceNumber;
 		// find the name of the model - it is the bit past the last dash
-//		int lastDashPosition = path.lastIndexOf("/") + 1;
-//		int lastDotPosition = path.lastIndexOf(".");
-//		name = path.substring(lastDashPosition, lastDotPosition);
 		this.path = path;
-	
+
 		final Exception[] ex = new Exception[] { null };
 
 		SwingUtilities.invokeAndWait(
@@ -69,11 +75,11 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 										options[2]);	
 								switch (n){
 								case 0 : LevelsSpace.killClosedModel(levelsSpaceNumber);
-									break;
+								break;
 								case 1 : hideGUI();
-								
+
 								}
-									
+
 
 							}
 						});
@@ -99,10 +105,77 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	}
 
 
-	final public void kill()
+	final public void kill() throws HaltException
 	{
-		frame.dispose();
+		// before we do anything, we need to check if this model has child-models.
+		// If it does, we need to kill those too.
+		if(myWS.workspace().getExtensionManager().anyExtensionsLoaded()){
+			// iterate through loaded extensions
+			for (ClassManager cm : myWS.workspace().getExtensionManager().loadedExtensions()){
+				// they are loaded in another classloader, so we have to do string check
+				if("class LevelsSpace".equals(cm.getClass().toString())){
+					// OK, what if we do it in a way less clever way, and just get a LogoList of numbers
+					// and then runsafely(command()) the model to kill them?
+					Object theList = null;
+					try {
+						theList = this.report("ls:all-models");
+					} catch (ExtensionException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (CompilerException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					LogoList theLogoList = (LogoList)theList;
+					for (Object theIndex : theLogoList.toArray()){
+						final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
+						try {
+							App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
+						} catch (LogoException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						try {
+							try {
+								LevelsSpace.runSafely(App.app().workspace().world(), new Callable<Object>() {
+									@Override
+									public Object call() throws CompilerException, LogoException, ExtensionException {
+										command(theCommand);
+										return null;
+									}
+								});
+							} catch (ExecutionException e) {
+								try {
+									throw new ExtensionException("Something went wrong when closing down the model");
+								} catch (ExtensionException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							}		
+							
+						} catch (NumberFormatException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}					
+				}
+
+			}
+		}			
+		
+		SwingUtilities.invokeLater(new Runnable(){
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				frame.dispose();
+			}
+			
+		});		
 	}
+	
+
 
 	/**
 	 * Runs the reporter in this model and returns the result
@@ -141,6 +214,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 			}
 		}
 
+	}
+	void halt(){
+		myWS.workspace().halt();
 	}
 
 	void showGUI(){

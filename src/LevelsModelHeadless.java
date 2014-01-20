@@ -1,10 +1,17 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
+import org.nlogo.api.ClassManager;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
+import org.nlogo.app.App;
 import org.nlogo.headless.HeadlessWorkspace;
+import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace.OutputDestination;
 
 public class LevelsModelHeadless extends LevelsModelAbstract {
 	
@@ -65,19 +72,88 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	
 	public void kill()
 	{
-		// kill the headless workspace
+		// before we do anything, we need to check if this model has child-models.
+		// If it does, we need to kill those too.
+		if(myWS.getExtensionManager().anyExtensionsLoaded()){
+			// iterate through loaded extensions
+			for (ClassManager cm : myWS.getExtensionManager().loadedExtensions()){
+				// they are loaded in another classloader, so we have to do string check
+				if("class LevelsSpace".equals(cm.getClass().toString())){
+					// If it has a levelsspace extension loaded, get a list of all loaded models
+					Object theList = null;
+					try {
+						try {// This may have to be run in runsafely
+							theList = report("ls:all-models");
+						} catch (LogoException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} catch (ExtensionException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (CompilerException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					LogoList theLogoList = (LogoList)theList;
+					for (Object theIndex : theLogoList.toArray()){
+						final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
+						try {
+							App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
+						} catch (LogoException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						try {
+							try {
+								try {
+									// We run these safely for all models, even though strictly speaking, headless models
+									// don't need it.
+									LevelsSpace.runSafely(App.app().workspace().world(), new Callable<Object>() {
+										@Override
+										public Object call() throws CompilerException, LogoException, ExtensionException {
+											command(theCommand);
+											return null;
+										}
+									});
+								} catch (HaltException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							} catch (ExecutionException e) {
+								try {
+									throw new ExtensionException("Something went wrong when closing down the model");
+								} catch (ExtensionException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+							}		
+							
+						} catch (NumberFormatException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}					
+				}
+
+			}
+		}			
+		
+		// then close down this model
+		if (frame != null){
+			frame.dispose();
+		}
 		try {
 			myWS.dispose();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		// kill the image frame if there is one
-		if (frame != null){
-			frame.dispose();
-
-		}
+	}
+	
+	public void halt(){
+		myWS.halt();
 	}
 	
 	public Object report (String varName) throws LogoException, ExtensionException, CompilerException
@@ -105,8 +181,5 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	
 	void setSpeed(double d){
 		
-	}
-	
-	
-	
+	}	
 }

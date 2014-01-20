@@ -22,7 +22,6 @@ import javax.swing.event.ChangeListener;
 import org.nlogo.agent.Agent;
 import org.nlogo.agent.AgentSet;
 import org.nlogo.api.Argument;
-import org.nlogo.api.ClassManager;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.Context;
 import org.nlogo.api.DefaultCommand;
@@ -40,6 +39,7 @@ import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.app.ToolsMenu;
 import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -98,9 +98,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					}
 				});
 			}
-		}
+		}	
 				
-		// Attaching a ChangeEventListener to the main model's speed slider so we can 
+		// Attaching a ChangeEventLister to the main model's speed slider so we can 
 		// update child models' speed sliders at the same time.
 		Component[] c = App.app().tabs().interfaceTab().getComponents();
 		for (Component co : c){
@@ -130,7 +130,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	public void unload(ExtensionManager arg0) throws ExtensionException {
 		// iterate through models and kill them
 		for (LevelsModelAbstract model : myModels.values()) {
-			model.kill();
+			try {
+				model.kill();
+			} catch (HaltException e) {
+				// TODO Auto-generated catch block
+				throw new ExtensionException("Killing the model failed for some reason");
+			}
 		}
 		myModels.clear();
 	}
@@ -201,12 +206,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			// resets the counter
 			modelCounter = 0;
-			// stop all running models
-//			for (LevelsModelAbstract model : myModels.values()) {
-//				killChildModels(myModels);
-//				model.kill();
-//				App.app().workspace().breathe();
-//			}
+			
+			for (LevelsModelAbstract model : myModels.values()){
+				model.kill();
+			}
 			myModels.clear();
 		}
 	}
@@ -262,7 +265,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if(myModels.containsKey(modelNumber))
 			{
 				LevelsModelAbstract aModel = myModels.get(modelNumber);
+				// Trying to do this with the parent to sync against - if it is headless, we
+				// just ignore the parameter. it doesn't matter then.
 				aModel.kill();
+				App.app().workspace().breathe();
 			}
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
@@ -291,13 +297,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					LevelsModelHeadless aModel = (LevelsModelHeadless) myModels.get(modelNumber);
 					aModel.updateView();
 				}
-
 			}
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
 			}
-
-
 		}
 	}	
 
@@ -552,7 +555,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}
 
-
 	public static class AllModels extends DefaultReporter {
 
 		public Syntax getSyntax() {
@@ -658,7 +660,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	public static void killClosedModel(int levelsSpaceNumber){
 		LevelsModelAbstract aModel = myModels.get(levelsSpaceNumber);
 		myModels.remove(levelsSpaceNumber);
-		aModel.kill();
+		try {
+			aModel.kill();
+		} catch (HaltException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	void updateChildModelsSpeed(){
@@ -679,7 +686,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	
 	static void killModelWithID(int modelId){
 		LevelsModelAbstract aModel = myModels.get(modelId);
-		aModel.kill();
+		try {
+			aModel.kill();
+		} catch (HaltException e) {
+			// TODO Auto-generated catch block
+
+		}
 		myModels.remove(aModel);
 		App.app().workspace().breathe();		
 	}
@@ -694,32 +706,22 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// First stop the child model, then get its (potential) child models and 
 		// send them here too
 		for (LevelsModelAbstract aModel : models.values()){
-			if (aModel instanceof LevelsModelComponent){
-				LevelsModelComponent theModel = (LevelsModelComponent)aModel;
-				Iterable<ClassManager> extensions = theModel.myWS.workspace().getExtensionManager().loadedExtensions();
-				for (ClassManager cm : extensions){
-					if (cm instanceof LevelsSpace){
-						// If I access this statically, I will keep accessing the myModels
-						// in the main App. So just ignore the warning.
-						HashMap<Integer, LevelsModelAbstract> theModels = ((LevelsSpace) cm).myModels;
-						haltChildModels(theModels);
-					}
-				}
-				theModel.myWS.workspace().halt();
+			String mssg1 = aModel.getName();
+			try {
+				App.app().workspace().outputObject(mssg1, null, true, true, OutputDestination.NORMAL);
+			} catch (LogoException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			if (aModel instanceof LevelsModelHeadless){
-				LevelsModelHeadless theModel = (LevelsModelHeadless)aModel;
-				Iterable<ClassManager> extensions = theModel.myWS.getExtensionManager().loadedExtensions();
-				for (ClassManager cm : extensions){
-					if (cm instanceof LevelsSpace){
-						// If I access this statically, I will keep accessing the myModels
-						// in the main App. So just ignore the warning.
-						HashMap<Integer, LevelsModelAbstract> theModels = ((LevelsSpace) cm).myModels;
-						haltChildModels(theModels);
-					}
-				}
-				theModel.myWS.halt();				
-			}
+			
+
+			aModel.halt();
 		}
+
+	}	
+
+	HashMap<Integer, LevelsModelAbstract> getModels(){
+		return myModels;
 	}
+	
 }
