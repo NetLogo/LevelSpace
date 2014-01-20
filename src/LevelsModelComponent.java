@@ -117,15 +117,23 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 					// OK, what if we do it in a way less clever way, and just get a LogoList of numbers
 					// and then runsafely(command()) the model to kill them?
 					Object theList = null;
+					
+					
 					try {
-						theList = this.report("ls:all-models");
-					} catch (ExtensionException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (CompilerException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+						theList = 	LevelsSpace.runSafely(App.app().workspace().world(), new Callable<Object>() {
+							@Override
+							public Object call() throws CompilerException, LogoException, ExtensionException {
+								return report("ls:all-models");
+							}
+						});
+					} catch (ExecutionException e) {
+						try {
+							throw new ExtensionException("Something went wrong when closing down the model");
+						} catch (ExtensionException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}	
 					LogoList theLogoList = (LogoList)theList;
 					for (Object theIndex : theLogoList.toArray()){
 						final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));

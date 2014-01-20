@@ -132,6 +132,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		for (LevelsModelAbstract model : myModels.values()) {
 			try {
 				model.kill();
+				App.app().workspace().breathe();
 			} catch (HaltException e) {
 				// TODO Auto-generated catch block
 				throw new ExtensionException("Killing the model failed for some reason");
