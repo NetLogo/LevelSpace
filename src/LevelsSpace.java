@@ -232,16 +232,24 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			{
 				final LevelsModelAbstract aModel = myModels.get(modelNumber);
 
-				try {
-					LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
-						@Override
-						public Object call() throws CompilerException, LogoException, ExtensionException {
-							aModel.command(command);
-							return null;
+				if (aModel instanceof LevelsModelHeadless) {
+					try {
+						aModel.command(command);
+					} catch (CompilerException e) {
+						throw new ExtensionException(e);
+					}
+				} else {
+					try {
+						LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
+																			  @Override
+																			  public Object call() throws CompilerException, LogoException, ExtensionException {
+								aModel.command(command);
+								return null;
 						}
-					});
-				} catch (ExecutionException e) {
-					throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
+						});
+					} catch (ExecutionException e) {
+						throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
+					}
 				}
 			}
 			else{
@@ -486,29 +494,37 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if(myModels.containsKey(modelNumber))
 			{
 				final LevelsModelAbstract aModel = myModels.get(modelNumber);
-				try {
-					return LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
-						@Override
-						public Object call() throws Exception {
-							Object returnValue = aModel.report(varName);
-							if (returnValue instanceof Agent)
-							{
-								throw new ExtensionException("You cannot report turtles, patches, or links. If you want to do something" +
-										"with turtles, patches, or links, use the ls:ask instead.");
-							} 
-							else if (returnValue instanceof AgentSet){
-								throw new ExtensionException("You cannot report turtle-, patch-, or linksets. If you want to do something" +
-										"with turtlesets, patchsets, or linkset, use the ls:ask instead.");							
-							}
-							else if (returnValue instanceof LogoList){
-								checkAgentsAndSets((LogoList)returnValue);								
-							}
+				if (aModel instanceof LevelsModelHeadless) {
+					try {
+						return aModel.report(varName);
+					} catch (CompilerException e) {
+						throw new ExtensionException(e);
+					}
+				} else {
+					try {
+						return LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
+																					 @Override
+																					 public Object call() throws Exception {
+								Object returnValue = aModel.report(varName);
+								if (returnValue instanceof Agent)
+								{
+									throw new ExtensionException("You cannot report turtles, patches, or links. If you want to do something" +
+											"with turtles, patches, or links, use the ls:ask instead.");
+								}
+								else if (returnValue instanceof AgentSet){
+									throw new ExtensionException("You cannot report turtle-, patch-, or linksets. If you want to do something" +
+											"with turtlesets, patchsets, or linkset, use the ls:ask instead.");
+								}
+								else if (returnValue instanceof LogoList){
+									checkAgentsAndSets((LogoList)returnValue);
+								}
 
-							return returnValue;
+								return returnValue;
 						}
-					});
-				} catch (ExecutionException e) {
-					throw new ExtensionException("The reporter \'" + varName + "\' in the model with ID " + modelNumber + " returned the following exception message: " + e.getMessage());
+						});
+					} catch (ExecutionException e) {
+						throw new ExtensionException("The reporter \'" + varName + "\' in the model with ID " + modelNumber + " returned the following exception message: " + e.getMessage());
+					}
 				}
 			}
 			else{
