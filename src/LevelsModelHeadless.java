@@ -49,11 +49,11 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 
 	public void updateView()
 	{
-		if (frame != null){
+		if (frame != null && frame.isVisible()){
 			// get the image from the workspace
 			BufferedImage bi = myWS.exportView();
 			// update the frame
-			
+
 			frame.updateImage(bi);
 		}
 
