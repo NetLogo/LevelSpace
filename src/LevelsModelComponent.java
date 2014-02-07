@@ -74,7 +74,13 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 										options,
 										options[2]);	
 								switch (n){
-								case 0 : LevelsSpace.killClosedModel(levelsSpaceNumber);
+								case 0 : try {
+										kill();
+										App.app().workspace().breathe();	
+									} catch (HaltException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
 								break;
 								case 1 : hideGUI();
 

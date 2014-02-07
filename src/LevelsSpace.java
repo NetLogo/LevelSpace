@@ -129,16 +129,16 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void unload(ExtensionManager arg0) throws ExtensionException {
 		// iterate through models and kill them
-		for (LevelsModelAbstract model : myModels.values()) {
-			try {
-				model.kill();
-				App.app().workspace().breathe();
-			} catch (HaltException e) {
-				// TODO Auto-generated catch block
-				throw new ExtensionException("Killing the model failed for some reason");
-			}
-		}
-		myModels.clear();
+//		for (LevelsModelAbstract model : myModels.values()) {
+//			try {
+//				model.kill();
+//				App.app().workspace().breathe();
+//			} catch (HaltException e) {
+//				// TODO Auto-generated catch block
+//				throw new ExtensionException("Killing the model failed for some reason");
+//			}
+//		}
+//		myModels.clear();
 	}
 
 
@@ -277,7 +277,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				// Trying to do this with the parent to sync against - if it is headless, we
 				// just ignore the parameter. it doesn't matter then.
 				aModel.kill();
-				App.app().workspace().breathe();
+
 			}
 			else{
 				throw new ExtensionException("There is no model with ID " + modelNumber);
