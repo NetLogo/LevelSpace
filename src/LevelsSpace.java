@@ -82,10 +82,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// returns the path of the current model; useful for opening child models in same directory
 		primitiveManager.addPrimitive("model-directory", new ModelDirectory());
 		// These should probably go.
-		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
-		primitiveManager.addPrimitive("show-gui", new ShowGUI());
-		primitiveManager.addPrimitive("hide-gui", new HideGUI());
+		primitiveManager.addPrimitive("show", new Show());
+		primitiveManager.addPrimitive("hide", new Hide());
 
 		modelCounter = 0;
 		
@@ -167,7 +166,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			} catch (CompilerException e) {
 				throw new ExtensionException (modelURL + " did not compile properly. There is probably something wrong " +
 						"with its code. Exception said" + e.getMessage());
-			} catch (LogoException e) {
 			}
 			updateChildModelSpeed(aModel);
 			myModels.put(modelCounter, aModel);
@@ -236,7 +234,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			{
 				final LevelsModelAbstract aModel = myModels.get(modelNumber);
 
-				if (aModel instanceof LevelsModelHeadless) {
+				if (aModel instanceof LevelsModelHeadless && !aModel.usesLevelsSpace()) {
 					try {
 						aModel.command(command);
 					} catch (CompilerException e) {
@@ -317,7 +315,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}	
 
-	public static class OpenImageFrame extends DefaultCommand {
+	public static class Show extends DefaultCommand {
 		public Syntax getSyntax() {
 			return Syntax.commandSyntax(
 					new int[] { Syntax.NumberType() });	        
@@ -328,41 +326,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
 			// find the model. if it exists, run the command 
-			if(myModels.containsKey(modelNumber))
-			{
-				LevelsModelHeadless aModel = (LevelsModelHeadless)myModels.get(modelNumber);
-				aModel.createImageFrame();
-				aModel.myWS.breathe();
-				App.app().workspace().breathe();
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
-
-
-		}
-	}
-	public static class ShowGUI extends DefaultCommand {
-		public Syntax getSyntax() {
-			return Syntax.commandSyntax(
-					new int[] { Syntax.NumberType() });	        
-		}
-
-		public void perform(Argument args[], Context context)
-				throws ExtensionException, org.nlogo.api.LogoException {
-			// get model number from args
-			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, run the command 
-			if(myModels.containsKey(modelNumber))
-			{
-				if (myModels.get(modelNumber) instanceof LevelsModelComponent){
-					LevelsModelComponent aModel = (LevelsModelComponent)myModels.get(modelNumber); 
-					aModel.showGUI();
-				}
-				else {
-					throw new ExtensionException("You can only show the GUI of GUI models. Model with ID " +
-							modelNumber + " is not a GUI model");
-				}
+			if(myModels.containsKey(modelNumber)) {
+				myModels.get(modelNumber).show();
 				App.app().workspace().breathe();
 			}
 			else{
@@ -370,7 +335,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}
 		}
 	}
-	public static class HideGUI extends DefaultCommand {
+
+	public static class Hide extends DefaultCommand {
 		public Syntax getSyntax() {
 			return Syntax.commandSyntax(
 					new int[] { Syntax.NumberType() });	        
@@ -383,14 +349,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// find the model. if it exists, run the command 
 			if(myModels.containsKey(modelNumber))
 			{
-				if (myModels.get(modelNumber) instanceof LevelsModelComponent){
-					LevelsModelComponent aModel = (LevelsModelComponent)myModels.get(modelNumber); 
-					aModel.hideGUI();
-				}
-				else {
-					throw new ExtensionException("You can only hide the GUI of GUI models. Model with ID " +
-							modelNumber + " is not a GUI model");
-				}
+				myModels.get(modelNumber).hide();
 				App.app().workspace().breathe();
 			}
 			else{

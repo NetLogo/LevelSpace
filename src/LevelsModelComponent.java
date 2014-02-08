@@ -83,7 +83,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 										e.printStackTrace();
 									}
 								break;
-								case 1 : hideGUI();
+								case 1 : hide();
 
 								}
 
@@ -239,10 +239,8 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		return myWS.workspace();
 	}
 
-	void showGUI(){
-		frame.setVisible(true);
-	}
-	void hideGUI(){
-		frame.setVisible(false);
+	@Override
+	JFrame frame() {
+		return frame;
 	}
 }

@@ -14,33 +14,14 @@ public class ImageFrame extends JFrame {
 
 
     public ImageFrame(final BufferedImage image, final String title) {
-
-        try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-			    public void run() {
-			        if (image != null) {
-			            setSize(image.getWidth(), image.getHeight());
-			        } else {
-			            setSize(375, 375);
-			        }
-			        setTitle(title);
-			        setVisible(true);
-			    }
-			});
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    
-    
+		setTitle(title);
+		setSize(image.getWidth(), image.getHeight());
+		setVisible(true);
+		updateImage(image);
     }
     
     
-    public void updateImage(BufferedImage image)
-    {
+    public void updateImage(BufferedImage image) {
     	this.image = image;
     	repaint();
     }
