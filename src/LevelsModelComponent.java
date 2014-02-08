@@ -15,6 +15,7 @@ import org.nlogo.api.LogoList;
 import org.nlogo.app.App;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 
@@ -216,11 +217,11 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	}
 
 	@Override
-	void breathe() {
+	public void breathe() {
 		myWS.workspace().breathe();
 	}
 
-	void setSpeed(double d){
+	public void setSpeed(double d){
 		Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
 		for (Component co : c){
 			if (co instanceof SpeedSliderPanel){
@@ -229,8 +230,13 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		}
 
 	}
-	void halt(){
+	public void halt(){
 		myWS.workspace().halt();
+	}
+
+	@Override
+	public Workspace workspace() {
+		return myWS.workspace();
 	}
 
 	void showGUI(){

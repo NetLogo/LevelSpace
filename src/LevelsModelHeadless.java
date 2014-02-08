@@ -11,6 +11,7 @@ import org.nlogo.api.LogoList;
 import org.nlogo.app.App;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
 
 public class LevelsModelHeadless extends LevelsModelAbstract {
@@ -155,7 +156,12 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	public void halt(){
 		myWS.halt();
 	}
-	
+
+	@Override
+	public Workspace workspace() {
+		return myWS;
+	}
+
 	public Object report (String varName) throws LogoException, ExtensionException, CompilerException
 	{
 		Object reportedValue = null;
@@ -174,12 +180,12 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	}
 
 	@Override
-	void breathe() {
+	public void breathe() {
 		myWS.breathe();
 		
 	}
 	
-	void setSpeed(double d){
+	public void setSpeed(double d){
 		
 	}	
 }
