@@ -1,17 +1,17 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
-import org.nlogo.api.ClassManager;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoList;
+import org.nlogo.api.*;
 import org.nlogo.app.App;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
+
+import javax.swing.*;
 
 public class LevelsModelHeadless extends LevelsModelAbstract {
 	
@@ -21,8 +21,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	String path;
 	int levelsSpaceNumber;
 	
-	public LevelsModelHeadless(String path, int levelsSpaceNumber) throws IOException, CompilerException, LogoException
-	{
+	public LevelsModelHeadless(String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException {
 		this.levelsSpaceNumber = levelsSpaceNumber;		
         // find the name of the model - it is the bit past the last dash
         int lastDashPosition = path.lastIndexOf("/") + 1;
@@ -31,21 +30,30 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 				
 		// make a new headless workspace
 		myWS = HeadlessWorkspace.newInstance();
-		myWS.open(path);				
+		myWS.open(path);
 	}
 
-	public void createImageFrame(){
-		// if there already is a frame, we don't do anything.
-		if (frame != null) {return;}
-		// get an image from the model so we know how big it is
-		BufferedImage bi = myWS.exportView();
-		
-		// create a new image frame to show what's going on in the model
-		// send it the image to set the size correctly
-		String aTitle = name.concat(" (LevelsSpace Model No. ").concat(Double.toString(levelsSpaceNumber)).concat(")");
-		frame = new ImageFrame(bi, aTitle);
+	private void ensureImageFrame() {
+		if (frame == null) {
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						// get an image from the model so we know how big it is
+						final BufferedImage bi = myWS.exportView();
+						// create a new image frame to show what's going on in the model
+						// send it the image to set the size correctly
+						final String aTitle = name.concat(" (LevelsSpace Model No. ").concat(Integer.toString(levelsSpaceNumber)).concat(")");
+						frame = new ImageFrame(bi, aTitle);
+					}
+				});
+			} catch (Exception e) {
+				// Yes this is bad practice. I'm sorry. Deal with it.
+				throw new RuntimeException(e);
+			}
+		}
 	}
-	
+
 
 	public void updateView()
 	{
@@ -155,7 +163,12 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	public void halt(){
 		myWS.halt();
 	}
-	
+
+	@Override
+	public Workspace workspace() {
+		return myWS;
+	}
+
 	public Object report (String varName) throws LogoException, ExtensionException, CompilerException
 	{
 		Object reportedValue = null;
@@ -174,12 +187,30 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	}
 
 	@Override
-	void breathe() {
+	public void breathe() {
 		myWS.breathe();
 		
 	}
-	
-	void setSpeed(double d){
+
+	@Override
+	JFrame frame() {
+		return frame;
+	}
+
+	@Override
+	public void show() {
+		ensureImageFrame();
+		super.show();
+		updateView();
+	}
+
+	@Override
+	public void hide() {
+		ensureImageFrame();
+		super.hide();
+	}
+
+	public void setSpeed(double d){
 		
 	}	
 }
