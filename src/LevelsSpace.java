@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +39,7 @@ import org.nlogo.api.Syntax;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.app.ToolsMenu;
+import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
@@ -77,6 +79,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("report", new Report());	
 		// this returns just the path of a model
 		primitiveManager.addPrimitive("model-path", new ModelPath());
+		// returns the path of the current model; useful for opening child models in same directory
+		primitiveManager.addPrimitive("model-directory", new ModelDirectory());
 		// These should probably go.
 		primitiveManager.addPrimitive("open-image-frame", new OpenImageFrame());
 		primitiveManager.addPrimitive("display", new UpdateView());
@@ -423,6 +427,21 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}
 			return modelName;
 
+		}
+
+	}
+
+	public static class ModelDirectory extends DefaultReporter{
+		public Syntax getSyntax(){
+			return Syntax.reporterSyntax(new int[0], Syntax.StringType());
+		}
+		public Object report(Argument[] args, Context context) throws ExtensionException {
+			ExtensionContext extContext = (ExtensionContext) context;
+			String dirPath = extContext.workspace().getModelDir();
+			if (dirPath == null) {
+				throw new ExtensionException("You must save this model before trying to get its directory.");
+			}
+			return dirPath + File.separator;
 		}
 
 	}
