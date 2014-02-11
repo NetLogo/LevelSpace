@@ -206,8 +206,9 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 
 	@Override
 	public void hide() {
-		ensureImageFrame();
-		super.hide();
+		if (frame != null) {
+			super.hide();
+		}
 	}
 
 	public void setSpeed(double d){
