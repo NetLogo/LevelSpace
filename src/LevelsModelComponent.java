@@ -1,4 +1,5 @@
 import java.awt.Component;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -17,7 +18,9 @@ import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
+import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
+import org.nlogo.window.ThreadUtils;
 
 
 public class LevelsModelComponent extends LevelsModelAbstract {
@@ -112,8 +115,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	}
 
 
-	final public void kill() throws HaltException
-	{
+	final public void kill() throws HaltException {
 		// before we do anything, we need to check if this model has child-models.
 		// If it does, we need to kill those too.
 		if(myWS.workspace().getExtensionManager().anyExtensionsLoaded()){
@@ -177,8 +179,11 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 				}
 
 			}
-		}			
-		
+		}
+
+		killJobThread();
+		killLifeguard();
+
 		SwingUtilities.invokeLater(new Runnable(){
 			
 			@Override
@@ -187,9 +192,41 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 				frame.dispose();
 			}
 			
-		});		
+		});
 	}
-	
+
+	private void killJobThread() {
+		try {
+			((GUIWorkspace) workspace()).jobManager.die();
+		} catch (InterruptedException e) {
+			// we can safely ignore this I think
+		}
+	}
+
+	private void killLifeguard() {
+		for (Thread thread : Thread.getAllStackTraces().keySet()) {
+			if (thread.getName().equals("Lifeguard")) {
+				try {
+					Field outerField = thread.getClass().getDeclaredField("this$0");
+					outerField.setAccessible(true);
+					Object outer = outerField.get(thread);
+					if (outer == workspace()) {
+						thread.interrupt();
+						thread.join();
+					}
+				} catch (NoSuchFieldException e) {
+					throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
+				} catch (InterruptedException e) {
+					throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
+				}
+
+			}
+		}
+
+	}
+
 
 
 	/**
