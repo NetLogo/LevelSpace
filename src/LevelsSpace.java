@@ -22,30 +22,17 @@ import javax.swing.event.ChangeListener;
 
 import org.nlogo.agent.Agent;
 import org.nlogo.agent.AgentSet;
+import org.nlogo.api.*;
 import org.nlogo.api.Argument;
-import org.nlogo.api.CompilerException;
 import org.nlogo.api.Context;
-import org.nlogo.api.DefaultCommand;
-import org.nlogo.api.DefaultReporter;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.ExtensionManager;
-import org.nlogo.api.ExtensionObject;
-import org.nlogo.api.ImportErrorHandler;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoList;
-import org.nlogo.api.LogoListBuilder;
-import org.nlogo.api.PrimitiveManager;
-import org.nlogo.api.Syntax;
-import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.app.ToolsMenu;
-import org.nlogo.nvm.ExtensionContext;
-import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.*;
+import org.nlogo.nvm.CommandTask;
+import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
-
-
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
@@ -85,6 +72,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("display", new UpdateView());
 		primitiveManager.addPrimitive("show", new Show());
 		primitiveManager.addPrimitive("hide", new Hide());
+		primitiveManager.addPrimitive("run", new RunTask());
+		primitiveManager.addPrimitive("runresult", new RunReportTask());
 
 		modelCounter = 0;
 		
@@ -125,6 +114,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					}
 				}
 			}
+		}
+	}
+
+	public static LevelsModelAbstract getModel(int id) throws ExtensionException {
+		if (myModels.containsKey(id)) {
+			return myModels.get(id);
+		} else {
+			throw new ExtensionException("There is no model with ID " + id);
 		}
 	}
 
@@ -220,7 +217,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	public static class RunCommand extends DefaultCommand {
 		public Syntax getSyntax() {
 			return Syntax.commandSyntax(
-					new int[] { Syntax.NumberType(), Syntax.StringType() });	        
+					new int[]{Syntax.NumberType(), Syntax.StringType()});
 		}
 
 		public void perform(Argument args[], Context context)
@@ -228,37 +225,84 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
 			// get the command to run
+			final org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
+			final LevelsModelAbstract aModel = getModel(modelNumber);
 			final String command = args[1].getString();
-			// find the model. if it exists, run the command 
-			if(myModels.containsKey(modelNumber))
-			{
-				final LevelsModelAbstract aModel = myModels.get(modelNumber);
 
-				if (aModel instanceof LevelsModelHeadless && !aModel.usesLevelsSpace()) {
-					try {
-						aModel.command(command);
-					} catch (CompilerException e) {
-						throw new ExtensionException(e);
-					}
-				} else {
-					try {
-						LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
-																			  @Override
-																			  public Object call() throws CompilerException, LogoException, ExtensionException {
-								aModel.command(command);
-								return null;
+			if (aModel instanceof LevelsModelHeadless && !aModel.usesLevelsSpace()) {
+				try {
+					aModel.command(command);
+				} catch (CompilerException e) {
+					throw new ExtensionException(e);
+				}
+			} else {
+				try {
+					LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
+						@Override
+						public Object call() throws CompilerException, LogoException, ExtensionException {
+							aModel.command(command);
+							return null;
 						}
-						});
-					} catch (ExecutionException e) {
-						throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
-					}
+					});
+				} catch (ExecutionException e) {
+					throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
 				}
 			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
-
 			App.app().workspace().breathe();
+		}
+	}
+
+	public static class RunTask extends DefaultCommand {
+		public Syntax getSyntax(){
+			return Syntax.commandSyntax(
+					new int[]{Syntax.NumberType(),
+							Syntax.CommandTaskType(),
+							Syntax.RepeatableType() | Syntax.WildcardType()},
+					2);
+		}
+
+		@Override
+		public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
+			LevelsModelAbstract model = getModel(args[0].getIntValue());
+			CommandTask task = (CommandTask) args[1].getCommandTask();
+			int n = args.length - 2;
+			Object[] actuals = new Object[n];
+			for (int i = 0; i < n; i++) {
+				actuals[i] = args[i+2].get();
+			}
+			org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
+			Agent oldAgent = nvmContext.agent;
+			nvmContext.agent = model.workspace().world().observer();
+			task.perform(nvmContext, actuals);
+			nvmContext.agent = oldAgent;
+		}
+	}
+
+	public static class RunReportTask extends DefaultReporter {
+		public Syntax getSyntax(){
+			return Syntax.reporterSyntax(
+					new int[]{Syntax.NumberType(),
+							Syntax.ReporterTaskType(),
+							Syntax.RepeatableType() | Syntax.WildcardType()},
+					Syntax.WildcardType(),
+					2);
+		}
+
+		@Override
+		public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
+			LevelsModelAbstract model = getModel(args[0].getIntValue());
+			ReporterTask task = (ReporterTask) args[1].getReporterTask();
+			int n = args.length - 2;
+			Object[] actuals = new Object[n];
+			for (int i = 0; i < n; i++) {
+				actuals[i] = args[i+2].get();
+			}
+			org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
+			Agent oldAgent = nvmContext.agent;
+			nvmContext.agent = model.workspace().world().observer();
+			Object result = task.report(nvmContext, actuals);
+			nvmContext.agent = oldAgent;
+			return result;
 		}
 	}
 
@@ -289,7 +333,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			App.app().workspace().breathe();
 		}
 
-	}	
+	}
 
 	public static class UpdateView extends DefaultCommand {
 		public Syntax getSyntax() {
