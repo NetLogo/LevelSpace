@@ -7,8 +7,10 @@ import java.util.concurrent.ExecutionException;
 import org.nlogo.api.*;
 import org.nlogo.app.App;
 import org.nlogo.headless.HeadlessWorkspace;
-import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.Workspace;
+import org.nlogo.nvm.*;
+import org.nlogo.nvm.CommandTask;
+import org.nlogo.nvm.Context;
+import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace.OutputDestination;
 
 import javax.swing.*;
@@ -86,6 +88,27 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		}
 	}
 
+	@Override
+	public void command(final Context context, final CommandTask command, final Object[] args) throws ExtensionException {
+		if (usesLevelsSpace()) {
+			try {
+				runSafely(new Callable<Object>() {
+					@Override
+					public Object call() throws Exception {
+						LevelsModelHeadless.super.command(context, command, args);
+						return null;
+					}
+				});
+			} catch (HaltException e) {
+				// ignore
+			} catch (ExecutionException e) {
+				throw new ExtensionException(e);
+			}
+		} else {
+			super.command(context, command, args);
+		}
+	}
+
 	public Object report (final String reporter) throws LogoException, ExtensionException, CompilerException, ExecutionException {
 		if (usesLevelsSpace()) {
 			return runSafely(new Callable<Object>() {
@@ -99,6 +122,27 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		}
 	}
 
+	@Override
+	public Object report(final Context context, final ReporterTask reporter, final Object[] args) throws ExtensionException {
+		if (usesLevelsSpace()) {
+			try {
+				return runSafely(new Callable<Object>() {
+					@Override
+					public Object call() throws Exception {
+						LevelsModelHeadless.super.report(context, reporter, args);
+						return null;
+					}
+				});
+			} catch (HaltException e) {
+				// ignore
+			} catch (ExecutionException e) {
+				throw new ExtensionException(e);
+			}
+			return null;
+		} else {
+			return super.report(context, reporter, args);
+		}
+	}
 
 	public void kill() {
 		if(usesLevelsSpace()){

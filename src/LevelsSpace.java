@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -251,21 +252,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
 			LevelsModelAbstract model = getModel(args[0].getIntValue());
 			CommandTask task = (CommandTask) args[1].getCommandTask();
-			if (task.procedure().code.length > 0 && task.procedure().code[0].workspace != model.workspace()) {
-				throw new ExtensionException("You may only run tasks in the model they were created in.");
-			}
 			int n = args.length - 2;
 			Object[] actuals = new Object[n];
 			for (int i = 0; i < n; i++) {
 				actuals[i] = args[i+2].get();
 			}
-			org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
-			Agent oldAgent = nvmContext.agent;
-			nvmContext.agent = model.workspace().world().observer();
-			nvmContext.agentBit = nvmContext.agent.getAgentBit();
-			task.perform(nvmContext, actuals);
-			nvmContext.agent = oldAgent;
-			nvmContext.agentBit = nvmContext.agent.getAgentBit();
+			model.command(((ExtensionContext) context).nvmContext(), task, actuals);
 		}
 	}
 
@@ -283,22 +275,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
 			LevelsModelAbstract model = getModel(args[0].getIntValue());
 			ReporterTask task = (ReporterTask) args[1].getReporterTask();
-			if (task.body().workspace != model.workspace()) {
-				throw new ExtensionException("You may only run tasks in the model they were created in.");
-			}
 			int n = args.length - 2;
 			Object[] actuals = new Object[n];
 			for (int i = 0; i < n; i++) {
 				actuals[i] = args[i+2].get();
 			}
-			org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
-			Agent oldAgent = nvmContext.agent;
-			nvmContext.agent = model.workspace().world().observer();
-			nvmContext.agentBit = nvmContext.agent.getAgentBit();
-			Object result = task.report(nvmContext, actuals);
-			nvmContext.agent = oldAgent;
-			nvmContext.agentBit = nvmContext.agent.getAgentBit();
-			return result;
+			return model.report(((ExtensionContext) context).nvmContext(), task, actuals);
 		}
 	}
 

@@ -8,15 +8,13 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import org.nlogo.api.ClassManager;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoList;
+import org.nlogo.api.*;
+import org.nlogo.nvm.*;
 import org.nlogo.app.App;
 import org.nlogo.lite.InterfaceComponent;
-import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.Workspace;
+import org.nlogo.nvm.CommandTask;
+import org.nlogo.nvm.Context;
+import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
@@ -107,6 +105,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	 * @param command
 	 * @throws CompilerException 
 	 */
+	@Override
 	public void command(final String command) throws CompilerException, ExecutionException, HaltException {
 		runSafely(new Callable<Object>() {
 			@Override
@@ -117,12 +116,30 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		});
 	}
 
+	@Override
+	public void command(final Context context, final CommandTask command, final Object[] args) throws ExtensionException {
+		try {
+			runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					LevelsModelComponent.super.command(context, command, args);
+					return null;
+				}
+			});
+		} catch (HaltException e) {
+			// ignore
+		} catch (ExecutionException e) {
+			throw new ExtensionException(e);
+		}
+	}
+
 	/**
 	 * Runs the reporter in this model and returns the result safely.
 	 * @param reporter
 	 * @return
 	 * @throws ExtensionException
 	 */
+	@Override
 	public Object report (final String reporter) throws ExtensionException, CompilerException, ExecutionException, HaltException {
 		return runSafely(new Callable<Object>() {
 			@Override
@@ -130,6 +147,23 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 				return myWS.report(reporter);
 			}
 		});
+	}
+
+	@Override
+	public Object report(final Context context, final ReporterTask reporter, final Object[] args) throws ExtensionException {
+		try {
+			return runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					LevelsModelComponent.super.report(context, reporter, args);
+					return null;
+				}
+			});
+		} catch (HaltException e) {
+			return null;
+		} catch (ExecutionException e) {
+			throw new ExtensionException(e);
+		}
 	}
 
 	final public void kill() throws HaltException {
