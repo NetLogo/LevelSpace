@@ -226,27 +226,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			int modelNumber = (int) args[0].getDoubleValue();
 			// get the command to run
 			final org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
-			final LevelsModelAbstract aModel = getModel(modelNumber);
 			final String command = args[1].getString();
-
-			if (aModel instanceof LevelsModelHeadless && !aModel.usesLevelsSpace()) {
-				try {
-					aModel.command(command);
-				} catch (CompilerException e) {
-					throw new ExtensionException(e);
-				}
-			} else {
-				try {
-					LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
-						@Override
-						public Object call() throws CompilerException, LogoException, ExtensionException {
-							aModel.command(command);
-							return null;
-						}
-					});
-				} catch (ExecutionException e) {
-					throw new ExtensionException("\"" + command + "\" is not defined in the model with ID " + modelNumber);
-				}
+			try {
+				getModel(modelNumber).command(command);
+			} catch (CompilerException e) {
+				throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the command '" + command + "'.", e);
+			} catch (ExecutionException e) {
+				throw new ExtensionException("Model " + modelNumber + " errored when running '" + command + "'.", e);
 			}
 			App.app().workspace().breathe();
 		}
@@ -326,18 +312,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, kill it 
-			if(myModels.containsKey(modelNumber))
-			{
-				LevelsModelAbstract aModel = myModels.get(modelNumber);
-				// Trying to do this with the parent to sync against - if it is headless, we
-				// just ignore the parameter. it doesn't matter then.
-				aModel.kill();
-
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}			
+			// find the model. if it exists, kill it
+			getModel(modelNumber).kill();
 			// and remove it from the hashtable
 			myModels.remove(modelNumber);
 			App.app().workspace().breathe();
@@ -355,16 +331,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, update graphics 
-			if(myModels.containsKey(modelNumber))
-			{
-				if (myModels.get(modelNumber) instanceof LevelsModelHeadless){
-					LevelsModelHeadless aModel = (LevelsModelHeadless) myModels.get(modelNumber);
-					aModel.updateView();
-				}
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
+			// find the model. if it exists, update graphics
+			if (getModel(modelNumber) instanceof LevelsModelHeadless){
+				LevelsModelHeadless aModel = (LevelsModelHeadless) getModel(modelNumber);
+				aModel.updateView();
 			}
 		}
 	}	
@@ -379,14 +349,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, run the command 
-			if(myModels.containsKey(modelNumber)) {
-				myModels.get(modelNumber).show();
-				App.app().workspace().breathe();
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
+			// find the model. if it exists, run the command
+			getModel(modelNumber).show();
+			App.app().workspace().breathe();
 		}
 	}
 
@@ -400,15 +365,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			// get model number from args
 			int modelNumber = (int) args[0].getDoubleValue();
-			// find the model. if it exists, run the command 
-			if(myModels.containsKey(modelNumber))
-			{
-				myModels.get(modelNumber).hide();
-				App.app().workspace().breathe();
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
+			// find the model. if it exists, run the command
+			getModel(modelNumber).hide();
+			App.app().workspace().breathe();
 		}
 	}
 	
@@ -432,13 +391,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if(myModels.containsKey(modelNumber)){
-				modelName = myModels.get(modelNumber).getName();
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
-			return modelName;
+			return getModel(modelNumber).getName();
 
 		}
 
@@ -478,14 +431,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if(myModels.containsKey(modelNumber)){
-				modelName = myModels.get(modelNumber).getPath();
-			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
-
-			return modelName;
+			return getModel(modelNumber).getPath();
 
 		}
 
@@ -520,49 +466,21 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		public Object report(Argument args[], Context context) throws ExtensionException,  LogoException{
 			int modelNumber = (int) args[0].getDoubleValue();
-			// get var name
-			final String varName = args[1].getString();
-			// find the model. if it exists, update graphics 
-			if(myModels.containsKey(modelNumber))
-			{
-				final LevelsModelAbstract aModel = myModels.get(modelNumber);
-				if (aModel instanceof LevelsModelHeadless) {
-					try {
-						return aModel.report(varName);
-					} catch (CompilerException e) {
-						throw new ExtensionException(e);
-					}
-				} else {
-					try {
-						return LevelsSpace.runSafely(context.getAgent().world(), new Callable<Object>() {
-																					 @Override
-																					 public Object call() throws Exception {
-								Object returnValue = aModel.report(varName);
-								if (returnValue instanceof Agent)
-								{
-									throw new ExtensionException("You cannot report turtles, patches, or links. If you want to do something" +
-											"with turtles, patches, or links, use the ls:ask instead.");
-								}
-								else if (returnValue instanceof AgentSet){
-									throw new ExtensionException("You cannot report turtle-, patch-, or linksets. If you want to do something" +
-											"with turtlesets, patchsets, or linkset, use the ls:ask instead.");
-								}
-								else if (returnValue instanceof LogoList){
-									checkAgentsAndSets((LogoList)returnValue);
-								}
-
-								return returnValue;
-						}
-						});
-					} catch (ExecutionException e) {
-						throw new ExtensionException("The reporter \'" + varName + "\' in the model with ID " + modelNumber + " returned the following exception message: " + e.getMessage());
-					}
-				}
+			final String reporter = args[1].getString();
+			Object result;
+			try {
+				result = getModel(modelNumber).report(reporter);
+			} catch (CompilerException e) {
+				throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the reporter '" + reporter + "'.", e);
+			} catch (ExecutionException e) {
+				throw new ExtensionException("Model " + modelNumber + " errored when running '" + reporter + "'.", e);
 			}
-			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
-			}
+			if (result instanceof Agent || result instanceof AgentSet) {
+				throw new ExtensionException("You cannot report agents or agentsets. If you want to do something" +
+						"with agents or agentsets use the ls:ask instead.");
 
+			}
+			return result;
 		}
 
 		private void checkAgentsAndSets(LogoList ll) throws ExtensionException{
@@ -598,7 +516,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				return true;
 			}
 			else{
-				throw new ExtensionException("There is no model with ID " + modelNumber);
+				return false;
 			}
 
 		}
@@ -665,58 +583,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 	}
 
-	// Probably only want a single job to run at a time.
-	private static Executor safeExecutor = Executors.newSingleThreadExecutor();
-	/**
-	 * Runs the given callable such that it doesn't create a deadlock between
-	 * the AWT event thread and the JobThread. It does this using a similar
-	 * technique as ThreadUtils.waitForResponse().
-	 * @param world The world to synchronize on. Should be the main model's world.
-	 * @param callable What to run.
-	 * @return
-	 */
-	public static <T> T runSafely(final World world, final Callable<T> callable) throws HaltException, ExecutionException {
-		final FutureTask<T> reporterTask = new FutureTask<T>(new Callable<T>() {
-			@Override
-			public T call() throws Exception {
-				T result = callable.call();
-				synchronized (world) {
-					world.notify();
-				}
-				return result;
-			}
-		});
-		safeExecutor.execute(reporterTask);
-		while (!reporterTask.isDone()) {
-			synchronized (world) {
-				try {
-					world.wait(50);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new HaltException(false);
-				}
-
-			}
-		}
-		try {
-			return reporterTask.get();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new HaltException(false);
-		}
-	}
-
-	public static void killClosedModel(int levelsSpaceNumber){
-		LevelsModelAbstract aModel = myModels.get(levelsSpaceNumber);
-		myModels.remove(levelsSpaceNumber);
-		try {
-			aModel.kill();
-		} catch (HaltException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
 	void updateChildModelsSpeed(){
 		double theSpeed = App.app().workspace().speedSliderPosition();
 		for (LevelsModelAbstract model : myModels.values()){
@@ -724,27 +590,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if (model instanceof LevelsModelComponent){
 				LevelsModelComponent lmodel = (LevelsModelComponent)model;
 				lmodel.myWS.getComponents();
-			}else
-			{
-				
 			}
 			model.setSpeed(theSpeed);
 
 		}
 	}
-	
-	static void killModelWithID(int modelId){
-		LevelsModelAbstract aModel = myModels.get(modelId);
-		try {
-			aModel.kill();
-		} catch (HaltException e) {
-			// TODO Auto-generated catch block
 
-		}
-		myModels.remove(aModel);
-		App.app().workspace().breathe();		
-	}
-	
 	static void updateChildModelSpeed(LevelsModelAbstract model){
 		double theSpeed = App.app().workspace().speedSliderPosition();
 		model.setSpeed(theSpeed);

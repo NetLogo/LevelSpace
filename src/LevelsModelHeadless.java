@@ -72,82 +72,62 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		frame = null;
 	}
 	
-	public void command (String command) throws CompilerException, LogoException
-	{
-		myWS.command(command);
+	public void command (final String command) throws CompilerException, LogoException, ExecutionException {
+		if (usesLevelsSpace()) {
+			runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					myWS.command(command);
+					return null;  //To change body of implemented methods use File | Settings | File Templates.
+				}
+			});
+		} else {
+			myWS.command(command);
+		}
 	}
-	
-	
-	public void kill()
-	{
-		// before we do anything, we need to check if this model has child-models.
-		// If it does, we need to kill those too.
-		if(myWS.getExtensionManager().anyExtensionsLoaded()){
-			// iterate through loaded extensions
-			for (ClassManager cm : myWS.getExtensionManager().loadedExtensions()){
-				// they are loaded in another classloader, so we have to do string check
-				if("class LevelsSpace".equals(cm.getClass().toString())){
-					// If it has a levelsspace extension loaded, get a list of all loaded models
-					Object theList = null;
-					try {
-						try {// This may have to be run in runsafely
-							theList = report("ls:all-models");
-						} catch (LogoException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					} catch (ExtensionException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (CompilerException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-					LogoList theLogoList = (LogoList)theList;
-					for (Object theIndex : theLogoList.toArray()){
-						final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
-						try {
-							App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
-						} catch (LogoException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						
-						try {
-							try {
-								try {
-									// We run these safely for all models, even though strictly speaking, headless models
-									// don't need it.
-									LevelsSpace.runSafely(App.app().workspace().world(), new Callable<Object>() {
-										@Override
-										public Object call() throws CompilerException, LogoException, ExtensionException {
-											command(theCommand);
-											return null;
-										}
-									});
-								} catch (HaltException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-							} catch (ExecutionException e) {
-								try {
-									throw new ExtensionException("Something went wrong when closing down the model");
-								} catch (ExtensionException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-							}		
-							
-						} catch (NumberFormatException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}					
+
+	public Object report (final String reporter) throws LogoException, ExtensionException, CompilerException, ExecutionException {
+		if (usesLevelsSpace()) {
+			return runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws Exception {
+					return myWS.report(reporter);  //To change body of implemented methods use File | Settings | File Templates.
+				}
+			});
+		} else {
+			return myWS.report(reporter);
+		}
+	}
+
+
+	public void kill() {
+		if(usesLevelsSpace()){
+			// If it has a levelsspace extension loaded, get a list of all loaded models
+			Object theList;
+			try {
+				theList = report("ls:all-models");
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+			LogoList theLogoList = (LogoList)theList;
+			for (Object theIndex : theLogoList.toArray()){
+				final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
+				try {
+					App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
+				} catch (LogoException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 
+				try {
+					command(theCommand);
+				} catch (Exception e) {
+					// Would be better to use ExtensionException, but can't here
+					throw new RuntimeException(e);
+				}
 			}
-		}			
-		
+		}
+
 		// then close down this model
 		if (frame != null){
 			frame.dispose();
@@ -167,13 +147,6 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	@Override
 	public Workspace workspace() {
 		return myWS;
-	}
-
-	public Object report (String varName) throws LogoException, ExtensionException, CompilerException
-	{
-		Object reportedValue = null;
-		reportedValue = myWS.report(varName);
-		return reportedValue;
 	}
 
 	public String getName()
