@@ -74,17 +74,33 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		frame = null;
 	}
 	
-	public void command (final String command) throws CompilerException, LogoException, ExecutionException {
+	public void command (final String command) throws ExtensionException {
 		if (usesLevelsSpace()) {
-			runSafely(new Callable<Object>() {
-				@Override
-				public Object call() throws Exception {
-					myWS.command(command);
-					return null;  //To change body of implemented methods use File | Settings | File Templates.
-				}
-			});
+			try {
+				runSafely(new Callable<Object>() {
+					@Override
+					public Object call() throws ExtensionException {
+						try {
+							myWS.command(command);
+						} catch (LogoException e) {
+							throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+						} catch (CompilerException e) {
+							throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+						}
+						return null;
+					}
+				});
+			} catch (HaltException e) {
+				// okay
+			}
 		} else {
-			myWS.command(command);
+			try {
+				myWS.command(command);
+			} catch (LogoException e) {
+				throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+			} catch (CompilerException e) {
+				throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+			}
 		}
 	}
 
@@ -94,31 +110,46 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 			try {
 				runSafely(new Callable<Object>() {
 					@Override
-					public Object call() throws Exception {
+					public Object call() throws ExtensionException {
 						LevelsModelHeadless.super.command(context, command, args);
 						return null;
 					}
 				});
 			} catch (HaltException e) {
-				// ignore
-			} catch (ExecutionException e) {
-				throw new ExtensionException(e);
+				// okay, halted
 			}
 		} else {
 			super.command(context, command, args);
 		}
 	}
 
-	public Object report (final String reporter) throws LogoException, ExtensionException, CompilerException, ExecutionException {
+	public Object report (final String reporter) throws ExtensionException {
 		if (usesLevelsSpace()) {
-			return runSafely(new Callable<Object>() {
-				@Override
-				public Object call() throws Exception {
-					return myWS.report(reporter);  //To change body of implemented methods use File | Settings | File Templates.
-				}
-			});
+			try {
+				return runSafely(new Callable<Object>() {
+					@Override
+					public Object call() throws ExtensionException {
+						try {
+							return myWS.report(reporter);
+						} catch (LogoException e) {
+							throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+						} catch (CompilerException e) {
+							throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+						}
+					}
+				});
+			} catch (HaltException e) {
+				// okay
+				return null;
+			}
 		} else {
-			return myWS.report(reporter);
+			try {
+				return myWS.report(reporter);
+			} catch (LogoException e) {
+				throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+			} catch (CompilerException e) {
+				throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+			}
 		}
 	}
 
@@ -128,16 +159,14 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 			try {
 				return runSafely(new Callable<Object>() {
 					@Override
-					public Object call() throws Exception {
+					public Object call() throws ExtensionException {
 						return LevelsModelHeadless.super.report(context, reporter, args);
 					}
 				});
 			} catch (HaltException e) {
-				// ignore
-			} catch (ExecutionException e) {
-				throw new ExtensionException(e);
+				// Okay, halted
+				return null;
 			}
-			return null;
 		} else {
 			return super.report(context, reporter, args);
 		}

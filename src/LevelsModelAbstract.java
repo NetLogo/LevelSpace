@@ -12,8 +12,8 @@ import java.util.concurrent.*;
 
 public abstract class LevelsModelAbstract {
 
-	abstract public void command(String command) throws CompilerException, LogoException, ExtensionException, ExecutionException;
-	abstract public Object report(String reporter) throws ExtensionException, LogoException, CompilerException, ExecutionException;
+	abstract public void command(String command) throws ExtensionException;
+	abstract public Object report(String reporter) throws ExtensionException;
 	public void command(Context context, CommandTask command, Object[] args) throws ExtensionException {
 		checkTask(command);
 		Agent oldAgent = context.agent;
@@ -81,7 +81,7 @@ public abstract class LevelsModelAbstract {
 	 * @param callable What to run.
 	 * @return
 	 */
-	public <T> T runSafely(final Callable<T> callable) throws HaltException, ExecutionException {
+	public <T> T runSafely(final Callable<T> callable) throws HaltException, ExtensionException {
 		final World world = App.app().workspace().world();
 		final FutureTask<T> reporterTask = new FutureTask<T>(new Callable<T>() {
 			@Override
@@ -110,6 +110,8 @@ public abstract class LevelsModelAbstract {
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new HaltException(false);
+		} catch (ExecutionException e) {
+			throw new ExtensionException(e);
 		}
 	}
 }

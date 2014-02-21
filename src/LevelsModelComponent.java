@@ -106,14 +106,22 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	 * @throws CompilerException 
 	 */
 	@Override
-	public void command(final String command) throws CompilerException, ExecutionException, HaltException {
-		runSafely(new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				myWS.command(command);
-				return null;
-			}
-		});
+	public void command(final String command) throws ExtensionException {
+		try {
+			runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws ExtensionException {
+					try {
+						myWS.command(command);
+					} catch (CompilerException e) {
+						throw ErrorUtils.handle(LevelsModelComponent.this, command, e);
+					}
+					return null;
+				}
+			});
+		} catch (HaltException e) {
+			// okay
+		}
 	}
 
 	@Override
@@ -121,15 +129,13 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		try {
 			runSafely(new Callable<Object>() {
 				@Override
-				public Object call() throws Exception {
+				public Object call() throws ExtensionException {
 					LevelsModelComponent.super.command(context, command, args);
 					return null;
 				}
 			});
 		} catch (HaltException e) {
 			// ignore
-		} catch (ExecutionException e) {
-			throw new ExtensionException(e);
 		}
 	}
 
@@ -140,13 +146,22 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	 * @throws ExtensionException
 	 */
 	@Override
-	public Object report (final String reporter) throws ExtensionException, CompilerException, ExecutionException, HaltException {
-		return runSafely(new Callable<Object>() {
-			@Override
-			public Object call() throws Exception {
-				return myWS.report(reporter);
-			}
-		});
+	public Object report (final String reporter) throws ExtensionException {
+		try {
+			return runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws ExtensionException {
+					try {
+						return myWS.report(reporter);
+					} catch (CompilerException e) {
+						throw ErrorUtils.handle(LevelsModelComponent.this, reporter, e);
+					}
+				}
+			});
+		} catch (HaltException e) {
+			// okay
+			return null;
+		}
 	}
 
 	@Override
@@ -154,14 +169,12 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		try {
 			return runSafely(new Callable<Object>() {
 				@Override
-				public Object call() throws Exception {
+				public Object call() throws ExtensionException {
 					return LevelsModelComponent.super.report(context, reporter, args);
 				}
 			});
 		} catch (HaltException e) {
 			return null;
-		} catch (ExecutionException e) {
-			throw new ExtensionException(e);
 		}
 	}
 

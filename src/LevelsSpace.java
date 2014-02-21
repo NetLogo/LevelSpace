@@ -186,9 +186,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				// add to models counter
 				modelCounter ++;
 			} catch (InterruptedException e) {
-				new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
+				throw new HaltException(false);
 			} catch (InvocationTargetException e) {
-				new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
+				throw new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
 			} 
 			// stop up, take a breath. You will be okay.
 			App.app().workspace().breathe();
@@ -232,19 +232,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				task = (CommandTask) rawCommand;
 			} else {
 				String command = rawCommand.toString();
-				try {
-					if (actuals.length > 0) {
-						task = (CommandTask) model.report("task [ " + command + " ]");
-					} else {
-						// No arguments, don't bother making a task and such
-						model.command(command);
-						return;
-					}
-
-				} catch (CompilerException e) {
-					throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the command '" + command + "'.", e);
-				} catch (ExecutionException e) {
-					throw new ExtensionException("Model " + modelNumber + " errored when running '" + command + "'.", e);
+				if (actuals.length > 0) {
+					task = (CommandTask) model.report("task [ " + command + " ]");
+				} else {
+					// No arguments, don't bother making a task and such
+					model.command(command);
+					return;
 				}
 			}
 			model.command(((ExtensionContext) context).nvmContext(), task, actuals);
@@ -276,17 +269,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				task = (ReporterTask) rawReporter;
 			} else {
 				String reporter = rawReporter.toString();
-				try {
-					if (actuals.length > 0) {
-						task = (ReporterTask) model.report("task [ " + reporter + " ]");
-					} else {
-						// No arguments, don't bother making a task and such
-						return model.report(reporter);
-					}
-				} catch (CompilerException e) {
-					throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the reporter '" + reporter + "'.", e);
-				} catch (ExecutionException e) {
-					throw new ExtensionException("Model " + modelNumber + " errored when running '" + reporter + "'.", e);
+				if (actuals.length > 0) {
+					task = (ReporterTask) model.report("task [ " + reporter + " ]");
+				} else {
+					// No arguments, don't bother making a task and such
+					return model.report(reporter);
 				}
 			}
 			Object result = model.report(((ExtensionContext) context).nvmContext(), task, actuals);
@@ -374,21 +361,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.StringType());
 
 		}
-		public Object report(Argument[] args, Context context) throws ExtensionException{
-			String modelName = new String();
-			// get model number
-			int modelNumber = -1;
-			try {
-				modelNumber = args[0].getIntValue();
-			} catch (ExtensionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (LogoException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
+			int modelNumber = args[0].getIntValue();
 			return getModel(modelNumber).getName();
-
 		}
 
 	}
@@ -414,20 +389,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.StringType());
 
 		}
-		public Object report(Argument[] args, Context context) throws ExtensionException{
-			String modelName = new String();
-			// get model number
-			int modelNumber = -1;
-			try {
-				modelNumber = args[0].getIntValue();
-			} catch (ExtensionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (LogoException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return getModel(modelNumber).getPath();
+		public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
+			return getModel(args[0].getIntValue()).getPath();
 
 		}
 
