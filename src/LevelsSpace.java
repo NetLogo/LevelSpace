@@ -233,7 +233,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			} else {
 				String command = rawCommand.toString();
 				try {
-					task = (CommandTask) model.report("task [ " + command + " ]");
+					if (actuals.length > 0) {
+						task = (CommandTask) model.report("task [ " + command + " ]");
+					} else {
+						// No arguments, don't bother making a task and such
+						model.command(command);
+						return;
+					}
+
 				} catch (CompilerException e) {
 					throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the command '" + command + "'.", e);
 				} catch (ExecutionException e) {
@@ -268,13 +275,18 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if (rawReporter instanceof ReporterTask) {
 				task = (ReporterTask) rawReporter;
 			} else {
-				String command = rawReporter.toString();
+				String reporter = rawReporter.toString();
 				try {
-					task = (ReporterTask) model.report("task [ " + command + " ]");
+					if (actuals.length > 0) {
+						task = (ReporterTask) model.report("task [ " + reporter + " ]");
+					} else {
+						// No arguments, don't bother making a task and such
+						return model.report(reporter);
+					}
 				} catch (CompilerException e) {
-					throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the command '" + command + "'.", e);
+					throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the reporter '" + reporter + "'.", e);
 				} catch (ExecutionException e) {
-					throw new ExtensionException("Model " + modelNumber + " errored when running '" + command + "'.", e);
+					throw new ExtensionException("Model " + modelNumber + " errored when running '" + reporter + "'.", e);
 				}
 			}
 			Object result = model.report(((ExtensionContext) context).nvmContext(), task, actuals);
