@@ -6,14 +6,9 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 
 import javax.swing.JMenuItem;
 import javax.swing.JSlider;
@@ -47,7 +42,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void load(PrimitiveManager primitiveManager) throws ExtensionException {
 		// this allows you to run a command in another model
-		primitiveManager.addPrimitive("ask", new RunCommand());
+		primitiveManager.addPrimitive("ask", new RunTask());
+		primitiveManager.addPrimitive("report", new RunReporterTask());
 		// this loads a model
 		primitiveManager.addPrimitive("load-headless-model", new LoadHeadlessModel());
 		primitiveManager.addPrimitive("load-gui-model", new LoadGUIModel());
@@ -64,7 +60,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this returns the last model id number
 		primitiveManager.addPrimitive("last-model-id", new LastModel());
 		// this returns whatever it is asked to report from a model
-		primitiveManager.addPrimitive("report", new Report());	
 		// this returns just the path of a model
 		primitiveManager.addPrimitive("model-path", new ModelPath());
 		// returns the path of the current model; useful for opening child models in same directory
@@ -73,8 +68,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("display", new UpdateView());
 		primitiveManager.addPrimitive("show", new Show());
 		primitiveManager.addPrimitive("hide", new Hide());
-		primitiveManager.addPrimitive("run", new RunTask());
-		primitiveManager.addPrimitive("runresult", new RunReportTask());
 
 		modelCounter = 0;
 		
@@ -215,57 +208,47 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}
 
-	public static class RunCommand extends DefaultCommand {
-		public Syntax getSyntax() {
-			return Syntax.commandSyntax(
-					new int[]{Syntax.NumberType(), Syntax.StringType()});
-		}
-
-		public void perform(Argument args[], Context context)
-				throws ExtensionException, org.nlogo.api.LogoException {
-			// get model number from args
-			int modelNumber = (int) args[0].getDoubleValue();
-			// get the command to run
-			final org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
-			final String command = args[1].getString();
-			try {
-				getModel(modelNumber).command(command);
-			} catch (CompilerException e) {
-				throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the command '" + command + "'.", e);
-			} catch (ExecutionException e) {
-				throw new ExtensionException("Model " + modelNumber + " errored when running '" + command + "'.", e);
-			}
-			App.app().workspace().breathe();
-		}
-	}
-
 	public static class RunTask extends DefaultCommand {
 		public Syntax getSyntax(){
 			return Syntax.commandSyntax(
 					new int[]{Syntax.NumberType(),
-							Syntax.CommandTaskType(),
+							Syntax.CommandTaskType() | Syntax.StringType(),
 							Syntax.RepeatableType() | Syntax.WildcardType()},
 					2);
 		}
 
 		@Override
 		public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-			LevelsModelAbstract model = getModel(args[0].getIntValue());
-			CommandTask task = (CommandTask) args[1].getCommandTask();
+			int modelNumber = args[0].getIntValue();
+			LevelsModelAbstract model = getModel(modelNumber);
+			Object rawCommand = args[1].get();
 			int n = args.length - 2;
 			Object[] actuals = new Object[n];
 			for (int i = 0; i < n; i++) {
 				actuals[i] = args[i+2].get();
 			}
+			CommandTask task;
+			if (rawCommand instanceof CommandTask) {
+				task = (CommandTask) rawCommand;
+			} else {
+				String command = rawCommand.toString();
+				try {
+					task = (CommandTask) model.report("task [ " + command + " ]");
+				} catch (CompilerException e) {
+					throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the command '" + command + "'.", e);
+				} catch (ExecutionException e) {
+					throw new ExtensionException("Model " + modelNumber + " errored when running '" + command + "'.", e);
+				}
+			}
 			model.command(((ExtensionContext) context).nvmContext(), task, actuals);
 		}
 	}
 
-	public static class RunReportTask extends DefaultReporter {
+	public static class RunReporterTask extends DefaultReporter {
 		public Syntax getSyntax(){
 			return Syntax.reporterSyntax(
 					new int[]{Syntax.NumberType(),
-							Syntax.ReporterTaskType(),
+							Syntax.ReporterTaskType() | Syntax.StringType(),
 							Syntax.RepeatableType() | Syntax.WildcardType()},
 					Syntax.WildcardType(),
 					2);
@@ -273,14 +256,33 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		@Override
 		public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
-			LevelsModelAbstract model = getModel(args[0].getIntValue());
-			ReporterTask task = (ReporterTask) args[1].getReporterTask();
+			int modelNumber = args[0].getIntValue();
+			LevelsModelAbstract model = getModel(modelNumber);
+			Object rawReporter = args[1].get();
 			int n = args.length - 2;
 			Object[] actuals = new Object[n];
 			for (int i = 0; i < n; i++) {
 				actuals[i] = args[i+2].get();
 			}
-			return model.report(((ExtensionContext) context).nvmContext(), task, actuals);
+			ReporterTask task;
+			if (rawReporter instanceof ReporterTask) {
+				task = (ReporterTask) rawReporter;
+			} else {
+				String command = rawReporter.toString();
+				try {
+					task = (ReporterTask) model.report("task [ " + command + " ]");
+				} catch (CompilerException e) {
+					throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the command '" + command + "'.", e);
+				} catch (ExecutionException e) {
+					throw new ExtensionException("Model " + modelNumber + " errored when running '" + command + "'.", e);
+				}
+			}
+			Object result = model.report(((ExtensionContext) context).nvmContext(), task, actuals);
+			if (result instanceof Agent || result instanceof AgentSet) {
+				throw new ExtensionException("You cannot report agents or agentsets. If you want to do something" +
+						"with agents or agentsets use the ls:ask instead.");
+			}
+			return result;
 		}
 	}
 
@@ -435,45 +437,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 
 			return (double) modelCounter - 1;
-
-		}
-	}
-
-	public static class Report extends DefaultReporter{
-		public Syntax getSyntax() {
-			return Syntax.reporterSyntax(
-					new int[]{ Syntax.NumberType(), Syntax.StringType() },
-					Syntax.WildcardType());
-		}
-
-		public Object report(Argument args[], Context context) throws ExtensionException,  LogoException{
-			int modelNumber = (int) args[0].getDoubleValue();
-			final String reporter = args[1].getString();
-			Object result;
-			try {
-				result = getModel(modelNumber).report(reporter);
-			} catch (CompilerException e) {
-				throw new ExtensionException("Model " + modelNumber + " thinks there's a problem with the reporter '" + reporter + "'.", e);
-			} catch (ExecutionException e) {
-				throw new ExtensionException("Model " + modelNumber + " errored when running '" + reporter + "'.", e);
-			}
-			if (result instanceof Agent || result instanceof AgentSet) {
-				throw new ExtensionException("You cannot report agents or agentsets. If you want to do something" +
-						"with agents or agentsets use the ls:ask instead.");
-
-			}
-			return result;
-		}
-
-		private void checkAgentsAndSets(LogoList ll) throws ExtensionException{
-			for (Object o : ll){
-				if (o instanceof Agent || o instanceof AgentSet){
-					throw new ExtensionException("You cannot report agents or agentsets.");
-				}
-				if(o instanceof LogoList){
-					checkAgentsAndSets((LogoList)o);
-				}
-			}
 
 		}
 	}
