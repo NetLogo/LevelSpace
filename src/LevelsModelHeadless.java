@@ -129,8 +129,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 				return runSafely(new Callable<Object>() {
 					@Override
 					public Object call() throws Exception {
-						LevelsModelHeadless.super.report(context, reporter, args);
-						return null;
+						return LevelsModelHeadless.super.report(context, reporter, args);
 					}
 				});
 			} catch (HaltException e) {

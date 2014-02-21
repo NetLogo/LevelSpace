@@ -155,8 +155,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 			return runSafely(new Callable<Object>() {
 				@Override
 				public Object call() throws Exception {
-					LevelsModelComponent.super.report(context, reporter, args);
-					return null;
+					return LevelsModelComponent.super.report(context, reporter, args);
 				}
 			});
 		} catch (HaltException e) {
