@@ -19,7 +19,9 @@ public abstract class LevelsModelAbstract {
 		Agent oldAgent = context.agent;
 		context.agent = workspace().world().observer();
 		context.agentBit = context.agent.getAgentBit();
-		command.perform(context, args);
+		synchronized (workspace().world()) {
+			command.perform(context, args);
+		}
 		context.agent = oldAgent;
 		context.agentBit = context.agent.getAgentBit();
 	}
@@ -28,7 +30,10 @@ public abstract class LevelsModelAbstract {
 		Agent oldAgent = context.agent;
 		context.agent = workspace().world().observer();
 		context.agentBit = context.agent.getAgentBit();
-		Object result = reporter.report(context, args);
+		Object result = null;
+		synchronized (workspace().world()) {
+			result = reporter.report(context, args);
+		}
 		context.agent = oldAgent;
 		context.agentBit = context.agent.getAgentBit();
 		return result;
