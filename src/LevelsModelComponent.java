@@ -8,15 +8,13 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import org.nlogo.api.ClassManager;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoList;
+import org.nlogo.api.*;
+import org.nlogo.nvm.*;
 import org.nlogo.app.App;
 import org.nlogo.lite.InterfaceComponent;
-import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.Workspace;
+import org.nlogo.nvm.CommandTask;
+import org.nlogo.nvm.Context;
+import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
@@ -103,81 +101,112 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 
 
 	/**
-	 * Runs the given command in this model.
-	 * WARNING: Not safe. Must be run via LevelsSpace.runSafely().
-	 * See AppletPanel.command() for more information.
+	 * Runs the given command in this model safely.
 	 * @param command
 	 * @throws CompilerException 
 	 */
-	public void command (String command) throws CompilerException
-	{
-		myWS.command(command);	
+	@Override
+	public void command(final String command) throws ExtensionException {
+		try {
+			runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws ExtensionException {
+					try {
+						myWS.command(command);
+					} catch (CompilerException e) {
+						throw ErrorUtils.handle(LevelsModelComponent.this, command, e);
+					}
+					return null;
+				}
+			});
+		} catch (HaltException e) {
+			// okay
+		}
 	}
 
+	@Override
+	public void command(final Context context, final CommandTask command, final Object[] args) throws ExtensionException {
+		try {
+			runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws ExtensionException {
+					LevelsModelComponent.super.command(context, command, args);
+					return null;
+				}
+			});
+		} catch (HaltException e) {
+			// ignore
+		}
+	}
+
+	/**
+	 * Runs the reporter in this model and returns the result safely.
+	 * @param reporter
+	 * @return
+	 * @throws ExtensionException
+	 */
+	@Override
+	public Object report (final String reporter) throws ExtensionException {
+		try {
+			return runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws ExtensionException {
+					try {
+						return myWS.report(reporter);
+					} catch (CompilerException e) {
+						throw ErrorUtils.handle(LevelsModelComponent.this, reporter, e);
+					}
+				}
+			});
+		} catch (HaltException e) {
+			// okay
+			return null;
+		}
+	}
+
+	@Override
+	public Object report(final Context context, final ReporterTask reporter, final Object[] args) throws ExtensionException {
+		try {
+			return runSafely(new Callable<Object>() {
+				@Override
+				public Object call() throws ExtensionException {
+					return LevelsModelComponent.super.report(context, reporter, args);
+				}
+			});
+		} catch (HaltException e) {
+			return null;
+		}
+	}
 
 	final public void kill() throws HaltException {
 		// before we do anything, we need to check if this model has child-models.
 		// If it does, we need to kill those too.
-		if(myWS.workspace().getExtensionManager().anyExtensionsLoaded()){
-			// iterate through loaded extensions
-			for (ClassManager cm : myWS.workspace().getExtensionManager().loadedExtensions()){
-				// they are loaded in another classloader, so we have to do string check
-				if("class LevelsSpace".equals(cm.getClass().toString())){
-					// OK, what if we do it in a way less clever way, and just get a LogoList of numbers
-					// and then runsafely(command()) the model to kill them?
-					Object theList = null;
-					
-					
-					try {
-						theList = 	LevelsSpace.runSafely(App.app().workspace().world(), new Callable<Object>() {
-							@Override
-							public Object call() throws CompilerException, LogoException, ExtensionException {
-								return report("ls:all-models");
-							}
-						});
-					} catch (ExecutionException e) {
-						try {
-							throw new ExtensionException("Something went wrong when closing down the model");
-						} catch (ExtensionException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					}	
-					LogoList theLogoList = (LogoList)theList;
-					for (Object theIndex : theLogoList.toArray()){
-						final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
-						try {
-							App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
-						} catch (LogoException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						
-						try {
-							try {
-								LevelsSpace.runSafely(App.app().workspace().world(), new Callable<Object>() {
-									@Override
-									public Object call() throws CompilerException, LogoException, ExtensionException {
-										command(theCommand);
-										return null;
-									}
-								});
-							} catch (ExecutionException e) {
-								try {
-									throw new ExtensionException("Something went wrong when closing down the model");
-								} catch (ExtensionException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
-							}		
-							
-						} catch (NumberFormatException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}					
+		if(usesLevelsSpace()) {
+			Object theList = null;
+			try {
+				theList = report("ls:all-models");
+			} catch (Exception e) {
+				// Normally we'd want to bubble these up as ExtensionExceptions, but
+				// can't because this is inherited
+				throw new RuntimeException(e);
+			}
+			LogoList theLogoList = (LogoList)theList;
+			for (Object theIndex : theLogoList.toArray()){
+				final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
+				try {
+					App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
+				} catch (LogoException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 
+				try {
+					command(theCommand);
+				} catch (Exception e) {
+					// Normally we'd want to bubble these up as ExtensionExceptions, but
+					// can't because this is inherited
+					throw new RuntimeException(e);
+				}
 			}
 		}
 
@@ -229,20 +258,6 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 
 
 
-	/**
-	 * Runs the reporter in this model and returns the result
-	 * WARNING: Not safe. Must be run via LevelsSpace.runSafely().
-	 * See AppletPanel.report() for more information.g
-	 * @param varName
-	 * @return
-	 * @throws ExtensionException 
-	 */
-	public Object report (String varName) throws ExtensionException, CompilerException
-	{
-		Object reportedValue = null;
-		reportedValue = myWS.report(varName);
-		return reportedValue;
-	}
 
 	public String getName()
 	{
