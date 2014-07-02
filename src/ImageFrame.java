@@ -1,8 +1,9 @@
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.InvocationTargetException;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 public class ImageFrame extends JFrame {
     /**
@@ -16,6 +17,11 @@ public class ImageFrame extends JFrame {
     public ImageFrame(final BufferedImage image, final String title) {
 		setTitle(title);
 		panel = new JPanel() {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void paintComponent(Graphics g) {
 				g.drawImage(getImage(), 0, 0, null);

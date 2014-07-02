@@ -1,19 +1,22 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
-import org.nlogo.api.*;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
+import org.nlogo.api.CompilerException;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
 import org.nlogo.app.App;
 import org.nlogo.headless.HeadlessWorkspace;
-import org.nlogo.nvm.*;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
+import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
+import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
-
-import javax.swing.*;
 
 public class LevelsModelHeadless extends LevelsModelAbstract {
 	

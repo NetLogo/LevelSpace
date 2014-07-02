@@ -2,23 +2,25 @@ import java.awt.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import org.nlogo.api.*;
-import org.nlogo.nvm.*;
+import org.nlogo.api.CompilerException;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
 import org.nlogo.app.App;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
+import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
+import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
-import org.nlogo.window.ThreadUtils;
 
 
 public class LevelsModelComponent extends LevelsModelAbstract {
