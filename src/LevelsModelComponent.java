@@ -297,4 +297,18 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	JFrame frame() {
 		return frame;
 	}
+
+
+	// @TODO implement 
+	public LogoList listBreeds() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
+	// @TODO implement this
+	public LogoList listBreedsOwns() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

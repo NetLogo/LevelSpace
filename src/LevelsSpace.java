@@ -78,6 +78,16 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("display", new UpdateView());
 		primitiveManager.addPrimitive("show", new Show());
 		primitiveManager.addPrimitive("hide", new Hide());
+		// testing primitives
+		// this returns a list of all breeds. currently implemented as a nl 
+		// primitive, but probably won't need it as such. Although it is
+		// sort of handy for LS programming
+		primitiveManager.addPrimitive("_list-breeds", new ListBreeds());		
+		// this returns a list of all breeds and their own vars. currently implemented  
+		// as a nl primitive, but probably won't need it as such. Although it is
+		// sort of handy for LS programming
+		primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());		
+		primitiveManager.addPrimitive("test", new Test());		
 
 		modelCounter = 0;
 		
@@ -451,11 +461,92 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
-
-	public static class AllModels extends DefaultReporter {
-
+	
+	public static class Test extends DefaultReporter {
 		public Syntax getSyntax() {
 			return Syntax.reporterSyntax(
+					// we take in int[] {modelNumber, varName} 
+					new int[] { Syntax.NumberType() },
+					// and return a number
+					Syntax.ListType());	        
+		}
+
+		public Object report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// get model number from args
+			int modelNumber = (int) args[0].getDoubleValue();
+
+			// find the model. if it exists, get all breeds + owns
+			if(myModels.containsKey(modelNumber))
+			{
+				LevelsModelAbstract theModel = myModels.get(modelNumber);
+				return theModel.listBreedsOwns();
+
+			}
+			else{
+				return false;
+			}
+
+		}
+	}
+
+	public static class BreedsOwns extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// we take in int[] {modelNumber, varName} 
+					new int[] { Syntax.NumberType() },
+					// and return a number
+					Syntax.ListType());	        
+		}
+
+		public Object report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// get model number from args
+			int modelNumber = (int) args[0].getDoubleValue();
+
+			// find the model. if it exists, get all breeds + owns
+			if(myModels.containsKey(modelNumber))
+			{
+				LevelsModelAbstract theModel = myModels.get(modelNumber);
+				return theModel.listBreedsOwns();
+
+			}
+			else{
+				return false;
+			}
+
+		}
+	}
+	public static class ListBreeds extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// we take in int[] {modelNumber, varName} 
+					new int[] { Syntax.NumberType() },
+					// and return a number
+					Syntax.BooleanType());	        
+		}
+
+		public Object report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// get model number from args
+			int modelNumber = (int) args[0].getDoubleValue();
+			// find the model. if it exists, update graphics 
+			if(myModels.containsKey(modelNumber))
+			{
+				LevelsModelAbstract theModel = myModels.get(modelNumber);
+				return theModel.listBreedsOwns();
+			}
+			else{
+				return false;
+			}
+
+		}
+	}
+
+		public static class AllModels extends DefaultReporter {
+
+			public Syntax getSyntax() {
+				return Syntax.reporterSyntax(
 					// no parameters 
 					new int[] {},
 					// and return a logolist

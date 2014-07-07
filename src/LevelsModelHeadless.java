@@ -1,5 +1,7 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 import javax.swing.JFrame;
@@ -9,6 +11,7 @@ import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoList;
+import org.nlogo.api.LogoListBuilder;
 import org.nlogo.app.App;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.CommandTask;
@@ -262,4 +265,38 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	public void setSpeed(double d){
 		
 	}	
+	
+	public LogoList listBreeds(){
+		LogoListBuilder llb = new LogoListBuilder();
+//		java.util.Map<String, Object> breeds = ;
+		for (String entry : workspace().world().getBreeds().keySet())
+		{
+		    llb.add(entry);
+		}
+		return llb.toLogoList();
+	}
+
+	@Override
+	public LogoList listBreedsOwns() {
+		LogoListBuilder llb = new LogoListBuilder();
+		// TODO Auto-generated method stub
+		for (Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
+		{
+			LogoListBuilder tuple  = new LogoListBuilder();
+			LogoListBuilder vars = new LogoListBuilder();
+			for (String s : entry.getValue()){
+				vars.add(s);
+			}
+			// add turtles own to all of them too
+			for (String s: workspace().world().program().turtlesOwn()){
+				vars.add(s);
+			}
+			tuple.add(entry.getKey());
+			tuple.add(vars.toLogoList());
+		    llb.add(tuple.toLogoList());
+		}
+		return llb.toLogoList();
+
+	}
+	
 }

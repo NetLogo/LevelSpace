@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 
 import org.nlogo.agent.Agent;
 import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoList;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.nvm.CommandTask;
@@ -63,6 +64,8 @@ public abstract class LevelsModelAbstract {
 	abstract public void setSpeed(double d);
 	abstract public void halt();
 	abstract public Workspace workspace();
+	abstract public LogoList listBreeds();
+	abstract public LogoList listBreedsOwns();
 
 	abstract JFrame frame();
 
