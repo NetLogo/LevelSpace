@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.nlogo.api.ClassManager;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
@@ -259,8 +260,6 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	}
 
 
-
-
 	public String getName()
 	{
 		return name;
@@ -311,4 +310,19 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
+	@Override
+	public boolean hasLevelSpaceExtension() {
+		// TODO Auto-generated method stub
+		for (ClassManager extension : this.workspace().getExtensionManager().loadedExtensions()){
+			if (extension.getClass().toString().contains("LevelsSpace")){
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
 }

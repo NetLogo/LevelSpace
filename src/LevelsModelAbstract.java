@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import org.nlogo.agent.Agent;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoList;
+import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.World;
 import org.nlogo.app.App;
 import org.nlogo.nvm.CommandTask;
@@ -66,6 +67,8 @@ public abstract class LevelsModelAbstract {
 	abstract public Workspace workspace();
 	abstract public LogoList listBreeds();
 	abstract public LogoList listBreedsOwns();
+	abstract public boolean hasLevelSpaceExtension();
+
 
 	abstract JFrame frame();
 
@@ -128,5 +131,9 @@ public abstract class LevelsModelAbstract {
 		} catch (ExecutionException e) {
 			throw new ExtensionException(e);
 		}
+	}
+	public LogoListBuilder getDescendants() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

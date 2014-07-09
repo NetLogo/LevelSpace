@@ -27,6 +27,7 @@ import org.nlogo.api.ExtensionManager;
 import org.nlogo.api.ExtensionObject;
 import org.nlogo.api.ImportErrorHandler;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
@@ -47,7 +48,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 	// counter for keeping track of new models
 	static int modelCounter = 0;
-
 
 	@Override
 	public void load(PrimitiveManager primitiveManager) throws ExtensionException {
@@ -87,7 +87,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// as a nl primitive, but probably won't need it as such. Although it is
 		// sort of handy for LS programming
 		primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());		
-		primitiveManager.addPrimitive("test", new Test());		
+		primitiveManager.addPrimitive("test", new Test());	
+		// this is for exporting model information (like turtle vars, globals, etc)
+		// to an external, graphical programming environment for describing
+		// inter-model relationships and behaviors.
+		primitiveManager.addPrimitive("_export-models", new ExportModels());
+		primitiveManager.addPrimitive("_ask-hi", new HierarchicalAsk());
 
 		modelCounter = 0;
 		
@@ -305,6 +310,47 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}
 
+	
+
+	public static class HierarchicalAsk extends DefaultCommand {
+		public Syntax getSyntax() {
+			return Syntax.commandSyntax(
+					new int[] { Syntax.ListType(), Syntax.StringType() });	        
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// get model number from args
+			LogoList list = (LogoList)args[0];
+			// get the command
+			String cmd = args[1].toString();
+			// if the list is longer than one, we need to go deeper in the hierarchy
+			if (list.size() > 1){
+				// remove the first item from the list
+				list = list.butFirst();
+				// get the model
+				LevelsModelAbstract aModel = myModels.get(Integer.getInteger(list.first().toString()));
+				String mssg1 = "ls:_ask-hi " + list.toString() + " " + cmd;
+				try {
+					App.app().workspace().outputObject(mssg1, null, true, true, OutputDestination.NORMAL);
+				} catch (LogoException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				// then send both to the next model				
+				aModel.command(mssg1);
+			}
+			// if it is exactly 1, that means we are at the parent of the model that we want
+			// to ask to do something, so we just get the parent to ask its child
+			if (list.size() == 1){
+				
+			}
+		}
+
+	}
+	
+
 	public static class CloseModel extends DefaultCommand {
 		public Syntax getSyntax() {
 			return Syntax.commandSyntax(
@@ -373,6 +419,28 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			App.app().workspace().breathe();
 		}
 	}
+	
+	public static class ExportModels extends DefaultCommand {
+		public Syntax getSyntax() {
+			return Syntax.commandSyntax(
+					// we take in int[] {number, string} 
+					//					new int[] { Syntax.StringType()}
+					);
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			for (Integer d : myModels.keySet()){
+				LevelsModelAbstract aModel = myModels.get(d);
+				aModel.hasLevelSpaceExtension();
+			}
+
+
+		}	
+	}
+
+	
+	
 	
 	// this returns the path of the model
 	public static class ModelName extends DefaultReporter{
@@ -461,6 +529,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
+
 	
 	public static class Test extends DefaultReporter {
 		public Syntax getSyntax() {
@@ -468,7 +537,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					// we take in int[] {modelNumber, varName} 
 					new int[] { Syntax.NumberType() },
 					// and return a number
-					Syntax.ListType());	        
+					Syntax.BooleanType());	        
 		}
 
 		public Object report(Argument args[], Context context)
@@ -480,11 +549,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if(myModels.containsKey(modelNumber))
 			{
 				LevelsModelAbstract theModel = myModels.get(modelNumber);
-				return theModel.listBreedsOwns();
+				return theModel.hasLevelSpaceExtension();
 
 			}
 			else{
-				return false;
+				return "no";
 			}
 
 		}
@@ -616,6 +685,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
+	
 
 	static void updateChildModelSpeed(LevelsModelAbstract model){
 		double theSpeed = App.app().workspace().speedSliderPosition();
