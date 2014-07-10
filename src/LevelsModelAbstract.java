@@ -68,6 +68,7 @@ public abstract class LevelsModelAbstract {
 	abstract public LogoList listBreeds();
 	abstract public LogoList listBreedsOwns();
 	abstract public boolean hasLevelSpaceExtension();
+	abstract public LogoList listGlobals();
 	
 	public int levelsSpaceNumber;
 
@@ -138,4 +139,5 @@ public abstract class LevelsModelAbstract {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
 }

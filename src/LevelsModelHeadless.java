@@ -269,7 +269,6 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 	
 	public LogoList listBreeds(){
 		LogoListBuilder llb = new LogoListBuilder();
-//		java.util.Map<String, Object> breeds = ;
 		for (String entry : workspace().world().getBreeds().keySet())
 		{
 		    llb.add(entry);
@@ -314,6 +313,15 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		llb.add(name);
 		llb.add(levelsSpaceNumber);
 		llb.add(path);
+		return llb.toLogoList();
+	}
+
+	@Override
+	public LogoList listGlobals() {
+		LogoListBuilder llb = new LogoListBuilder();
+		for (int i = 0; i < workspace().world().observer().variables.length; i++){
+			llb.add(workspace().world().observerOwnsNameAt(i));
+		}
 		return llb.toLogoList();
 	}
 		

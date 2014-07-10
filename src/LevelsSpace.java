@@ -82,6 +82,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// primitive, but probably won't need it as such. Although it is
 		// sort of handy for LS programming
 		primitiveManager.addPrimitive("_list-breeds", new ListBreeds());		
+		primitiveManager.addPrimitive("_globals", new Globals());		
 		// this returns a list of all breeds and their own vars. currently implemented  
 		// as a nl primitive, but probably won't need it as such. Although it is
 		// sort of handy for LS programming
@@ -698,7 +699,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					// we take in int[] {modelNumber, varName} 
 					new int[] { Syntax.NumberType() },
 					// and return a number
-					Syntax.BooleanType());	        
+					Syntax.ListType());	        
 		}
 
 		public Object report(Argument args[], Context context)
@@ -717,6 +718,33 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
+
+	public static class Globals extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// we take in int[] {modelNumber, varName} 
+					new int[] { Syntax.NumberType() },
+					// and return a number
+					Syntax.ListType());	        
+		}
+
+		public Object report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			// get model number from args
+			int modelNumber = (int) args[0].getDoubleValue();
+			// find the model. if it exists, update graphics 
+			if(myModels.containsKey(modelNumber))
+			{
+				LevelsModelAbstract theModel = myModels.get(modelNumber);
+				return theModel.listGlobals();
+			}
+			else{
+				throw new ExtensionException("There is no model with ID " + modelNumber);
+
+			}
+
+		}
+	}	
 
 		public static class AllModels extends DefaultReporter {
 

@@ -72,6 +72,10 @@ to build-network [model-list parent]
   ]
 end
 
+to _ask [cmd]
+  show who
+end
+
 to-report mh
   report run-result ls:_model-hierarchy
 end
