@@ -37,11 +37,8 @@ import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
-import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
-
-import scala.collection.Iterable;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
@@ -96,6 +93,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("_export-models", new ExportModels());
 		primitiveManager.addPrimitive("_ask-hi", new HierarchicalAsk());
 		primitiveManager.addPrimitive("_report-hi", new HierarchicalReport());
+		primitiveManager.addPrimitive("_model-hierarchy", new ModelHierarchy());
+		
 
 		modelCounter = 0;
 		
@@ -150,17 +149,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 	@Override
 	public void unload(ExtensionManager arg0) throws ExtensionException {
-		// iterate through models and kill them
-//		for (LevelsModelAbstract model : myModels.values()) {
-//			try {
-//				model.kill();
-//				App.app().workspace().breathe();
-//			} catch (HaltException e) {
-//				// TODO Auto-generated catch block
-//				throw new ExtensionException("Killing the model failed for some reason");
-//			}
-//		}
-//		myModels.clear();
+
 	}
 
 
@@ -422,23 +411,41 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				reporter = reporter.replace("\"", "\\\"");				
 				modelCommand = "ls:report " +  childModelno + " \""+ reporter + "\"";
 			}
-			String mssg1 = aModel.getName();
-			try {
-				App.app().workspace().outputObject(mssg1, null, true, true, OutputDestination.NORMAL);
-			} catch (LogoException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			try {
-				App.app().workspace().outputObject(modelCommand, null, true, true, OutputDestination.NORMAL);
-			} catch (LogoException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			
 			// then call command
 			return aModel.report(modelCommand);
+
+		}
+
+	}
+	public static class ModelHierarchy extends DefaultReporter {
+		public Syntax getSyntax(){
+			return Syntax.reporterSyntax(
+					new int[] {},
+					Syntax.StringType());
+
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+
+		}
+
+		@Override
+		public Object report(Argument[] args, Context arg1)
+				throws ExtensionException, LogoException {
+			// TODO Auto-generated method stub
+			// get model number from args
+			String returnValue = " [";
+			
+			for (Integer key : myModels.keySet()){
+				LevelsModelAbstract model = myModels.get(key);
+				returnValue = returnValue + "[ " + key.toString() + " \"" + model.getPath() + "\" " + model.report("ls:_model-hierarchy") + "]";
+			}
+
+			returnValue = returnValue + " ]";
+			// then return it
+			return returnValue;
 
 		}
 

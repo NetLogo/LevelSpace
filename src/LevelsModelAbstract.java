@@ -68,6 +68,8 @@ public abstract class LevelsModelAbstract {
 	abstract public LogoList listBreeds();
 	abstract public LogoList listBreedsOwns();
 	abstract public boolean hasLevelSpaceExtension();
+	
+	public int levelsSpaceNumber;
 
 
 	abstract JFrame frame();
