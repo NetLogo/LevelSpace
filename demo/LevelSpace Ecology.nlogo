@@ -7,18 +7,27 @@ turtles-own [
   id
 ]
 
+
+to ecology-setup
+  ls:load-headless-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Earth Science/Climate Change.nlogo"
+  ls:load-headless-model "/Users/hah661/Documents/Northwestern/NetlogoModels/ideology/InterpretingCongestionCharge_dummy.nlogo"
+  ls:load-headless-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Biology/Wolf Sheep Predation.nlogo"
+  network
+end
+
+
 to setup
   ls:reset
   ca
   ;; this creates three models as children of the main model
-  ls:load-gui-model "Wolf Sheep Predation Special.nlogo"
-  ls:load-gui-model "Wolf Sheep Predation Special.nlogo"
-  ls:load-gui-model "Wolf Sheep Predation Special.nlogo"
+  ls:load-headless-model "Wolf Sheep Predation Special.nlogo"
+  ls:load-headless-model "Wolf Sheep Predation Special.nlogo"
+  ls:load-headless-model "Wolf Sheep Predation Special.nlogo"
   ;; additionally the model with id 0 has two kids
-  ls:ask 0 "ls:load-gui-model \"Wolf Sheep Predation Special.nlogo\""
-  ls:ask 0 "ls:load-gui-model \"Wolf Sheep Predation Special.nlogo\""
+  ls:ask 0 "ls:load-headless-model \"Wolf Sheep Predation Special.nlogo\""
+  ls:ask 0 "ls:load-headless-model \"Wolf Sheep Predation Special.nlogo\""
   ;; and so does the model with id 0, 0 (i.e. model 0's first kid)
-  ls:_ask-hi [0 0] "ls:load-gui-model \"Wolf Sheep Predation Special.nlogo\""
+  ls:_ask-hi [0 0] "ls:load-headless-model \"Wolf Sheep Predation Special.nlogo\""
   ;; then we build a network out of it
   network
   ;; now call setup on the models

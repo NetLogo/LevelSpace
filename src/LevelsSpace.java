@@ -440,7 +440,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			
 			for (Integer key : myModels.keySet()){
 				LevelsModelAbstract model = myModels.get(key);
-				returnValue = returnValue + "[ " + key.toString() + " \"" + model.getPath() + "\" " + model.report("ls:_model-hierarchy") + "]";
+				if (model.hasLevelSpaceExtension()){
+					returnValue = returnValue + "[ " + key.toString() + " \"" + model.getPath() + "\" " + model.report("ls:_model-hierarchy") + "]";
+				}
+				else{
+					returnValue = returnValue + "[ " + key.toString() + " \"" + model.getPath() + "\" " + " [ ]]";
+				}
 			}
 
 			returnValue = returnValue + " ]";
