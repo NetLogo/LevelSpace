@@ -41,6 +41,8 @@ import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
+import scala.collection.Iterable;
+
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 
@@ -93,6 +95,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// inter-model relationships and behaviors.
 		primitiveManager.addPrimitive("_export-models", new ExportModels());
 		primitiveManager.addPrimitive("_ask-hi", new HierarchicalAsk());
+		primitiveManager.addPrimitive("_report-hi", new HierarchicalReport());
 
 		modelCounter = 0;
 		
@@ -275,7 +278,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					new int[]{Syntax.NumberType(),
 							Syntax.ReporterTaskType() | Syntax.StringType(),
 							Syntax.RepeatableType() | Syntax.WildcardType()},
-					Syntax.WildcardType(),
+							Syntax.WildcardType(),
 					2);
 		}
 
@@ -321,31 +324,122 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public void perform(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
 			// get model number from args
-			LogoList list = (LogoList)args[0];
+			LogoList list = args[0].getList();
 			// get the command
-			String cmd = args[1].toString();
+			String cmd = args[1].getString();
+			// get the model
+			double modelNumber = (Double) list.first();
+			int modelno = (int)modelNumber;
+			LevelsModelAbstract aModel;
+			if (myModels.containsKey(modelno)){
+				aModel = myModels.get(modelno);				
+			}
+			else {
+				throw new ExtensionException("The model with id " + modelno + " did not exist.");
+			}
+			// then remove the model from the list
+			list = list.butFirst();
+			// Command string
+			String modelCommand = "";
+
 			// if the list is longer than one, we need to go deeper in the hierarchy
 			if (list.size() > 1){
-				// remove the first item from the list
-				list = list.butFirst();
-				// get the model
-				LevelsModelAbstract aModel = myModels.get(Integer.getInteger(list.first().toString()));
-				String mssg1 = "ls:_ask-hi " + list.toString() + " " + cmd;
-				try {
-					App.app().workspace().outputObject(mssg1, null, true, true, OutputDestination.NORMAL);
-				} catch (LogoException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				// then send both to the next model				
-				aModel.command(mssg1);
+				// need to reinsert escape chars
+				cmd = cmd.replace("\"", "\\\"");
+				// this currently doesn't work because it does this for the first and last 
+				// quotation marks too - which it should not.
+				modelCommand = "ls:_ask-hi " + org.nlogo.api.Dump.logoObject(list) + " \"" + cmd + "\"";
 			}
-			// if it is exactly 1, that means we are at the parent of the model that we want
+
+			// if it is exactly 1 that means we are at the parent of the model that we want
 			// to ask to do something, so we just get the parent to ask its child
 			if (list.size() == 1){
-				
+				// get the child model
+				double childModelNumber = (Double) list.first();
+				int childModelno = (int)childModelNumber;
+				cmd = cmd.replace("\"", "\\\"");				
+				modelCommand = "ls:ask " +  childModelno + " \""+ cmd + "\"";
 			}
+			// then call command
+			aModel.command(modelCommand);
+
+		}
+
+	}
+	
+
+	public static class HierarchicalReport extends DefaultReporter {
+		public Syntax getSyntax(){
+			return Syntax.reporterSyntax(
+					new int[] {Syntax.ListType(), Syntax.StringType()},
+					Syntax.StringType());
+
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+
+		}
+
+		@Override
+		public Object report(Argument[] args, Context arg1)
+				throws ExtensionException, LogoException {
+			// TODO Auto-generated method stub
+			// get model number from args
+			LogoList list = args[0].getList();
+			// get the command
+			String reporter = args[1].getString();
+			// get the model
+			double modelNumber = (Double) list.first();
+			int modelno = (int)modelNumber;
+			LevelsModelAbstract aModel;
+			if (myModels.containsKey(modelno)){
+				aModel = myModels.get(modelno);				
+			}
+			else {
+				throw new ExtensionException("The model with id " + modelno + " did not exist.");
+			}
+			// then remove the model from the list
+			list = list.butFirst();
+			// Command string
+			String modelCommand = "";
+
+			// if the list is longer than one, we need to go deeper in the hierarchy
+			if (list.size() > 1){
+				// need to reinsert escape chars
+				reporter = reporter.replace("\"", "\\\"");
+				// this currently doesn't work because it does this for the first and last 
+				// quotation marks too - which it should not.
+				modelCommand = "ls:_report-hi " + org.nlogo.api.Dump.logoObject(list) + " \"" + reporter + "\"";
+			}
+
+			// if it is exactly 1 that means we are at the parent of the model that we want
+			// to ask to do something, so we just get the parent to ask its child
+			if (list.size() == 1){
+				// get the child model
+				double childModelNumber = (Double) list.first();
+				int childModelno = (int)childModelNumber;
+				reporter = reporter.replace("\"", "\\\"");				
+				modelCommand = "ls:report " +  childModelno + " \""+ reporter + "\"";
+			}
+			String mssg1 = aModel.getName();
+			try {
+				App.app().workspace().outputObject(mssg1, null, true, true, OutputDestination.NORMAL);
+			} catch (LogoException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			try {
+				App.app().workspace().outputObject(modelCommand, null, true, true, OutputDestination.NORMAL);
+			} catch (LogoException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// then call command
+			return aModel.report(modelCommand);
+
 		}
 
 	}
@@ -697,15 +791,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// First stop the child model, then get its (potential) child models and 
 		// send them here too
 		for (LevelsModelAbstract aModel : models.values()){
-			String mssg1 = aModel.getName();
-			try {
-				App.app().workspace().outputObject(mssg1, null, true, true, OutputDestination.NORMAL);
-			} catch (LogoException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-
 			aModel.halt();
 		}
 
