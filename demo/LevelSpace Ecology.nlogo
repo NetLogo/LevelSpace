@@ -9,6 +9,8 @@ turtles-own [
 
 
 to ecology-setup
+  ls:reset
+  ca
   ls:load-headless-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Earth Science/Climate Change.nlogo"
   ls:load-headless-model "/Users/hah661/Documents/Northwestern/NetlogoModels/ideology/InterpretingCongestionCharge_dummy.nlogo"
   ls:load-headless-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Biology/Wolf Sheep Predation.nlogo"
@@ -146,9 +148,9 @@ to-report limit-magnitude [number limit]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-158
+198
 10
-597
+637
 470
 16
 16
@@ -173,12 +175,12 @@ ticks
 30.0
 
 BUTTON
-7
-13
-141
-46
+4
+10
+138
+43
 setup
-setup
+ecology-setup
 NIL
 1
 T
@@ -190,10 +192,10 @@ NIL
 1
 
 BUTTON
-11
-62
-206
-95
+4
+44
+137
+77
 go
 ask models [\nask-me \"go\"\nset size i-report \"count turtles\" / 100\n]
 T
