@@ -67,7 +67,6 @@ public abstract class LevelsModelAbstract {
 	abstract public Workspace workspace();
 	abstract public LogoList listBreeds();
 	abstract public LogoList listBreedsOwns();
-	abstract public boolean hasLevelSpaceExtension();
 	abstract public LogoList listGlobals();
 	
 	public int levelsSpaceNumber;

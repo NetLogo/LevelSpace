@@ -14,10 +14,25 @@ to ecology-setup
   ls:load-gui-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Earth Science/Climate Change.nlogo"
   ls:load-gui-model "/Users/hah661/Documents/Northwestern/NetlogoModels/ideology/InterpretingCongestionCharge_dummy.nlogo"
   ls:load-gui-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Biology/Wolf Sheep Predation.nlogo"
+  ls:ask 2 "set grass? true"
+  foreach ls:all-models [ls:ask ? "setup"]
+
   network
 end
 
-
+to go
+  foreach ls:all-models [
+    ls:ask ? "go"
+  ]
+  if random 100 < ls:report 1 "count turtles with [will-drive-today?] / 100" [
+    ls:ask 0 "add-co2"
+  ]
+  if random 100 < 5 [
+    ls:ask 0 "remove-co2"
+  ]
+   
+  
+end
 to setup
   ls:reset
   ca
@@ -148,13 +163,13 @@ to-report limit-magnitude [number limit]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-198
-10
-637
-470
-16
-16
-13.0
+1081
+377
+1326
+408
+7
+7
+1.0E-4
 1
 10
 1
@@ -164,10 +179,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--16
-16
--16
-16
+-7
+7
+-7
+7
 0
 0
 1
@@ -197,7 +212,7 @@ BUTTON
 137
 77
 go
-ask models [\nask-me \"go\"\nset size i-report \"count turtles\" / 100\n]
+go\nupdate-plots
 T
 1
 T
@@ -207,6 +222,81 @@ NIL
 NIL
 NIL
 1
+
+PLOT
+147
+10
+944
+130
+Global Temperature
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Temperature" 1.0 0 -16777216 true "" "plot ls:report 0 \"temperature\""
+
+PLOT
+147
+129
+944
+249
+CO2
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"CO2" 1.0 0 -16777216 true "" "plot ls:report 0 \"count CO2s\""
+
+PLOT
+147
+248
+944
+369
+Mode of transportation
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Car" 1.0 0 -16777216 true "" "plot ls:report 1 \"count turtles with [will-drive-today?]\""
+"Transit" 1.0 0 -7500403 true "" "plot ls:report 1 \"count turtles with [not will-drive-today?]\""
+
+PLOT
+148
+368
+944
+501
+Population Numbers
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Sheep" 1.0 0 -13345367 true "" "plot ls:report 2 \"count sheep\""
+"Wolves" 1.0 0 -2674135 true "" "plot ls:report 2 \"count wolves\""
+"Grass" 1.0 0 -10899396 true "" "plot ls:report 2 \"count patches with [pcolor = green] / 4\""
 
 @#$#@#$#@
 ## WHAT IS IT?

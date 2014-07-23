@@ -7,7 +7,6 @@ import java.util.concurrent.Callable;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import org.nlogo.api.ClassManager;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
@@ -297,15 +296,6 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
 		}
 		return llb.toLogoList();
 
-	}
-	
-	public boolean hasLevelSpaceExtension(){
-		for (ClassManager extension : this.workspace().getExtensionManager().loadedExtensions()){
-			if (extension.getClass().toString().contains("LevelsSpace")){
-				return true;
-			}
-		}
-		return false;
 	}
 	
 	public LogoList getModelInfoAsList(){

@@ -441,7 +441,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			
 			for (Integer key : myModels.keySet()){
 				LevelsModelAbstract model = myModels.get(key);
-				if (model.hasLevelSpaceExtension()){
+				if (model.usesLevelsSpace()){
 					returnValue = returnValue + "[ " + key.toString() + " \"" + model.getPath() + "\" " + model.report("ls:_model-hierarchy") + "]";
 				}
 				else{
@@ -539,7 +539,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throws ExtensionException, org.nlogo.api.LogoException {
 			for (Integer d : myModels.keySet()){
 				LevelsModelAbstract aModel = myModels.get(d);
-				aModel.hasLevelSpaceExtension();
+				aModel.usesLevelsSpace();
 			}
 
 
@@ -656,7 +656,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if(myModels.containsKey(modelNumber))
 			{
 				LevelsModelAbstract theModel = myModels.get(modelNumber);
-				return theModel.hasLevelSpaceExtension();
+				return theModel.usesLevelsSpace();
 
 			}
 			else{
