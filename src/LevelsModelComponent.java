@@ -26,7 +26,7 @@ import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
 
 
-public class LevelsModelComponent extends LevelsModelAbstract {
+public class LevelsModelComponent extends Model {
 
 	final javax.swing.JFrame frame = new javax.swing.JFrame();
 	final InterfaceComponent myWS = new InterfaceComponent(frame);	

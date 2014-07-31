@@ -19,7 +19,7 @@ import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
 
 
-public abstract class LevelsModelAbstract {
+public abstract class Model {
 
 	abstract public void command(String command) throws ExtensionException;
 	abstract public Object report(String reporter) throws ExtensionException;

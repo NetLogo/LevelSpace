@@ -6,7 +6,7 @@ import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoListBuilder;
 
 
-public class LevelSpaceAgentSet extends HashSet<Agent> implements Agent {
+public class AgentSetAgent extends HashSet<Agent> implements Agent {
 	
 	/**
 	 * 

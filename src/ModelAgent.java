@@ -6,9 +6,9 @@ import org.nlogo.nvm.ExtensionContext;
 
 
 public class ModelAgent implements Agent {
-	LevelsModelAbstract theModel;
+	Model theModel;
 	
-	public ModelAgent(LevelsModelAbstract theModel){
+	public ModelAgent(Model theModel){
 		this.theModel = theModel;
 	}
 	
@@ -50,7 +50,7 @@ public class ModelAgent implements Agent {
 		// If the model reports an agentset, we need to wrap it in the LevelSpaceAgentSet class
 		else if (reportedValue instanceof org.nlogo.api.AgentSet){
 			org.nlogo.api.AgentSet reportedAgentSet = (org.nlogo.api.AgentSet)reportedValue;
-			LevelSpaceAgentSet returnAgentSet = new LevelSpaceAgentSet();
+			AgentSetAgent returnAgentSet = new AgentSetAgent();
 			for (org.nlogo.api.Agent agent : reportedAgentSet.agents()){
 				TurtleAgent anAgent = new TurtleAgent(this, agent);
 				returnAgentSet.add(anAgent);

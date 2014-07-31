@@ -21,7 +21,7 @@ import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
 
-public class LevelsModelHeadless extends LevelsModelAbstract {
+public class LevelsModelHeadless extends Model {
 	
 	HeadlessWorkspace myWS;
 	ImageFrame frame;

@@ -29,7 +29,7 @@ import org.nlogo.window.ViewUpdatePanel;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
-	final static LevelSpaceAgentSet myModels = new LevelSpaceAgentSet();
+	final static AgentSetAgent myModels = new AgentSetAgent();
 	
 	// BAD HACK - need a better solution
 	static Agent lastModel;
@@ -219,7 +219,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			modelCounter = 0;
 			
 			for (Agent model : myModels){
-				LevelsModelAbstract theModel = (LevelsModelAbstract)model;
+				Model theModel = (Model)model;
 				theModel.kill();
 			}
 			myModels.clear();
@@ -809,7 +809,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	void updateChildModelsSpeed(){
 		double theSpeed = App.app().workspace().speedSliderPosition();
 		for (Agent model : myModels){
-			LevelsModelAbstract theModel = (LevelsModelAbstract)model;
+			Model theModel = (Model)model;
 			// find out if they have a LevelsSpace extension loaded
 			if (theModel instanceof LevelsModelComponent){
 				LevelsModelComponent lmodel = (LevelsModelComponent)theModel;
@@ -821,22 +821,22 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	}
 	
 
-	static void updateChildModelSpeed(LevelsModelAbstract model){
+	static void updateChildModelSpeed(Model model){
 		double theSpeed = App.app().workspace().speedSliderPosition();
 		model.setSpeed(theSpeed);
 	}	
 	
-	static void haltChildModels( HashMap<Integer, LevelsModelAbstract> models){
+	static void haltChildModels( HashMap<Integer, Model> models){
 		// Iterate through child models
 		// First stop the child model, then get its (potential) child models and 
 		// send them here too
-		for (LevelsModelAbstract aModel : models.values()){
+		for (Model aModel : models.values()){
 			aModel.halt();
 		}
 
 	}	
 
-	LevelSpaceAgentSet getModels(){
+	AgentSetAgent getModels(){
 		return myModels;
 	}
 	
