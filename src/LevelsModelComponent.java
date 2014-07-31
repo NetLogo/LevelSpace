@@ -334,10 +334,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		return llb.toLogoList();
 
 	}
-
-
-
-
+	
 	@Override
 	public LogoList listGlobals() {
 		LogoListBuilder llb = new LogoListBuilder();
@@ -347,7 +344,6 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		}
 		return llb.toLogoList();
 	}
-
 
 
 }
