@@ -28,6 +28,8 @@ import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
+import scala.collection.parallel.ParIterableLike.Foreach;
+
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 	final static AgentSetAgent myModels = new AgentSetAgent();
@@ -58,9 +60,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //		primitiveManager.addPrimitive("model-exists?", new ModelExists());
 		// this resets the the levelsspace extension
 		primitiveManager.addPrimitive("reset", new Reset());
-		// this returns the last model id number
-//		primitiveManager.addPrimitive("last-model-id", new LastModel());
-		// this returns whatever it is asked to report from a model
+//		primitiveManager.addPrimitive("with", new With());
 		// this returns just the path of a model
 //		primitiveManager.addPrimitive("model-path", new ModelPath());
 		// returns the path of the current model; useful for opening child models in same directory
@@ -410,16 +410,20 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				myModels.remove(theModel);			
 				App.app().workspace().breathe();
 			} else if (theAgent instanceof AgentSetAgent) {
+				AgentSetAgent removedModels = new AgentSetAgent();
 				for (Agent theModel : myModels) {
 					if (theModel instanceof ModelAgent){
-						((ModelAgent) theAgent).theModel.kill();
-						myModels.remove(theModel);			
+						((ModelAgent) theModel).theModel.kill();
+						removedModels.add(theModel);			
 						App.app().workspace().breathe();
 					}
 					else{
 						throw new ExtensionException("You provided a set containing non-model agents. Only" +
 								" models can be provided to ls:close");
 					}
+				}
+				for (Agent model : removedModels){
+					myModels.remove(model);
 				}
 			}
 			else{
