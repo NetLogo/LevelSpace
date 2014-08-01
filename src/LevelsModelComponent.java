@@ -188,7 +188,7 @@ public class LevelsModelComponent extends Model {
 		// If it does, we need to kill those too.
 		if(usesLevelsSpace()){
 			try {
-				command("ls:close-models ls:models");
+				command("ls:close ls:models");
 			} catch (ExtensionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
