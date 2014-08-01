@@ -2,6 +2,8 @@ import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
+import org.nlogo.app.App;
+import org.nlogo.nvm.Workspace.OutputDestination;
 
 
 public class TurtleAgent implements Agent {
@@ -16,9 +18,8 @@ public class TurtleAgent implements Agent {
 	@Override
 	public void ask(Argument[] args, Context context)
 			throws ExtensionException, LogoException {
-		// TODO Auto-generated method stub
-		
-
+		String theCommand = "ask turtle " + Long.toString(theAgent.id()) + " [" + args[1].getString() + "]";
+			parentModel.theModel.command(theCommand);
 	}
 
 	@Override

@@ -43,4 +43,20 @@ public class AgentSetAgent extends HashSet<Agent> implements Agent {
 		}
 		
 	}
+	
+	public AgentSetAgent with (String s) throws ExtensionException{
+		AgentSetAgent returnSet = new AgentSetAgent();
+		for (Agent anAgent : this){
+			Object agentValue = anAgent.of(s);
+			if (agentValue instanceof Boolean){
+				if ((Boolean)agentValue){
+					returnSet.add(anAgent);
+				}
+			}else{
+				throw new ExtensionException("ls:with only accepts reporter booleans. The string " + s +
+						"did not return a boolean.");
+			}
+		}
+		return returnSet;
+	}
 }

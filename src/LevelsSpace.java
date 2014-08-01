@@ -60,6 +60,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //		primitiveManager.addPrimitive("model-exists?", new ModelExists());
 		// this resets the the levelsspace extension
 		primitiveManager.addPrimitive("reset", new Reset());
+		primitiveManager.addPrimitive("with", new With());
+//		primitiveManager.addPrimitive("ls:turtle-set", new TurtleSet());
 //		primitiveManager.addPrimitive("with", new With());
 		// this returns just the path of a model
 //		primitiveManager.addPrimitive("model-path", new ModelPath());
@@ -424,6 +426,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				}
 				for (Agent model : removedModels){
 					myModels.remove(model);
+					
 				}
 			}
 			else{
@@ -567,28 +570,44 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}
 
-	/*
-	 * This primitive returns the last created model number
-	 */
 	public static class Of extends DefaultReporter {
 
-	    @Override
-	    public Syntax getSyntax() {
-	      return Syntax.reporterSyntax(Syntax.WildcardType(), new int[]{
-	              	Syntax.WildcardType()},
-	              	Syntax.WildcardType(),
-	              	org.nlogo.api.Syntax.NormalPrecedence() + 1,
-	              	true);
-	      
-	    }
+		@Override
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(Syntax.WildcardType(), new int[]{
+				Syntax.WildcardType()},
+				Syntax.WildcardType(),
+				org.nlogo.api.Syntax.NormalPrecedence() + 1,
+				true);
+
+		}
 		public Object report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
 			Agent anAgent = (Agent)args[1].get();
-			// Depending on what we get here, we may have to wrap stuff up.
 			return anAgent.of(args[0].getString()); 
 
 		}
 	}
+
+
+	public static class With extends DefaultReporter{
+		public Syntax getSyntax(){
+			return Syntax.reporterSyntax(Syntax.WildcardType(), new int[]{
+				Syntax.WildcardType()},
+				Syntax.WildcardType(),
+				org.nlogo.api.Syntax.NormalPrecedence() + 2,
+				false // left associative
+					);
+		}
+		public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
+			AgentSetAgent anAgentSet = (AgentSetAgent)args[0].get();
+			return anAgentSet.with(args[1].getString());
+
+		}
+
+	}
+
+	
 //
 //	public static class ModelExists extends DefaultReporter {
 //		public Syntax getSyntax() {
