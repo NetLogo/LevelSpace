@@ -24,6 +24,7 @@ import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.App;
 import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -50,7 +51,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this returns the name (and path) of a model 
 //		primitiveManager.addPrimitive("model-name", new ModelName());
 		// this closes a model
-//		primitiveManager.addPrimitive("close-model", new CloseModel());
+		primitiveManager.addPrimitive("close", new CloseModel());
 		// this returns a list of model IDs
 		primitiveManager.addPrimitive("models", new Models());
 		// this returns a boolean - does the model exist
@@ -215,17 +216,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	public static class Reset extends DefaultCommand {
 		public void perform(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
-			// resets the counter
-			modelCounter = 0;
-			
 			for (Agent model : myModels){
-				Model theModel = (Model)model;
-				theModel.kill();
+				ModelAgent theModelAgent = (ModelAgent)model;
+				theModelAgent.theModel.kill();
 			}
 			myModels.clear();
 		}
 	}
-//
+
 	public static class RunTask extends DefaultCommand {
 		public Syntax getSyntax(){
 			return Syntax.commandSyntax(
@@ -242,48 +240,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
-
-	//	public static class RunReporterTask extends DefaultReporter {
-//		public Syntax getSyntax(){
-//			return Syntax.reporterSyntax(
-//					new int[]{Syntax.NumberType(),
-//							Syntax.ReporterTaskType() | Syntax.StringType(),
-//							Syntax.RepeatableType() | Syntax.WildcardType()},
-//							Syntax.WildcardType(),
-//					2);
-//		}
-//
-//		@Override
-//		public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
-//			int modelNumber = args[0].getIntValue();
-//			LevelsModelAbstract model = getModel(modelNumber);
-//			Object rawReporter = args[1].get();
-//			int n = args.length - 2;
-//			Object[] actuals = new Object[n];
-//			for (int i = 0; i < n; i++) {
-//				actuals[i] = args[i+2].get();
-//			}
-//			ReporterTask task;
-//			if (rawReporter instanceof ReporterTask) {
-//				task = (ReporterTask) rawReporter;
-//			} else {
-//				String reporter = rawReporter.toString();
-//				if (actuals.length > 0) {
-//					task = (ReporterTask) model.report("task [ " + reporter + " ]");
-//				} else {
-//					// No arguments, don't bother making a task and such
-//					return model.report(reporter);
-//				}
-//			}
-//			Object result = model.report(((ExtensionContext) context).nvmContext(), task, actuals);
-//			if (result instanceof Agent || result instanceof AgentSet) {
-//				throw new ExtensionException("You cannot report agents or agentsets. If you want to do something" +
-//						"with agents or agentsets use the ls:ask instead.");
-//			}
-//			return result;
-//		}
-//	}
-
 	
 //
 //	public static class HierarchicalAsk extends DefaultCommand {
@@ -439,26 +395,41 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //	}
 //	
 //
-//	public static class CloseModel extends DefaultCommand {
-//		public Syntax getSyntax() {
-//			return Syntax.commandSyntax(
-//					new int[] { Syntax.NumberType() });	        
-//		}
-//
-//		public void perform(Argument args[], Context context)
-//				throws ExtensionException, org.nlogo.api.LogoException {
-//			// get model number from args
-//			int modelNumber = (int) args[0].getDoubleValue();
-//			// find the model. if it exists, kill it
-//			getModel(modelNumber).kill();
-//			// and remove it from the hashtable
-//			myModels.remove(modelNumber);
-//			App.app().workspace().breathe();
-//		}
-//
-//	}
-//
-//	public static class UpdateView extends DefaultCommand {
+	public static class CloseModel extends DefaultCommand {
+		public Syntax getSyntax() {
+			return Syntax.commandSyntax(
+					new int[] { Syntax.WildcardType() });	        
+		}
+
+		public void perform(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			Object theAgent = args[0].get();
+			if (theAgent instanceof ModelAgent){
+				ModelAgent theModel = (ModelAgent)theAgent;
+				((ModelAgent) theAgent).theModel.kill();
+				myModels.remove(theModel);			
+				App.app().workspace().breathe();
+			} else if (theAgent instanceof AgentSetAgent) {
+				for (Agent theModel : myModels) {
+					if (theModel instanceof ModelAgent){
+						((ModelAgent) theAgent).theModel.kill();
+						myModels.remove(theModel);			
+						App.app().workspace().breathe();
+					}
+					else{
+						throw new ExtensionException("You provided a set containing non-model agents. Only" +
+								" models can be provided to ls:close");
+					}
+				}
+			}
+			else{
+				throw new ExtensionException("You can only call ls:close-model on models.");
+			}
+
+		}
+	}
+	//
+	//	public static class UpdateView extends DefaultCommand {
 //		public Syntax getSyntax() {
 //			return Syntax.commandSyntax(
 //					new int[] { Syntax.NumberType() });	        
@@ -835,6 +806,22 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 
 	}	
+	
+	static void killModel(ModelAgent model){
+		try {
+			App.app().workspace().outputObject("kill model called", null, true, true, OutputDestination.NORMAL);
+		} catch (LogoException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			model.theModel.kill();
+		} catch (HaltException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		myModels.remove(model);
+	}
 
 	AgentSetAgent getModels(){
 		return myModels;

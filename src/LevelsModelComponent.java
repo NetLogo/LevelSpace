@@ -186,35 +186,14 @@ public class LevelsModelComponent extends Model {
 	final public void kill() throws HaltException {
 		// before we do anything, we need to check if this model has child-models.
 		// If it does, we need to kill those too.
-		if(usesLevelsSpace()) {
-			Object theList = null;
+		if(usesLevelsSpace()){
 			try {
-				theList = report("ls:all-models");
-			} catch (Exception e) {
-				// Normally we'd want to bubble these up as ExtensionExceptions, but
-				// can't because this is inherited
-				throw new RuntimeException(e);
-			}
-			LogoList theLogoList = (LogoList)theList;
-			for (Object theIndex : theLogoList.toArray()){
-				final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
-				try {
-					App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
-				} catch (LogoException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				try {
-					command(theCommand);
-				} catch (Exception e) {
-					// Normally we'd want to bubble these up as ExtensionExceptions, but
-					// can't because this is inherited
-					throw new RuntimeException(e);
-				}
+				command("ls:close-models ls:models");
+			} catch (ExtensionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
-
 		killJobThread();
 		killLifeguard();
 

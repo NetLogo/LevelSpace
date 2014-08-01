@@ -179,30 +179,14 @@ public class LevelsModelHeadless extends Model {
 	}
 
 	public void kill() {
+		// before we do anything, we need to check if this model has child-models.
+		// If it does, we need to kill those too.
 		if(usesLevelsSpace()){
-			// If it has a levelsspace extension loaded, get a list of all loaded models
-			Object theList;
 			try {
-				theList = report("ls:all-models");
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-			LogoList theLogoList = (LogoList)theList;
-			for (Object theIndex : theLogoList.toArray()){
-				final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
-				try {
-					App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
-				} catch (LogoException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				try {
-					command(theCommand);
-				} catch (Exception e) {
-					// Would be better to use ExtensionException, but can't here
-					throw new RuntimeException(e);
-				}
+				command("ls:close-models ls:models");
+			} catch (ExtensionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 

@@ -14,6 +14,7 @@ public class ModelAgent implements Agent {
 	
 
 	public void ask(Argument args[], org.nlogo.api.Context context) throws ExtensionException, LogoException{
+		boolean killModel = false;
 
 		Object rawCommand = args[1].get();
 		int n = args.length - 2;
@@ -27,6 +28,7 @@ public class ModelAgent implements Agent {
 			} else {
 				String command = rawCommand.toString();
 				if (actuals.length > 0) {
+
 					task = (CommandTask) theModel.report("task [ " + command + " ]");
 				} else {
 					// No arguments, don't bother making a task and such
@@ -34,7 +36,6 @@ public class ModelAgent implements Agent {
 					return;
 				}
 			}
-			// this doesn't work because we're using the wrong context
 			theModel.command(((ExtensionContext) context).nvmContext(), task, actuals);
 
 	}

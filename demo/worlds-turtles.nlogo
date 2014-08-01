@@ -5,7 +5,7 @@ globals [test-var]
 to setup
   ls:load-gui-model "Wolf Sheep Predation Special.nlogo"
   ls:load-gui-model "Wolf Sheep Predation Special.nlogo"
-  ls:ask ls:all-models "setup"
+  ls:ask ls:models "set grass? true setup"
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
