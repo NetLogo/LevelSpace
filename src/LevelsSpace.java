@@ -29,8 +29,6 @@ import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
-import scala.collection.parallel.ParIterableLike.Foreach;
-
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 	final static AgentSetAgent myModels = new AgentSetAgent();
@@ -585,9 +583,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public Object report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
 			Agent anAgent = (Agent)args[1].get();
-			Object rawObject = anAgent.of(args[0].getString());
-			if (rawObject instanceof) 
-			return null;
+			return anAgent.of(args[0].getString()); 
 
 		}
 	}

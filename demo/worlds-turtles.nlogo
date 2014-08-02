@@ -35,6 +35,40 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
+BUTTON
+34
+154
+243
+187
+NIL
+show \"turtles\" ls:of ls:models\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+44
+237
+284
+270
+NIL
+show \"(list turtles)\" ls:of ls:models\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 

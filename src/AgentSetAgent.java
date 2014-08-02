@@ -1,5 +1,6 @@
 import java.util.HashSet;
 
+import org.nlogo.api.AgentSet;
 import org.nlogo.api.Argument;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
@@ -8,20 +9,40 @@ import org.nlogo.api.LogoListBuilder;
 
 
 public class AgentSetAgent extends HashSet<Agent> implements Agent {
-	
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
 	public AgentSetAgent(){
 		super();
 	}
+
+	public AgentSetAgent(LogoList aList) throws ExtensionException {
+		unpackAndAdd(aList);
+	}
 	
-	public AgentSetAgent(LogoList aList) {
+	public AgentSetAgent(AgentSet logoAgentSet, ModelAgent aModel){
+		
+	}
+
+	void unpackAndAdd(LogoList aList) throws ExtensionException{
 		for (Object anObject : aList.toArray()){
-			this.add((Agent)anObject);
+			if (anObject instanceof TurtleAgent){
+				this.add((Agent) anObject);
+			}
+			else if (anObject instanceof AgentSetAgent){
+				this.addAll((AgentSetAgent)anObject);
+			}
+			else if (anObject instanceof LogoList){
+				unpackAndAdd((LogoList)anObject);
+			}
+			else{
+				throw new ExtensionException("You can only send LSAgents, LSAgentsets and LogoLists to ls:turtle-set");
+			}
 		}
+
 	}
 
 	@Override
@@ -52,9 +73,9 @@ public class AgentSetAgent extends HashSet<Agent> implements Agent {
 				e.printStackTrace();
 			}
 		}
-		
+
 	}
-	
+
 	public AgentSetAgent with (String s) throws ExtensionException{
 		AgentSetAgent returnSet = new AgentSetAgent();
 		for (Agent anAgent : this){
