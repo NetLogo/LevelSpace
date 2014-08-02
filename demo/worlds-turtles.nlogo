@@ -1,6 +1,6 @@
 extensions [ls]
 
-globals [test-var]
+globals [test-var list1 list2 ]
 
 to setup
   ls:load-gui-model "Wolf Sheep Predation Special.nlogo"

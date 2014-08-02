@@ -3,6 +3,7 @@ import java.util.HashSet;
 import org.nlogo.api.Argument;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 
 
@@ -13,6 +14,16 @@ public class AgentSetAgent extends HashSet<Agent> implements Agent {
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	public AgentSetAgent(){
+		super();
+	}
+	
+	public AgentSetAgent(LogoList aList) {
+		for (Object anObject : aList.toArray()){
+			this.add((Agent)anObject);
+		}
+	}
+
 	@Override
 	public Object of(String s) throws ExtensionException {
 		// AH: I am not sure this should be a LogoList, but if we just make it a LogoList by 

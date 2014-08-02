@@ -20,6 +20,7 @@ import org.nlogo.api.ExtensionManager;
 import org.nlogo.api.ExtensionObject;
 import org.nlogo.api.ImportErrorHandler;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
 import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.App;
@@ -61,7 +62,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this resets the the levelsspace extension
 		primitiveManager.addPrimitive("reset", new Reset());
 		primitiveManager.addPrimitive("with", new With());
-//		primitiveManager.addPrimitive("ls:turtle-set", new TurtleSet());
+		primitiveManager.addPrimitive("turtle-set", new TurtleSet());
 //		primitiveManager.addPrimitive("with", new With());
 		// this returns just the path of a model
 //		primitiveManager.addPrimitive("model-path", new ModelPath());
@@ -584,7 +585,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public Object report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
 			Agent anAgent = (Agent)args[1].get();
-			return anAgent.of(args[0].getString()); 
+			Object rawObject = anAgent.of(args[0].getString());
+			if (rawObject instanceof) 
+			return null;
 
 		}
 	}
@@ -602,6 +605,21 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
 			AgentSetAgent anAgentSet = (AgentSetAgent)args[0].get();
 			return anAgentSet.with(args[1].getString());
+
+		}
+
+	}
+
+	public static class TurtleSet extends DefaultReporter{
+		public Syntax getSyntax(){
+			return Syntax.reporterSyntax(
+					new int[] {Syntax.ListType()},
+					// and return a number
+					Syntax.WildcardType());
+		}
+		public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
+			LogoList aList = args[0].getList();
+			return new AgentSetAgent(aList);
 
 		}
 

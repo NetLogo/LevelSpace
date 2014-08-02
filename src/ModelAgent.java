@@ -39,6 +39,7 @@ public class ModelAgent implements Agent {
 			theModel.command(((ExtensionContext) context).nvmContext(), task, actuals);
 
 	}
+	
 	@Override
 	public Object of(String s) throws ExtensionException {
 		Object reportedValue = theModel.report(s);
