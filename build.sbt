@@ -2,14 +2,24 @@ name := "LevelsSpace"
 
 scalaVersion := "2.9.2"
 
-javaSource in Compile <<= baseDirectory(_ / "src")
+javaSource in Compile <<= baseDirectory(_ / "src" / "main")
+
+scalaSource in Test := baseDirectory.value / "src" / "test"
+
+javaSource in Test := baseDirectory.value / "src" / "test"
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings",
                       "-encoding", "us-ascii")
 
-libraryDependencies +=
+libraryDependencies ++= Seq(
   "org.nlogo" % "NetLogo" % "5.1.0" from
-    "http://ccl.northwestern.edu/netlogo/5.1.0/NetLogo.jar" 
+    "http://ccl.northwestern.edu/netlogo/5.1.0/NetLogo.jar",
+  "org.nlogo" % "NetLogo-tests" % "5.0.5" % "test" from
+    "http://ccl.northwestern.edu/netlogo/5.0.5/NetLogo-tests.jar",
+  "org.scalatest" %% "scalatest" % "1.8" % "test",
+  "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
+  "asm" % "asm-all" % "3.3.1" % "test"
+)
 
 artifactName := { (_, _, _) => "ls.jar" }
 
