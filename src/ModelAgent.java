@@ -61,6 +61,14 @@ public class ModelAgent implements Agent {
 			throw new ExtensionException(String.format("Needed a %s but `%s` compiles to a %s.", taskType, code, task.getClass()));
 		}
 	}
+
+	public Object wrap(Object reporterResult) {
+		if (reporterResult instanceof org.nlogo.agent.Agent) {
+			return new TPLAgent(this, (org.nlogo.agent.Agent) reporterResult);
+		} else {
+			return reporterResult;
+		}
+	}
 }
 
 
