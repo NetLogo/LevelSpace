@@ -14,4 +14,5 @@ java \
   -Xmx1536m \
   -XX:MaxPermSize=256m \
   -classpath $LAUNCH \
+  -Djava.awt.headless=true \
   xsbt.boot.Boot "$@"
