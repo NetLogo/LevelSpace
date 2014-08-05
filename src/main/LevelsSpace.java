@@ -80,13 +80,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //		primitiveManager.addPrimitive("_ask-hi", new HierarchicalAsk());
 //		primitiveManager.addPrimitive("_report-hi", new HierarchicalReport());
 //		primitiveManager.addPrimitive("_model-hierarchy", new ModelHierarchy());
-		
+
 
 		primitiveManager.addPrimitive("last-model", new LastModel());
-		
+
 
 		modelCounter = 0;
-		
+
 		// Adding event listener to Halt for halting child models
 //		MenuElement[] elements = App.app().frame().getJMenuBar().getSubElements();
 //		for (MenuElement e : elements){
@@ -101,25 +101,27 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //				});
 //			}
 //		}	
-				
+
 		// Attaching a ChangeEventLister to the main model's speed slider so we can 
 		// update child models' speed sliders at the same time.
-		Component[] c = App.app().tabs().interfaceTab().getComponents();
-		for (Component co : c){
-			Component[] c2 = ((Container) co).getComponents();
-			for (Component co2 : c2){
-				if (co2 instanceof ViewUpdatePanel){
-					Component[] c3 = ((Container) co2).getComponents();
-					for(Component co3 : c3){
-						if (co3 instanceof SpeedSliderPanel){
-							SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel)co3;
-							JSlider slider = (JSlider)speedSliderPanel.getComponents()[0];
-							slider.addChangeListener(new ChangeListener(){
-								@Override
-								public void stateChanged(ChangeEvent arg0) {
-									updateChildModelsSpeed();
-								}
-							});
+		if (useGUI()) {
+			Component[] c = App.app().tabs().interfaceTab().getComponents();
+			for (Component co : c) {
+				Component[] c2 = ((Container) co).getComponents();
+				for (Component co2 : c2) {
+					if (co2 instanceof ViewUpdatePanel) {
+						Component[] c3 = ((Container) co2).getComponents();
+						for (Component co3 : c3) {
+							if (co3 instanceof SpeedSliderPanel) {
+								SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel) co3;
+								JSlider slider = (JSlider) speedSliderPanel.getComponents()[0];
+								slider.addChangeListener(new ChangeListener() {
+									@Override
+									public void stateChanged(ChangeEvent arg0) {
+										updateChildModelsSpeed();
+									}
+								});
+							}
 						}
 					}
 				}
@@ -134,6 +136,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //			throw new ExtensionException("There is no model with ID " + id);
 //		}
 //	}
+
+	static public boolean useGUI() {
+		return !"true".equals(System.getProperty("java.awt.headless"));
+	}
+
+	public static Workspace workspace(Context context) {
+		return ((ExtensionContext) context).workspace();
+	}
 
 
 	@Override
@@ -164,7 +174,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throw new ExtensionException (modelURL + " did not compile properly. There is probably something wrong " +
 						"with its code. Exception said" + e.getMessage());
 			}
-			updateChildModelSpeed(aModel);
+			if (useGUI()) {
+				updateChildModelSpeed(aModel);
+			}
 			ModelAgent aModelAgent = new ModelAgent(aModel);
 			myModels.add(aModelAgent);
 			
@@ -172,7 +184,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			// add to models counter
 			//modelCounter ++;
 			// stop up, take a breath. You will be okay.
-			App.app().workspace().breathe();
+			LevelsSpace.workspace(context).breathe();
 		}
 	}
 	public static class LoadGUIModel extends DefaultCommand {
@@ -201,7 +213,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throw new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
 			} 
 			// stop up, take a breath. You will be okay.
-			App.app().workspace().breathe();
+			LevelsSpace.workspace(context).breathe();
 		}
 	}
 
@@ -264,10 +276,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 		public Object report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
-			if (args[0].get() instanceof Agent) {
-				Agent agent = (Agent) args[0].get();
+			if (args[1].get() instanceof Agent) {
+				Agent agent = (Agent) args[1].get();
 				org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
-				Object reporter = args[1].get();
+				Object reporter = args[0].get();
 				if (reporter instanceof String) {
 					return agent.of(nvmContext, (String) reporter, getActuals(args, 2));
 				} else if (reporter instanceof ReporterTask) {
@@ -294,13 +306,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				ModelAgent theModel = (ModelAgent)theAgent;
 				((ModelAgent) theAgent).model.kill();
 				myModels.remove(theModel);			
-				App.app().workspace().breathe();
+				LevelsSpace.workspace(context).breathe();
 			} else if (theAgent instanceof ModelAgentSet) {
 				ModelAgentSet removedModels = new ModelAgentSet();
 				for (ModelAgent theModel : myModels) {
 					theModel.model.kill();
 					removedModels.add(theModel);
-					App.app().workspace().breathe();
+					LevelsSpace.workspace(context).breathe();
 				}
 				for (Agent model : removedModels){
 					myModels.remove(model);
@@ -343,7 +355,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //			int modelNumber = (int) args[0].getDoubleValue();
 //			// find the model. if it exists, run the command
 //			getModel(modelNumber).show();
-//			App.app().workspace().breathe();
+//			LevelsSpace.workspace(context).breathe();
 //		}
 //	}
 //
@@ -359,7 +371,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //			int modelNumber = (int) args[0].getDoubleValue();
 //			// find the model. if it exists, run the command
 //			getModel(modelNumber).hide();
-//			App.app().workspace().breathe();
+//			LevelsSpace.workspace(context).breathe();
 //		}
 //	}
 //	

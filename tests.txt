@@ -1,0 +1,9 @@
+ls-of-ofs
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  "2 + 2" ls:of ls:last-model => 4
+ls-ask-asks
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> ls:ask ls:last-model "crt 5"
+  "count turtles" ls:of ls:last-model => 5

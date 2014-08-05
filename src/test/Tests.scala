@@ -1,8 +1,4 @@
-package test
+import org.nlogo.headless.TestLanguage
 
-/**
- * Created by bryan on 8/5/14.
- */
-class Tests {
+class Tests extends TestLanguage(Seq(new java.io.File("tests.txt").getCanonicalFile))
 
-}
