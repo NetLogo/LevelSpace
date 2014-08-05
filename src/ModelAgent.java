@@ -1,4 +1,5 @@
 import org.nlogo.agent.*;
+import org.nlogo.agent.AgentSet;
 import org.nlogo.api.*;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.CommandTask;
@@ -70,7 +71,9 @@ public class ModelAgent implements Agent {
 				wrappedList.add(wrap(elem));
 			}
 			return wrappedList.toLogoList();
-		} else {
+		} else if (reporterResult instanceof AgentSet) {
+			return new TPLAgentSet(this, (AgentSet) reporterResult);
+		}else {
 			return reporterResult;
 		}
 	}
