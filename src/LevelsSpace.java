@@ -3,7 +3,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,7 +17,6 @@ import org.nlogo.api.LogoException;
 import org.nlogo.app.App;
 import org.nlogo.nvm.*;
 import org.nlogo.nvm.CommandTask;
-import org.nlogo.nvm.Reporter;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
@@ -26,7 +24,7 @@ import org.nlogo.window.ViewUpdatePanel;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
-	final static AgentSetAgent myModels = new AgentSetAgent();
+	final static ModelAgentSet myModels = new ModelAgentSet();
 	
 	// BAD HACK - need a better solution
 	static Agent lastModel;
@@ -218,7 +216,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}
 
-	private static Object[] getActuals(Argument[] args, int startIndex) {
+	private static Object[] getActuals(Argument[] args, int startIndex) throws LogoException, ExtensionException {
 		Object[] actuals = new Object[args.length - startIndex];
 		for(int i=startIndex; i < args.length; i++) {
 			actuals[i] = args[i].get();
@@ -245,6 +243,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					agent.ask(nvmContext, (String) command, getActuals(args, 2));
 				} else if (command instanceof CommandTask) {
 					agent.ask(nvmContext, (CommandTask) command, getActuals(args, 2));
+				} else {
+					throw new ExtensionException("You must give ls:ask a command task or string to run");
 				}
 			} else {
 				throw new ExtensionException("ls:ask only takes a LevelSpace agent or LevelSpacel agentset, such as a model, or an agent returned from ls:of.");
@@ -272,11 +272,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					return agent.of(nvmContext, (String) reporter, getActuals(args, 2));
 				} else if (reporter instanceof ReporterTask) {
 					return agent.of(nvmContext, (ReporterTask) reporter, getActuals(args, 2));
+				} else {
+					throw new ExtensionException("You must give ls:of a string or reporter task to run");
 				}
 			} else {
 				throw new ExtensionException("ls:of only takes a LevelSpace agent or LevelSpacel agentset, such as a model, or an agent returned from ls:of.");
 			}
-
 		}
 	}
 
@@ -294,18 +295,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				((ModelAgent) theAgent).model.kill();
 				myModels.remove(theModel);			
 				App.app().workspace().breathe();
-			} else if (theAgent instanceof AgentSetAgent) {
-				AgentSetAgent removedModels = new AgentSetAgent();
-				for (Agent theModel : myModels) {
-					if (theModel instanceof ModelAgent){
-						((ModelAgent) theModel).model.kill();
-						removedModels.add(theModel);			
-						App.app().workspace().breathe();
-					}
-					else{
-						throw new ExtensionException("You provided a set containing non-model agents. Only" +
-								" models can be provided to ls:close");
-					}
+			} else if (theAgent instanceof ModelAgentSet) {
+				ModelAgentSet removedModels = new ModelAgentSet();
+				for (ModelAgent theModel : myModels) {
+					theModel.model.kill();
+					removedModels.add(theModel);
+					App.app().workspace().breathe();
 				}
 				for (Agent model : removedModels){
 					myModels.remove(model);
@@ -693,7 +688,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		myModels.remove(model);
 	}
 
-	AgentSetAgent getModels(){
+	ModelAgentSet getModels(){
 		return myModels;
 	}
 	
