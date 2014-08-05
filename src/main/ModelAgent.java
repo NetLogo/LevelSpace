@@ -49,7 +49,9 @@ public class ModelAgent implements Agent {
 	}
 
 	public Object of(Context parentContext, org.nlogo.agent.Agent agent, ReporterTask reporter, Object[] args) throws ExtensionException, LogoException {
-		return model.report(new Context(parentContext, agent), reporter, args);
+		Context context = new Context(parentContext, agent);
+		context.agent = agent;
+		return wrap(model.report(context, reporter, args));
 	}
 
 	public <T extends Task> T compile(Class<T> taskType, String code) throws ExtensionException {
