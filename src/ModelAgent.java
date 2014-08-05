@@ -1,10 +1,8 @@
 import org.nlogo.agent.*;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoException;
+import org.nlogo.api.*;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
-import org.nlogo.api.Task;
 
 
 public class ModelAgent implements Agent {
@@ -65,6 +63,13 @@ public class ModelAgent implements Agent {
 	public Object wrap(Object reporterResult) {
 		if (reporterResult instanceof org.nlogo.agent.Agent) {
 			return new TPLAgent(this, (org.nlogo.agent.Agent) reporterResult);
+		} else if (reporterResult instanceof LogoList) {
+			LogoList result = (LogoList) reporterResult;
+			LogoListBuilder wrappedList = new LogoListBuilder();
+			for(Object elem : result) {
+				wrappedList.add(wrap(elem));
+			}
+			return wrappedList.toLogoList();
 		} else {
 			return reporterResult;
 		}
