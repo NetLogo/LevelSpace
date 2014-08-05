@@ -38,4 +38,20 @@ public class TPLAgent implements Agent {
 	public Object of(org.nlogo.nvm.Context parentContext, ReporterTask reporter, Object[] args) throws ExtensionException, LogoException {
 		return parentModel.of(parentContext, agent, reporter, args);
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other != null &&
+				other instanceof TPLAgent &&
+				((TPLAgent) other).agent.equals(agent);
+	}
+	
+	@Override
+	public int hashCode() {
+		// Could change this to incorporate the parentModel hashCode, but that seems silly.
+		// Memory addresses for agents will obviously be unique across all models and I believe
+		// that's the default hashCode.
+		// BCH 8/5/2014
+		return agent.hashCode();
+	}
 }
