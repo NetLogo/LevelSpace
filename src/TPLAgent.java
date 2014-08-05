@@ -10,8 +10,8 @@ import org.nlogo.nvm.ReporterTask;
  * Agent wrapper for turtle, patches, and links.
  */
 public class TPLAgent implements Agent {
-	ModelAgent parentModel;
-	org.nlogo.agent.Agent agent;
+	private ModelAgent parentModel;
+	private org.nlogo.agent.Agent agent;
 
 	public TPLAgent(ModelAgent parentModel, org.nlogo.agent.Agent agent){
 		this.parentModel = parentModel;
@@ -37,6 +37,14 @@ public class TPLAgent implements Agent {
 	@Override
 	public Object of(org.nlogo.nvm.Context parentContext, ReporterTask reporter, Object[] args) throws ExtensionException, LogoException {
 		return parentModel.of(parentContext, agent, reporter, args);
+	}
+
+	public org.nlogo.agent.Agent getBaseAgent() {
+		return agent;
+	}
+
+	public ModelAgent getModel() {
+		return parentModel;
 	}
 
 	@Override
