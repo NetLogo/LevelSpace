@@ -18,6 +18,31 @@ ls-ask-asks
   "count turtles" ls:of ls:last-model => 5
   O> ls:reset
 
+ls-ask-takes-arguments
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> (ls:ask ls:last-model "crt ?" 5)
+  "count turtles" ls:of ls:last-model => 5
+  O> ls:reset
+
+ls-of-takes-arguments
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  ("? + ?" ls:of ls:last-model 5) => 10
+  O> ls:reset
+
+ls-ask-supports-tasks
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> (ls:ask ls:last-model ("task [ crt ? ]" ls:of ls:last-model) 5)
+  "count turtles" ls:of ls:last-model => 5
+
+ls-of-supports-task
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  (("task [ ? + ?]" ls:of ls:last-model) ls:of ls:last-model 5) => 10
+  O> ls:reset
+
 ls-breed-sets-change-with-underlying-breed-set
   extensions [ls]
   O> ls:load-headless-model "Test.nlogo"
