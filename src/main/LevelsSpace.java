@@ -24,7 +24,7 @@ import org.nlogo.window.ViewUpdatePanel;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
-	final static ModelAgentSet myModels = new ModelAgentSet();
+	final static GenericAgentSet<ModelAgent> myModels = new GenericAgentSet<ModelAgent>();
 	
 	// BAD HACK - need a better solution
 	static Agent lastModel;
@@ -307,8 +307,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				((ModelAgent) theAgent).model.kill();
 				myModels.remove(theModel);			
 				LevelsSpace.workspace(context).breathe();
-			} else if (theAgent instanceof ModelAgentSet) {
-				ModelAgentSet removedModels = new ModelAgentSet();
+			} else if (theAgent instanceof GenericAgentSet) {
+				GenericAgentSet<ModelAgent> removedModels = new GenericAgentSet<ModelAgent>();
 				for (ModelAgent theModel : myModels) {
 					theModel.model.kill();
 					removedModels.add(theModel);
@@ -700,7 +700,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		myModels.remove(model);
 	}
 
-	ModelAgentSet getModels(){
+	GenericAgentSet getModels(){
 		return myModels;
 	}
 	
