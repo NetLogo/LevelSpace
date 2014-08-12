@@ -231,7 +231,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	private static Object[] getActuals(Argument[] args, int startIndex) throws LogoException, ExtensionException {
 		Object[] actuals = new Object[args.length - startIndex];
 		for(int i=startIndex; i < args.length; i++) {
-			actuals[i] = args[i].get();
+			actuals[i - startIndex] = args[i].get();
 		}
 		return actuals;
 	}
@@ -239,10 +239,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	public static class RunTask extends DefaultCommand {
 		public Syntax getSyntax(){
 			return Syntax.commandSyntax(
-					new int[]{Syntax.WildcardType(),
-							Syntax.CommandTaskType() | Syntax.StringType(),
-							Syntax.RepeatableType() | Syntax.WildcardType()},
-					2);
+					new int[]{
+							Syntax.WildcardType(), // Model
+							Syntax.CommandTaskType() | Syntax.StringType(), // Code
+							Syntax.RepeatableType() | Syntax.WildcardType() // Optional arguments
+					},
+					2
+			);
 		}
 
 		@Override
