@@ -270,11 +270,15 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	public static class Of extends DefaultReporter {
 		@Override
 		public Syntax getSyntax() {
-			return Syntax.reporterSyntax(Syntax.WildcardType(), new int[]{
-							Syntax.WildcardType()},
+			return Syntax.reporterSyntax(
+					Syntax.ReporterTaskType() | Syntax.StringType(), // Code
+					new int[]{
+							Syntax.WildcardType(), // Model
+					},
 					Syntax.WildcardType(),
 					org.nlogo.api.Syntax.NormalPrecedence() + 1,
-					true);
+					true
+			);
 
 		}
 		public Object report(Argument args[], Context context)
