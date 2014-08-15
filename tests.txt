@@ -1,0 +1,113 @@
+ls-of-ofs
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  "2 + 2" ls:of ls:last-model => 4
+  O> ls:reset
+
+ls-of-works-on-turtle-sets
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> ls:ask ls:last-model "crt 5"
+  sort "who" ls:of ("turtles" ls:of ls:last-model) => [0 1 2 3 4]
+  O> ls:reset
+
+ls-ask-asks
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> ls:ask ls:last-model "crt 5"
+  "count turtles" ls:of ls:last-model => 5
+  O> ls:reset
+
+ls-ask-takes-arguments
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> (ls:ask ls:last-model "crt ?" 5)
+  "count turtles" ls:of ls:last-model => 5
+  O> ls:reset
+
+#ls-of-takes-arguments
+#  extensions [ ls ]
+#  O> ls:load-headless-model "Test.nlogo"
+#  ("? + ?" ls:of ls:last-model 5) => 10
+#  O> ls:reset
+
+ls-ask-supports-tasks-with-arguments
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> (ls:ask ls:last-model ("task [ crt ? ]" ls:of ls:last-model) 5)
+  "count turtles" ls:of ls:last-model => 5
+  O> ls:reset
+
+ls-of-supports-tasks
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  (("task [ 5 ]" ls:of ls:last-model) ls:of ls:last-model) => 5
+  O> ls:reset
+
+#ls-of-supports-task-with-arguments
+#  extensions [ ls ]
+#  O> ls:load-headless-model "Test.nlogo"
+#  (("task [ ? + ?]" ls:of ls:last-model) ls:of ls:last-model 5) => 10
+#  O> ls:reset
+
+ls-breed-sets-change-with-underlying-breed-set
+  extensions [ls]
+  O> ls:load-headless-model "Test.nlogo"
+  O> ls:ask ls:last-model "crt 1"
+  O> set glob1 "turtles" ls:of ls:last-model
+  sort "who" ls:of glob1 => [0]
+  O> ls:ask ls:last-model "crt 1"
+  sort "who" ls:of glob1 => [0 1]
+  O> ls:reset
+
+ls-ask-and-of-work-on-model-set
+  extensions [ ls ]
+  O> ls:load-headless-model "Test.nlogo"
+  O> ls:ask ls:last-model "crt 1"
+  O> ls:load-headless-model "Test.nlogo"
+  O> ls:ask ls:last-model "crt 2"
+  O> ls:load-headless-model "Test.nlogo"
+  O> ls:ask ls:last-model "crt 3"
+  O> ls:ask ls:models "ask turtles [ hatch 1 ]"
+  sort "count turtles" ls:of ls:models => [2 4 6]
+  O> ls:reset
+
+#ls-agent-set-takes-a-snapshot-of-model-sets
+#  extensions [ ls ]
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 1"
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 2"
+#  O> set glob1 (ls:agent-set ls:models)
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 3"
+#  sort "count turtles" ls:of glob1 => [1 2]
+#  O> ls:reset
+#
+#ls-agent-set-combines-model-sets-and-models
+#  extensions [ ls ]
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 1"
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 2"
+#  O> set glob1 (ls:agent-set ls:models)
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 3"
+#  O> set glob2 (ls:agent-set ls:last-model)
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 4"
+#  O> set glob2 (ls:agent-set glob2 ls:last-model)
+#  sort "count turtles" ls:of glob2 => [3 4]
+#  sort "count turtles" ls:of (ls:agent-set glob1 glob2) => [1 2 3 4]
+#  O> ls:reset
+#
+#ls-agent-set-takes-snapshot-of-turtle-sets
+#  extensions [ls]
+#  O> ls:load-headless-model "Test.nlogo"
+#  O> ls:ask ls:last-model "crt 1"
+#  O> set glob1 (ls:agent-set "turtles" ls:of ls:last-model)
+#  sort "who" ls:of glob1 => [0]
+#  O> ls:ask ls:last-model "crt 1"
+#  sort "who" ls:of glob1 => [0]
+#  O> ls:reset
+#

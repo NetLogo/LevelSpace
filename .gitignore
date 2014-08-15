@@ -5,3 +5,8 @@ bin/
 target/
 .gitignore.swp
 project/target/
+.idea/
+*.jar
+*.jar.pack.gz
+.idea_modules/
+

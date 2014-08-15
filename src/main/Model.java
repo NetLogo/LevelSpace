@@ -11,12 +11,17 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.World;
+import org.nlogo.api.SimpleJobOwner;
+import org.nlogo.api.JobOwner;
 import org.nlogo.app.App;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
+import org.nlogo.nvm.Job;
+import org.nlogo.nvm.ExclusiveJob;
+import org.nlogo.agent.Observer;
 
 
 public abstract class Model {
@@ -25,26 +30,16 @@ public abstract class Model {
 	abstract public Object report(String reporter) throws ExtensionException;
 	public void command(Context context, CommandTask command, Object[] args) throws ExtensionException {
 		checkTask(command);
-		Agent oldAgent = context.agent;
-		context.agent = workspace().world().observer();
-		context.agentBit = context.agent.getAgentBit();
 		synchronized (workspace().world()) {
 			command.perform(context, args);
 		}
-		context.agent = oldAgent;
-		context.agentBit = context.agent.getAgentBit();
 	}
 	public Object report(Context context, ReporterTask reporter, Object[] args) throws ExtensionException {
 		checkTask(reporter);
-		Agent oldAgent = context.agent;
-		context.agent = workspace().world().observer();
-		context.agentBit = context.agent.getAgentBit();
 		Object result = null;
 		synchronized (workspace().world()) {
 			result = reporter.report(context, args);
 		}
-		context.agent = oldAgent;
-		context.agentBit = context.agent.getAgentBit();
 		return result;
 	}
 	public void checkTask(CommandTask task) throws ExtensionException {
@@ -138,7 +133,4 @@ public abstract class Model {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
-	
 }
