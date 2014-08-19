@@ -67,7 +67,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// primitive, but probably won't need it as such. Although it is
 		// sort of handy for LS programming
 		primitiveManager.addPrimitive("list-breeds", new ListBreeds());		
-//		primitiveManager.addPrimitive("globals", new Globals());		
+		primitiveManager.addPrimitive("globals", new Globals());		
 		// this returns a list of all breeds and their own vars. currently implemented  
 		// as a nl primitive, but probably won't need it as such. Although it is
 		// sort of handy for LS programming
@@ -499,6 +499,28 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			}
 			else{
 				throw new ExtensionException("You can only list breeds and variable lists from models. Your provided an object of class " + arg.getClass().toString());
+			}
+
+		}
+	}
+	public static class Globals extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// accept a model
+					new int[] { Syntax.WildcardType() },
+					// and returns a list of globals
+					Syntax.ListType());	        
+		}
+
+		public LogoList report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			Object arg = args[0].get();
+			if (arg instanceof ModelAgent){
+				ModelAgent theModel = (ModelAgent)arg;
+				return theModel.model.listGlobals();
+			}
+			else{
+				throw new ExtensionException("You can only list globals from models. Your provided an object of class " + arg.getClass().toString());
 			}
 
 		}
