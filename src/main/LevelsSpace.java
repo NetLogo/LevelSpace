@@ -10,14 +10,25 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.nlogo.api.*;
 import org.nlogo.api.Argument;
+import org.nlogo.api.CompilerException;
 import org.nlogo.api.Context;
+import org.nlogo.api.DefaultCommand;
+import org.nlogo.api.DefaultReporter;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.ExtensionManager;
+import org.nlogo.api.ExtensionObject;
+import org.nlogo.api.ImportErrorHandler;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
+import org.nlogo.api.PrimitiveManager;
+import org.nlogo.api.Syntax;
 import org.nlogo.app.App;
-import org.nlogo.nvm.*;
 import org.nlogo.nvm.CommandTask;
+import org.nlogo.nvm.ExtensionContext;
+import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
+import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
@@ -71,7 +82,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this returns a list of all breeds and their own vars. currently implemented  
 		// as a nl primitive, but probably won't need it as such. Although it is
 		// sort of handy for LS programming
-		primitiveManager.addPrimitive("breeds-owns", new BreedsOwns());		
+		primitiveManager.addPrimitive("breeds-owns", new BreedsOwns());	
+		primitiveManager.addPrimitive("all-models-info", new AllModelsInfo());
 //		primitiveManager.addPrimitive("test", new Test());	
 		// this is for exporting model information (like turtle vars, globals, etc)
 		// to an external, graphical programming environment for describing
@@ -523,6 +535,22 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				throw new ExtensionException("You can only list globals from models. Your provided an object of class " + arg.getClass().toString());
 			}
 
+		}
+	}
+
+	
+	public static class AllModelsInfo extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// accepts no args
+					new int[] {},
+					// and returns a list of all models with their information
+					Syntax.ListType());	        
+		}
+
+		public LogoList report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			return null;
 		}
 	}
 

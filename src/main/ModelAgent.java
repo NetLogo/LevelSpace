@@ -1,9 +1,12 @@
-import org.nlogo.agent.*;
 import org.nlogo.agent.AgentSet;
-import org.nlogo.api.*;
-import org.nlogo.nvm.ReporterTask;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
+import org.nlogo.api.LogoListBuilder;
+import org.nlogo.api.Task;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
+import org.nlogo.nvm.ReporterTask;
 
 
 public class ModelAgent implements Agent {

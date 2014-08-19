@@ -1,3 +1,5 @@
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -6,22 +8,16 @@ import java.util.concurrent.FutureTask;
 
 import javax.swing.JFrame;
 
-import org.nlogo.agent.Agent;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.World;
-import org.nlogo.api.SimpleJobOwner;
-import org.nlogo.api.JobOwner;
 import org.nlogo.app.App;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
-import org.nlogo.nvm.Job;
-import org.nlogo.nvm.ExclusiveJob;
-import org.nlogo.agent.Observer;
 
 
 public abstract class Model {
@@ -60,9 +56,6 @@ public abstract class Model {
 	abstract public void setSpeed(double d);
 	abstract public void halt();
 	abstract public Workspace workspace();
-	abstract public LogoList listBreeds();
-	abstract public LogoList listBreedsOwns();
-	abstract public LogoList listGlobals();
 	
 	public int levelsSpaceNumber;
 
@@ -133,4 +126,44 @@ public abstract class Model {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	public LogoList listBreeds() {
+		LogoListBuilder llb = new LogoListBuilder();
+		for (String entry : workspace().world().getBreeds().keySet())
+		{
+		    llb.add(entry);
+		}
+		return llb.toLogoList();
+	}
+
+	
+	public LogoList listBreedsOwns() {
+		LogoListBuilder llb = new LogoListBuilder();
+		for (Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
+		{
+			LogoListBuilder tuple  = new LogoListBuilder();
+			LogoListBuilder vars = new LogoListBuilder();
+			for (String s : entry.getValue()){
+				vars.add(s);
+			}
+			// add turtles own to all of them too
+			for (String s: workspace().world().program().turtlesOwn()){
+				vars.add(s);
+			}
+			tuple.add(entry.getKey());
+			tuple.add(vars.toLogoList());
+		    llb.add(tuple.toLogoList());
+		}
+		return llb.toLogoList();
+
+	}
+	
+	public LogoList listGlobals() {
+		LogoListBuilder llb = new LogoListBuilder();
+		for (int i = 0; i < workspace().world().observer().getVariableCount(); i++){
+			llb.add(workspace().world().observer().variableName(i));
+		}
+		return llb.toLogoList();
+	}
+
 }
