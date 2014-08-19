@@ -72,6 +72,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// as a nl primitive, but probably won't need it as such. Although it is
 		// sort of handy for LS programming
 		primitiveManager.addPrimitive("breeds-owns", new BreedsOwns());		
+		primitiveManager.addPrimitive("globals", new Globals());
 //		primitiveManager.addPrimitive("test", new Test());	
 		// this is for exporting model information (like turtle vars, globals, etc)
 		// to an external, graphical programming environment for describing
@@ -503,6 +504,28 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if (arg instanceof ModelAgent){
 				ModelAgent theModel = (ModelAgent)arg;
 				return theModel.model.listBreedsOwns();
+			}
+			else{
+				throw new ExtensionException("You can only list breeds and variable lists from models. Your provided an object of class " + arg.getClass().toString());
+			}
+
+		}
+	}
+	public static class Globals extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// accept a model
+					new int[] { Syntax.WildcardType() },
+					// and returns a list of breeds and vars
+					Syntax.ListType());	        
+		}
+
+		public LogoList report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			Object arg = args[0].get();
+			if (arg instanceof ModelAgent){
+				ModelAgent theModel = (ModelAgent)arg;
+				return theModel.model.listGlobals();
 			}
 			else{
 				throw new ExtensionException("You can only list breeds and variable lists from models. Your provided an object of class " + arg.getClass().toString());
