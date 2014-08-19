@@ -1,3 +1,8 @@
+extensions [ls]
+
+to setup
+  ls:load-gui-model "Wolf Sheep Predation Special.nlogo"
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
