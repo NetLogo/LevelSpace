@@ -1,3 +1,5 @@
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -60,9 +62,7 @@ public abstract class Model {
 	abstract public void setSpeed(double d);
 	abstract public void halt();
 	abstract public Workspace workspace();
-	abstract public LogoList listBreeds();
-	abstract public LogoList listBreedsOwns();
-	abstract public LogoList listGlobals();
+
 	
 	public int levelsSpaceNumber;
 
@@ -132,5 +132,47 @@ public abstract class Model {
 	public LogoListBuilder getDescendants() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public LogoList listBreeds() {
+		LogoListBuilder llb = new LogoListBuilder();
+		for (String entry : workspace().world().getBreeds().keySet())
+		{
+		    llb.add(entry);
+		}
+		return llb.toLogoList();
+	}
+
+	public LogoList listBreedsOwns() {
+		// TODO Auto-generated method stub
+		LogoListBuilder llb = new LogoListBuilder();
+		// TODO Auto-generated method stub
+		for (Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
+		{
+			LogoListBuilder tuple  = new LogoListBuilder();
+			LogoListBuilder vars = new LogoListBuilder();
+			for (String s : entry.getValue()){
+				vars.add(s);
+			}
+			// add turtles own to all of them too
+			for (String s: workspace().world().program().turtlesOwn()){
+				vars.add(s);
+			}
+			tuple.add(entry.getKey());
+			tuple.add(vars.toLogoList());
+		    llb.add(tuple.toLogoList());
+		}
+		return llb.toLogoList();
+
+	}
+	
+	
+	public LogoList listGlobals() {
+		LogoListBuilder llb = new LogoListBuilder();
+		
+		for (Object var : workspace().world().observer().variables()){
+			llb.add(var);
+		}
+		return llb.toLogoList();
 	}
 }

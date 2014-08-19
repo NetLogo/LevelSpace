@@ -279,50 +279,6 @@ public class LevelsModelComponent extends Model {
 	}
 
 
-	// @TODO implement 
-	public LogoList listBreeds() {
-		LogoListBuilder llb = new LogoListBuilder();
-		for (String entry : workspace().world().getBreeds().keySet())
-		{
-		    llb.add(entry);
-		}
-		return llb.toLogoList();
-	}
-
-	
-	// @TODO implement this
-	public LogoList listBreedsOwns() {
-		// TODO Auto-generated method stub
-		LogoListBuilder llb = new LogoListBuilder();
-		// TODO Auto-generated method stub
-		for (Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
-		{
-			LogoListBuilder tuple  = new LogoListBuilder();
-			LogoListBuilder vars = new LogoListBuilder();
-			for (String s : entry.getValue()){
-				vars.add(s);
-			}
-			// add turtles own to all of them too
-			for (String s: workspace().world().program().turtlesOwn()){
-				vars.add(s);
-			}
-			tuple.add(entry.getKey());
-			tuple.add(vars.toLogoList());
-		    llb.add(tuple.toLogoList());
-		}
-		return llb.toLogoList();
-
-	}
-	
-	@Override
-	public LogoList listGlobals() {
-		LogoListBuilder llb = new LogoListBuilder();
-		
-		for (Object var : workspace().world().observer().variables()){
-			llb.add(var);
-		}
-		return llb.toLogoList();
-	}
 
 
 }

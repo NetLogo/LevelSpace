@@ -250,56 +250,5 @@ public class LevelsModelHeadless extends Model {
 		
 	}	
 	
-	public LogoList listBreeds(){
-		LogoListBuilder llb = new LogoListBuilder();
-		for (String entry : workspace().world().getBreeds().keySet())
-		{
-		    llb.add(entry);
-		}
-		return llb.toLogoList();
-	}
-
-	@Override
-	public LogoList listBreedsOwns() {
-		LogoListBuilder llb = new LogoListBuilder();
-		// TODO Auto-generated method stub
-		for (Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
-		{
-			LogoListBuilder tuple  = new LogoListBuilder();
-			LogoListBuilder vars = new LogoListBuilder();
-			for (String s : entry.getValue()){
-				vars.add(s);
-			}
-			// add turtles own to all of them too
-			for (String s: workspace().world().program().turtlesOwn()){
-				vars.add(s);
-			}
-			tuple.add(entry.getKey());
-			tuple.add(vars.toLogoList());
-		    llb.add(tuple.toLogoList());
-		}
-		return llb.toLogoList();
-
-	}
-	
-	public LogoList getModelInfoAsList(){
-		LogoListBuilder llb = new LogoListBuilder();
-		llb.add(name);
-		llb.add(levelsSpaceNumber);
-		llb.add(path);
-		return llb.toLogoList();
-	}
-
-	@Override
-	public LogoList listGlobals() {
-		LogoListBuilder llb = new LogoListBuilder();
-		for (int i = 0; i < workspace().world().observer().variables.length; i++){
-			llb.add(workspace().world().observerOwnsNameAt(i));
-		}
-		return llb.toLogoList();
-	}
-
-	
-
 		
 }
