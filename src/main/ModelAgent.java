@@ -86,10 +86,15 @@ public class ModelAgent implements Agent {
 	}
 
 	public Object allInfo() {
-		LogoListBuilder myLLB = new LogoListBuilder();
-		myLLB.add(model.listGlobals());
-		myLLB.add(model.listBreedsOwns());
-		return myLLB.toLogoList(); 
+		LogoListBuilder allModelInfo = new LogoListBuilder();
+		LogoListBuilder baseInfo = new LogoListBuilder();
+		baseInfo.add(this);
+		baseInfo.add(who);
+		baseInfo.add(model.getPath());
+		allModelInfo.add(baseInfo.toLogoList());
+		allModelInfo.add(model.listGlobals());
+		allModelInfo.add(model.listBreedsOwns());
+		return allModelInfo.toLogoList(); 
 	}
 	
 	public double who(){

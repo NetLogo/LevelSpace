@@ -532,10 +532,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		public Object report(Argument args[], Context context){
 			LogoListBuilder myLLBuilder = new LogoListBuilder();
 			for (ModelAgent model : myModels){
-				LogoListBuilder modelTuple = new LogoListBuilder();
-				modelTuple.add(model);
-				modelTuple.add(model.allInfo());
-				myLLBuilder.add(modelTuple.toLogoList());
+				myLLBuilder.add(model.allInfo());
 			}
 			
 			return myLLBuilder.toLogoList();

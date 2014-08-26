@@ -60,7 +60,7 @@ public class LevelsModelComponent extends Model {
 							}
 						}
 						name = myWS.workspace().modelNameForDisplay();
-						frame.setTitle(name + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
+						frame.setTitle(name);
 						frame.pack();
 						// Make sure that the model doesn't close if people accidentally click the close button
 						frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
