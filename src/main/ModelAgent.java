@@ -1,16 +1,21 @@
-import org.nlogo.agent.*;
 import org.nlogo.agent.AgentSet;
-import org.nlogo.api.*;
-import org.nlogo.nvm.ReporterTask;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoList;
+import org.nlogo.api.LogoListBuilder;
+import org.nlogo.api.Task;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
+import org.nlogo.nvm.ReporterTask;
 
 
 public class ModelAgent implements Agent {
 	Model model;
+	double who;
 	
-	public ModelAgent(Model model){
+	public ModelAgent(Model model, double who){
 		this.model = model;
+		this.who = who;
 	}
 	
 
@@ -86,6 +91,11 @@ public class ModelAgent implements Agent {
 		myLLB.add(model.listBreedsOwns());
 		return myLLB.toLogoList(); 
 	}
+	
+	public double who(){
+		return who;
+	}
+	
 }
 
 

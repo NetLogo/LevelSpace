@@ -27,10 +27,8 @@ public class LevelsModelHeadless extends Model {
 	ImageFrame frame;
 	String name;
 	String path;
-	int levelsSpaceNumber;
 	
-	public LevelsModelHeadless(String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException {
-		this.levelsSpaceNumber = levelsSpaceNumber;		
+	public LevelsModelHeadless(String path) throws IOException, CompilerException, LogoException {
         // find the name of the model - it is the bit past the last dash
         int lastDashPosition = path.lastIndexOf("/") + 1;
         name = path.substring(lastDashPosition);

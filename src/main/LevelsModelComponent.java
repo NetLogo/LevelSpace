@@ -32,12 +32,9 @@ public class LevelsModelComponent extends Model {
 	final InterfaceComponent myWS = new InterfaceComponent(frame);	
 	String name;
 	String path;
-	final int levelsSpaceNumber;
-	LevelsSpace myLS;
 
-	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException, ExtensionException 
+	public LevelsModelComponent(final String path) throws InterruptedException, InvocationTargetException, ExtensionException 
 	{
-		this.levelsSpaceNumber = levelsSpaceNumber;
 		// find the name of the model - it is the bit past the last dash
 		this.path = path;
 

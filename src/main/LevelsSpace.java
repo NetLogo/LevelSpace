@@ -84,6 +84,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		primitiveManager.addPrimitive("all-models-info", new AllModelsInfo());
 
 		primitiveManager.addPrimitive("last-model", new LastModel());
+		primitiveManager.addPrimitive("model", new ModelByID());
 
 
 		modelCounter = 0;
@@ -162,13 +163,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		public void perform(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
-			// saving current modelCounter as that will be the hashtable key to the 
-			// model we are making
 			// make a new LevelsModel
 			String modelURL = args[0].getString();
 			LevelsModelHeadless aModel = null;
 			try {
-				aModel = new LevelsModelHeadless(modelURL, modelCounter);
+				aModel = new LevelsModelHeadless(modelURL);
 			} catch (IOException e) {
 				throw new ExtensionException ("There was no .nlogo file at the path: \"" + modelURL + "\"");
 			} catch (CompilerException e) {
@@ -178,12 +177,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			if (useGUI()) {
 				updateChildModelSpeed(aModel);
 			}
-			ModelAgent aModelAgent = new ModelAgent(aModel);
+			ModelAgent aModelAgent = new ModelAgent(aModel, modelCounter);
 			myModels.add(aModelAgent);
 			
 			lastModel = aModelAgent;
 			// add to models counter
-			//modelCounter ++;
+			modelCounter ++;
 			// stop up, take a breath. You will be okay.
 			LevelsSpace.workspace(context).breathe();
 		}
@@ -201,13 +200,16 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			String modelURL = args[0].getString();
 			LevelsModelComponent aModel = null;
 			try {
-				aModel = new LevelsModelComponent(modelURL, modelCounter);
+				aModel = new LevelsModelComponent(modelURL);
 				updateChildModelSpeed(aModel);
 				// add it to models
-				ModelAgent aModelAgent = new ModelAgent(aModel);
+				ModelAgent aModelAgent = new ModelAgent(aModel, modelCounter);
 				myModels.add(aModelAgent);
 				// set last model to this
 				lastModel = aModelAgent;
+				// add to counter
+				modelCounter++;
+
 			} catch (InterruptedException e) {
 				throw new HaltException(false);
 			} catch (InvocationTargetException e) {
@@ -332,6 +334,33 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
+	
+	
+	public static class ModelByID extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// accept a model
+					new int[] { Syntax.NumberType() },
+					// and returns a model
+					Syntax.WildcardType());	        
+		}
+
+		public ModelAgent report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			double theWho = args[0].getDoubleValue();
+			for(ModelAgent model : myModels){
+				if (model.who() == theWho){
+					return model;
+				}
+			}
+			throw new ExtensionException("There was no model with ID: " + String.valueOf(theWho));
+
+		}
+	}
+
+
+	
+	
 	//
 	//	public static class UpdateView extends DefaultCommand {
 //		public Syntax getSyntax() {
@@ -489,6 +518,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
+	
 
 	public static class AllModelsInfo extends DefaultReporter {
 		public Syntax getSyntax() {
