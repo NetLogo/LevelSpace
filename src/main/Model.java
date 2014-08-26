@@ -165,13 +165,11 @@ public abstract class Model {
 		return llb.toLogoList();
 
 	}
-	
-	
+
 	public LogoList listGlobals() {
 		LogoListBuilder llb = new LogoListBuilder();
-		
-		for (Object var : workspace().world().observer().variables()){
-			llb.add(var);
+		for (int i = 0; i < workspace().world().observer().getVariableCount(); i++){
+			llb.add(workspace().world().observer().variableName(i));
 		}
 		return llb.toLogoList();
 	}

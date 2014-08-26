@@ -81,7 +81,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //		primitiveManager.addPrimitive("_ask-hi", new HierarchicalAsk());
 //		primitiveManager.addPrimitive("_report-hi", new HierarchicalReport());
 //		primitiveManager.addPrimitive("_model-hierarchy", new ModelHierarchy());
-
+		primitiveManager.addPrimitive("all-models-info", new AllModelsInfo());
 
 		primitiveManager.addPrimitive("last-model", new LastModel());
 
@@ -251,7 +251,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		@Override
 		public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-			if (args[0].get() instanceof Agent) {
+			if (args[0].get() instanceof Agent || args[0].get() instanceof AgentSet) {
 				Agent agent = (Agent) args[0].get();
 				org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
 				Object command = args[1].get();
@@ -489,6 +489,30 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		}
 	}
+
+	public static class AllModelsInfo extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// takes no params
+					new int[] { },
+					// and returns a list of all models with all information
+					Syntax.ListType());	        
+		}
+
+		public Object report(Argument args[], Context context){
+			LogoListBuilder myLLBuilder = new LogoListBuilder();
+			for (ModelAgent model : myModels){
+				LogoListBuilder modelTuple = new LogoListBuilder();
+				modelTuple.add(model);
+				modelTuple.add(model.allInfo());
+				myLLBuilder.add(modelTuple.toLogoList());
+			}
+			
+			return myLLBuilder.toLogoList();
+
+		}	
+	}
+	
 	public static class BreedsOwns extends DefaultReporter {
 		public Syntax getSyntax() {
 			return Syntax.reporterSyntax(

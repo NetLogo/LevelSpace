@@ -79,6 +79,13 @@ public class ModelAgent implements Agent {
 			return reporterResult;
 		}
 	}
+
+	public Object allInfo() {
+		LogoListBuilder myLLB = new LogoListBuilder();
+		myLLB.add(model.listGlobals());
+		myLLB.add(model.listBreedsOwns());
+		return myLLB.toLogoList(); 
+	}
 }
 
 
