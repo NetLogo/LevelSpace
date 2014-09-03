@@ -85,7 +85,7 @@ public class ModelAgent implements Agent {
 		}
 	}
 
-	public Object allInfo() {
+	public LogoList allInfo() {
 		LogoListBuilder allModelInfo = new LogoListBuilder();
 		LogoListBuilder baseInfo = new LogoListBuilder();
 		baseInfo.add(this);

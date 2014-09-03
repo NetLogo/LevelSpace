@@ -13,7 +13,6 @@ import javax.swing.event.ChangeListener;
 import org.nlogo.api.*;
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
-import org.nlogo.api.LogoException;
 import org.nlogo.app.App;
 import org.nlogo.nvm.*;
 import org.nlogo.nvm.CommandTask;
@@ -82,6 +81,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 //		primitiveManager.addPrimitive("_report-hi", new HierarchicalReport());
 //		primitiveManager.addPrimitive("_model-hierarchy", new ModelHierarchy());
 		primitiveManager.addPrimitive("all-models-info", new AllModelsInfo());
+		primitiveManager.addPrimitive("model-info", new ModelInfo());
 
 		primitiveManager.addPrimitive("last-model", new LastModel());
 		primitiveManager.addPrimitive("model", new ModelByID());
@@ -529,7 +529,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 					Syntax.ListType());	        
 		}
 
-		public Object report(Argument args[], Context context){
+		public Object report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
 			LogoListBuilder myLLBuilder = new LogoListBuilder();
 			for (ModelAgent model : myModels){
 				myLLBuilder.add(model.allInfo());
@@ -537,6 +538,27 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			
 			return myLLBuilder.toLogoList();
 
+		}	
+	}
+	public static class ModelInfo extends DefaultReporter {
+		public Syntax getSyntax() {
+			return Syntax.reporterSyntax(
+					// takes no params
+					new int[] { Syntax.WildcardType() },
+					// and returns a list of all models with all information
+					Syntax.ListType());	        
+		}
+
+		public LogoList report(Argument args[], Context context)
+				throws ExtensionException, org.nlogo.api.LogoException {
+			Object arg = args[0].get();
+			if(arg instanceof ModelAgent){
+				ModelAgent theModel = (ModelAgent)arg;
+				return theModel.allInfo();
+			}
+			else{
+				throw new ExtensionException("You must provide a model for the model-info reporter");
+			}
 		}	
 	}
 	
