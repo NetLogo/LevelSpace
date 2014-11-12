@@ -228,6 +228,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 				theModelAgent.model.kill();
 			}
 			myModels.clear();
+			modelCounter = 0;
 		}
 	}
 
@@ -347,7 +348,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 		public ModelAgent report(Argument args[], Context context)
 				throws ExtensionException, org.nlogo.api.LogoException {
-			double theWho = args[0].getDoubleValue();
+			int theWho = args[0].getIntValue();
 			for(ModelAgent model : myModels){
 				if (model.who() == theWho){
 					return model;
