@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 import org.nlogo.agent.AgentSet;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
@@ -13,15 +15,22 @@ public class ModelAgent implements Agent {
 	Model model;
 	double who;
 	
+	HashMap<String, Task> tasks;
+	
 	public ModelAgent(Model model, double who){
 		this.model = model;
 		this.who = who;
+		tasks = new HashMap<String, Task>();
 	}
 	
 
 	@Override
 	public void ask(Context parentContext, String command, Object[] args) throws ExtensionException, LogoException{
-		ask(parentContext, compile(CommandTask.class, command), args);
+		if(tasks.containsKey(command)){
+			ask(parentContext, (CommandTask) tasks.get(command), args);
+		}else{
+			ask(parentContext, compile(CommandTask.class, command), args);
+		}
 	}
 
 	@Override
@@ -41,7 +50,11 @@ public class ModelAgent implements Agent {
 
 	@Override
 	public Object of(Context parentContext, String reporter, Object[] args) throws ExtensionException, LogoException {
-		return of(parentContext, compile(ReporterTask.class, reporter), args);
+		if(tasks.containsKey(reporter)){
+			return of(parentContext, (ReporterTask)tasks.get(reporter), args);
+		}else{
+			return of(parentContext, compile(ReporterTask.class, reporter), args);			
+		}
 	}
 
 	@Override
@@ -62,6 +75,7 @@ public class ModelAgent implements Agent {
 	public <T extends Task> T compile(Class<T> taskType, String code) throws ExtensionException {
 		Object task = model.report("task [ " + code + " ]");
 		if (taskType.isInstance(task)) {
+			tasks.put(code, (Task) task);
 			return taskType.cast(task);
 		} else {
 			throw new ExtensionException(String.format("Needed a %s but `%s` compiles to a %s.", taskType, code, task.getClass()));
