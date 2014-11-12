@@ -39,7 +39,11 @@ public class ModelAgent implements Agent {
 	}
 
 	public void ask(Context parentContext, org.nlogo.agent.Agent agent, String command, Object[] args) throws ExtensionException, LogoException {
-		ask(parentContext, agent, compile(CommandTask.class, command), args);
+		if(tasks.containsKey(command)){
+			ask(parentContext, agent, (CommandTask)tasks.get(command), args);
+		}else{
+			ask(parentContext, agent, compile(CommandTask.class, command), args);
+		}
 	}
 
 	public void ask(Context parentContext, org.nlogo.agent.Agent agent, CommandTask command, Object[] args) throws ExtensionException, LogoException {
@@ -63,7 +67,11 @@ public class ModelAgent implements Agent {
 	}
 
 	public Object of(Context parentContext, org.nlogo.agent.Agent agent, String reporter, Object[] args) throws ExtensionException, LogoException {
-		return of(parentContext, agent, compile(ReporterTask.class, reporter), args);
+		if(tasks.containsKey(reporter)){
+			return of(parentContext, agent, (ReporterTask)tasks.get(reporter), args);
+		}else{
+			return of(parentContext, agent, compile(ReporterTask.class, reporter), args);
+		}
 	}
 
 	public Object of(Context parentContext, org.nlogo.agent.Agent agent, ReporterTask reporter, Object[] args) throws ExtensionException, LogoException {
