@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,6 +38,7 @@ import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
+import org.nlogo.nvm.Workspace;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -51,8 +53,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void load(PrimitiveManager primitiveManager) throws ExtensionException {
 		// this allows you to run a command in another model
-		primitiveManager.addPrimitive("ask", new RunTask());
-		primitiveManager.addPrimitive("report", new RunReporterTask());
+//        primitiveManager.addPrimitive("ask", new RunTask());
+        primitiveManager.addPrimitive("ask", new Ask());
+        primitiveManager.addPrimitive("of", new Of());
+//		primitiveManager.addPrimitive("report", new RunReporterTask());
 		// this loads a model
 		primitiveManager.addPrimitive("load-headless-model", new LoadHeadlessModel());
 		primitiveManager.addPrimitive("load-gui-model", new LoadGUIModel());
@@ -215,7 +219,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
 	public static class Reset extends DefaultCommand {
 		public void perform(Argument args[], Context context)
-				throws ExtensionException, org.nlogo.api.LogoException {
+				throws org.nlogo.api.LogoException {
 			// resets the counter
 			modelCounter = 0;
 			
@@ -226,7 +230,82 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		}
 	}
 
-	public static class RunTask extends DefaultCommand {
+    public static class Ask extends DefaultCommand {
+        public Syntax getSyntax() {
+            return Syntax.commandSyntax(
+                    new int[]{Syntax.NumberType() | Syntax.ListType(),
+                            Syntax.CommandTaskType() | Syntax.StringType(),
+                            Syntax.RepeatableType() | Syntax.WildcardType()},
+                    2);
+        }
+        public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
+            // @todo uncaught problem if sent a list of non-numbers or if models do not exist
+            ArrayList<Integer> models = new ArrayList<Integer>();
+            if (args[0].get()instanceof Double){
+                models.add(args[0].getIntValue());
+            }
+            if(args[0].get() instanceof LogoList) for (Object o : args[0].getList()) {
+                int modelId = ((Double) o).intValue();
+                models.add(modelId);
+            }
+            org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
+            Object command = args[1].get();
+            Object[] actuals = getActuals(args, 2);
+            for (int modelID : models) {
+                LevelsModelAbstract theModel = myModels.get(modelID);
+                if (command instanceof String) {
+                    theModel.ask(nvmContext, (String) command, actuals);
+                } else if (command instanceof CommandTask) {
+                    theModel.ask(nvmContext, (CommandTask) command, actuals);
+                } else {
+                    throw new ExtensionException("You must give ls:ask a command task or string to run");
+                }
+            }
+        }
+    }
+
+    public static class Of extends DefaultReporter {
+        @Override
+        public Syntax getSyntax() {
+            return Syntax.reporterSyntax(
+                    Syntax.ReporterTaskType() | Syntax.StringType(), // Code
+                    new int[]{
+                            Syntax.NumberType() | Syntax.ListType(), // Model(s)
+                    },
+                    Syntax.WildcardType() | Syntax.RepeatableType(),
+                    org.nlogo.api.Syntax.NormalPrecedence() + 1,
+                    true
+            );
+        }
+        public Object report(Argument args[], Context context) throws LogoException, ExtensionException {
+            ArrayList<Integer> models = new ArrayList<Integer>();
+            LogoListBuilder llb = new LogoListBuilder();
+            if (args[1].get()instanceof Double){
+                models.add(args[1].getIntValue());
+            }
+            if(args[1].get() instanceof LogoList) for (Object o : args[1].getList()) {
+                int modelId = ((Double) o).intValue();
+                models.add(modelId);
+            }
+            org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
+            Object reporter = args[0].get();
+            Object[] actuals = getActuals(args, 2);
+            for (int modelID : models){
+                LevelsModelAbstract theModel = myModels.get(modelID);
+                if (reporter instanceof String) {
+                    llb.add(theModel.of(nvmContext, (String) reporter, actuals));
+                }
+                else if (reporter instanceof ReporterTask)
+                    llb.add(theModel.of(nvmContext, (ReporterTask) reporter, actuals));
+            }
+            LogoList returnValue = llb.toLogoList();
+            return returnValue.size() == 1 ? returnValue.first() : returnValue;
+        }
+    }
+
+
+
+    public static class RunTask extends DefaultCommand {
 		public Syntax getSyntax(){
 			return Syntax.commandSyntax(
 					new int[]{Syntax.NumberType(),
@@ -271,6 +350,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 							Syntax.WildcardType(),
 					2);
 		}
+
+
+
 
 		@Override
 		public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
@@ -834,7 +916,25 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 			aModel.halt();
 		}
 
-	}	
+	}
+
+    public static Object[] getActuals(Argument[] args, int startIndex) throws LogoException, ExtensionException {
+        Object[] actuals = new Object[args.length - startIndex];
+        for(int i=startIndex; i < args.length; i++) {
+            actuals[i - startIndex] = args[i].get();
+        }
+        return actuals;
+    }
+
+    public static void showMessage(String s){
+		try {
+			App.app().workspace().outputObject(s, null, true, true, Workspace.OutputDestination.NORMAL);
+		} catch (LogoException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+
 
 	HashMap<Integer, LevelsModelAbstract> getModels(){
 		return myModels;

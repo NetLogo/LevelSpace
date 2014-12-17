@@ -1,3 +1,5 @@
+.gitignore
+LevelsSpace_internal_release.iml
 bin/
 .project
 .settings
@@ -5,3 +7,7 @@ bin/
 target/
 .gitignore.swp
 project/target/
+.idea/
+ls.jar
+ls.jar.pack.gz
+ls.zip

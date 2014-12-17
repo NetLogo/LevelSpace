@@ -6,20 +6,52 @@ import java.util.concurrent.FutureTask;
 
 import javax.swing.JFrame;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.nlogo.agent.Agent;
 import org.nlogo.api.ExtensionException;
+import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
+import org.nlogo.api.Task;
 import org.nlogo.api.World;
+import org.nlogo.api.CompilerException;
 import org.nlogo.app.App;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
+import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
+import org.nlogo.nvm.Procedure;
+import org.nlogo.workspace.AbstractWorkspace;
 
 
 public abstract class LevelsModelAbstract {
+
+
+    public LevelsModelAbstract(){
+        CacheLoader<String, ReporterTask> reporterLoader =
+                new CacheLoader<String, ReporterTask>() {
+                    public ReporterTask load(String reporterString) {
+                        return compileReporterTask(reporterString);
+                    }
+                };
+        reporters =
+                CacheBuilder.newBuilder()
+                        .build(reporterLoader);
+
+        CacheLoader<String, CommandTask> commandLoader =
+                new CacheLoader<String, CommandTask>() {
+                    public CommandTask load(String reporterString) {
+                        return compileCommandTask(reporterString);
+                    }
+                };
+        commands =
+                CacheBuilder.newBuilder()
+                        .build(commandLoader);
+    }
 
 	abstract public void command(String command) throws ExtensionException;
 	abstract public Object report(String reporter) throws ExtensionException;
@@ -58,7 +90,25 @@ public abstract class LevelsModelAbstract {
 		}
 	}
 
-	abstract public void kill() throws HaltException;
+    public void ask(Context context, String command, Object[] actuals) throws ExtensionException{
+         command(context, commands.getUnchecked(command), actuals);
+    }
+
+    public void ask(Context context, CommandTask task, Object[] actuals) {
+        task.perform(context, actuals);
+    }
+
+    public Object of(Context context, String reporter, Object[] actuals) throws ExtensionException{
+        return report(context, reporters.getUnchecked(reporter), actuals);
+    }
+
+    public Object of(Context context, ReporterTask task, Object[] actuals) {
+        return task.report(context, actuals);
+    }
+
+
+
+    abstract public void kill() throws HaltException;
 	abstract public String getPath();
 	abstract public String getName();
 	abstract public void breathe();
@@ -68,9 +118,10 @@ public abstract class LevelsModelAbstract {
 	abstract public LogoList listBreeds();
 	abstract public LogoList listBreedsOwns();
 	abstract public LogoList listGlobals();
-	
-	public int levelsSpaceNumber;
 
+    LoadingCache<String, CommandTask> commands;
+    LoadingCache<String, ReporterTask> reporters;
+	public int levelsSpaceNumber;
 
 	abstract JFrame frame();
 
@@ -138,5 +189,27 @@ public abstract class LevelsModelAbstract {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+    public ReporterTask compileReporterTask(String s){
+        ReporterTask r = null;
+        try {
+            r = (ReporterTask)report("task [ " + s + "]");
+        } catch (ExtensionException e) {
+            e.printStackTrace();
+        }
+        return r;
+    }
+
+    public CommandTask compileCommandTask(String s){
+//        LevelsSpace.showMessage("Compiling Command: " + s);
+        CommandTask t = null;
+        try {
+            t = (CommandTask)report("task [ " + s + "]");
+        } catch (ExtensionException e) {
+            e.printStackTrace();
+        }
+        return t;
+    }
+
 	
 }
