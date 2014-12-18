@@ -65,7 +65,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 		// this closes a model
 		primitiveManager.addPrimitive("close-model", new CloseModel());
 		// this returns a list of model IDs
-		primitiveManager.addPrimitive("all-models", new AllModels());
+		primitiveManager.addPrimitive("models", new AllModels());
 		// this returns a boolean - does the model exist
 		primitiveManager.addPrimitive("model-exists?", new ModelExists());
 		// this resets the the levelsspace extension
