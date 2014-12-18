@@ -10,6 +10,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.nlogo.agent.Agent;
+import org.nlogo.api.AgentSet;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoList;
@@ -77,6 +78,8 @@ public abstract class LevelsModelAbstract {
 		}
 		context.agent = oldAgent;
 		context.agentBit = context.agent.getAgentBit();
+        // check if result contains any agents or agentsets
+        checkResult(result);
 		return result;
 	}
 	public void checkTask(CommandTask task) throws ExtensionException {
@@ -106,7 +109,17 @@ public abstract class LevelsModelAbstract {
         return task.report(context, actuals);
     }
 
-
+    public void checkResult(Object reporterResult) throws ExtensionException {
+        if (reporterResult instanceof org.nlogo.agent.Agent || reporterResult instanceof AgentSet) {
+            throw new ExtensionException("You cannot report agents or agentsets from LevelSpace models.");
+        }
+        else if (reporterResult instanceof LogoList) {
+            LogoList resultList = (LogoList)reporterResult;
+            for(Object elem : resultList) {
+                checkResult(elem);
+            }
+        }
+    }
 
     abstract public void kill() throws HaltException;
 	abstract public String getPath();
