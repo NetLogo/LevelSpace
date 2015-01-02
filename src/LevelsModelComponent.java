@@ -1,13 +1,11 @@
-import java.awt.Component;
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
@@ -34,6 +32,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	String path;
 	final int levelsSpaceNumber;
 	LevelsSpace myLS;
+    JTextField inputField = new JTextField();
 
 	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException, ExtensionException 
 	{
@@ -41,12 +40,17 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		// find the name of the model - it is the bit past the last dash
 		this.path = path;
 
+
+
+        frame.setLayout(new BorderLayout());
+        frame.add(BorderLayout.SOUTH, inputField);
+
 		final Exception[] ex = new Exception[] { null };
 
 		SwingUtilities.invokeAndWait(
 				new Runnable() {
 					public void run() {					
-						frame.add(myWS);
+						frame.add(BorderLayout.NORTH, myWS);
 						frame.setVisible(true);
 						try {
 							myWS.open
