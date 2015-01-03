@@ -7,9 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-/**
- * Created by hah661 on 1/3/15.
- */
 public class GUIPanel extends JPanel implements Events.OutputEvent.Handler {
     CommandCenter cc;
 
@@ -24,7 +21,6 @@ public class GUIPanel extends JPanel implements Events.OutputEvent.Handler {
         });
         this.add(BorderLayout.SOUTH, cc);
         this.add(BorderLayout.NORTH, ws);
-
     }
 
     @Override
