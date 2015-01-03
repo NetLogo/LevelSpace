@@ -1,4 +1,6 @@
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -13,6 +15,7 @@ import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.app.App;
+import org.nlogo.app.CommandCenter;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
@@ -22,6 +25,7 @@ import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
 import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
+import org.nlogo.workspace.AbstractWorkspace;
 
 
 public class LevelsModelComponent extends LevelsModelAbstract {
@@ -32,7 +36,8 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	String path;
 	final int levelsSpaceNumber;
 	LevelsSpace myLS;
-    JTextField inputField = new JTextField();
+//    JTextField inputField = new JTextField();
+    CommandCenter cc;
 
 	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException, ExtensionException 
 	{
@@ -40,10 +45,17 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		// find the name of the model - it is the bit past the last dash
 		this.path = path;
 
+        cc = new CommandCenter((AbstractWorkspace)workspace(), new AbstractAction(){
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+
+            }
+        });
 
 
         frame.setLayout(new BorderLayout());
-        frame.add(BorderLayout.SOUTH, inputField);
+
+        frame.add(BorderLayout.SOUTH, cc);
 
 		final Exception[] ex = new Exception[] { null };
 

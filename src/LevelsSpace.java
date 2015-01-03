@@ -53,7 +53,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 	@Override
 	public void load(PrimitiveManager primitiveManager) throws ExtensionException {
 		// this allows you to run a command in another model
-//        primitiveManager.addPrimitive("ask", new RunTask());
+        primitiveManager.addPrimitive("ask2", new RunTask());
         primitiveManager.addPrimitive("ask", new Ask());
         primitiveManager.addPrimitive("of", new Of());
 //		primitiveManager.addPrimitive("report", new RunReporterTask());
