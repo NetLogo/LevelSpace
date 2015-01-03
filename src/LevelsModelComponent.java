@@ -14,6 +14,7 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
+import org.nlogo.api.NetLogoListener;
 import org.nlogo.app.App;
 import org.nlogo.app.CommandCenter;
 import org.nlogo.lite.InterfaceComponent;
@@ -23,6 +24,7 @@ import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
 import org.nlogo.nvm.Workspace.OutputDestination;
+import org.nlogo.window.Events;
 import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.workspace.AbstractWorkspace;
@@ -36,8 +38,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 	String path;
 	final int levelsSpaceNumber;
 	LevelsSpace myLS;
+    GUIPanel panel;
 //    JTextField inputField = new JTextField();
-    CommandCenter cc;
+
 
 	public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException, ExtensionException 
 	{
@@ -45,31 +48,32 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 		// find the name of the model - it is the bit past the last dash
 		this.path = path;
 
-        cc = new CommandCenter((AbstractWorkspace)workspace(), new AbstractAction(){
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-
-            }
-        });
-
-
-        frame.setLayout(new BorderLayout());
-
-        frame.add(BorderLayout.SOUTH, cc);
+//        cc = new CommandCenter((AbstractWorkspace)workspace(), new AbstractAction(){
+//            @Override
+//            public void actionPerformed(ActionEvent actionEvent) {
+//
+//            }
+//        });
+//
+//        frame.setLayout(new BorderLayout());
+//
+//        frame.add(BorderLayout.SOUTH, cc);
 
 		final Exception[] ex = new Exception[] { null };
 
 		SwingUtilities.invokeAndWait(
 				new Runnable() {
 					public void run() {					
-						frame.add(BorderLayout.NORTH, myWS);
-						frame.setVisible(true);
+//						frame.add(BorderLayout.NORTH, myWS);
+//						frame.setVisible(true);
 						try {
 							myWS.open
 							(path);
 						} catch (Exception e) {
 							ex[0] = e;
 						}
+                        panel = new GUIPanel(myWS);
+                        frame.add(panel);
 						// get all components, find the speed slider, and hide it.
 						Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
 						for (Component co : c){
@@ -112,6 +116,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
 
 							}
 						});
+                        frame.setVisible(true);
 					}});
 		if (ex[0] != null){
 			frame.dispose();
