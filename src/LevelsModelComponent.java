@@ -47,7 +47,6 @@ public class LevelsModelComponent extends LevelsModelAbstract {
                     public void run() {
                         // For some reason, the IC must be added to the frame before the model is opened.
                         panel = new GUIPanel(myWS);
-                        panel.add(myWS);
                         frame.add(panel);
                         frame.setVisible(true);
                         try {

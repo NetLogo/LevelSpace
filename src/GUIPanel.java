@@ -11,7 +11,7 @@ public class GUIPanel extends JPanel implements Events.OutputEvent.Handler {
     CommandCenter cc;
 
     public GUIPanel(InterfaceComponent ws){
-        this.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
         cc = new CommandCenter(ws.workspace(), new AbstractAction(){
 
             @Override
@@ -19,8 +19,17 @@ public class GUIPanel extends JPanel implements Events.OutputEvent.Handler {
 
             }
         });
-        this.add(BorderLayout.SOUTH, cc);
-        this.add(BorderLayout.NORTH, ws);
+        JScrollPane scrollPane = new JScrollPane(
+                ws,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JSplitPane splitPane = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                true,
+                scrollPane, cc);
+        splitPane.setOneTouchExpandable(true);
+        splitPane.setResizeWeight(1);
+        this.add(splitPane);
     }
 
     @Override
