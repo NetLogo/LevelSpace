@@ -153,7 +153,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void unload(ExtensionManager arg0) throws ExtensionException {
-
+        try {
+            reset();
+        } catch (HaltException e) {
+            // we can ignore this
+        }
     }
 
 
