@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,8 +76,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         // this returns whatever it is asked to report from a model
         // this returns just the path of a model
         primitiveManager.addPrimitive("model-path", new ModelPath());
-        // returns the path of the current model; useful for opening child models in same directory
-        primitiveManager.addPrimitive("model-directory", new ModelDirectory());
         // These should probably go.
         primitiveManager.addPrimitive("display", new UpdateView());
         primitiveManager.addPrimitive("show", new Show());
@@ -158,6 +157,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     }
 
 
+    private static String getModelPath(ExtensionContext ctx, String basePath) throws ExtensionException {
+        try {
+            return ctx.attachCurrentDirectory(basePath);
+        } catch (MalformedURLException e) {
+            throw new ExtensionException(e);
+        }
+    }
+
     public static class LoadHeadlessModel extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
@@ -170,7 +177,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             // saving current modelCounter as that will be the hashtable key to the
             // model we are making
             // make a new LevelsModel
-            String modelURL = args[0].getString();
+            String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
             LevelsModelHeadless aModel = null;
             try {
                 aModel = new LevelsModelHeadless(modelURL, modelCounter);
@@ -188,6 +195,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             App.app().workspace().breathe();
         }
     }
+
     public static class LoadGUIModel extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
@@ -198,7 +206,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         public void perform(Argument args[], Context context)
                 throws ExtensionException, org.nlogo.api.LogoException {
             // Get the path for the model
-            String modelURL = args[0].getString();
+            String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
             LevelsModelComponent aModel = null;
             try {
                 aModel = new LevelsModelComponent(modelURL, modelCounter);
@@ -646,20 +654,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     }
 
-    public static class ModelDirectory extends DefaultReporter{
-        public Syntax getSyntax(){
-            return Syntax.reporterSyntax(new int[0], Syntax.StringType());
-        }
-        public Object report(Argument[] args, Context context) throws ExtensionException {
-            ExtensionContext extContext = (ExtensionContext) context;
-            String dirPath = extContext.workspace().getModelDir();
-            if (dirPath == null) {
-                throw new ExtensionException("You must save this model before trying to get its directory.");
-            }
-            return dirPath + File.separator;
-        }
-
-    }
     // this returns the path of the model
     public static class ModelPath extends DefaultReporter{
         public Syntax getSyntax(){
