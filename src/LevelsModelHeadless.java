@@ -12,14 +12,12 @@ import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
-import org.nlogo.app.App;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
-import org.nlogo.nvm.Workspace.OutputDestination;
 
 public class LevelsModelHeadless extends LevelsModelAbstract {
 
@@ -175,46 +173,6 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
             }
         } else {
             return super.report(context, reporter, args);
-        }
-    }
-
-    public void kill() {
-        if(usesLevelsSpace()){
-            // If it has a levelsspace extension loaded, get a list of all loaded models
-            Object theList;
-            try {
-                theList = report("ls:all-models");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            LogoList theLogoList = (LogoList)theList;
-            for (Object theIndex : theLogoList.toArray()){
-                final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
-                try {
-                    App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
-                } catch (LogoException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-                try {
-                    command(theCommand);
-                } catch (Exception e) {
-                    // Would be better to use ExtensionException, but can't here
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        // then close down this model
-        if (frame != null){
-            frame.dispose();
-        }
-        try {
-            myWS.dispose();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
     }
 

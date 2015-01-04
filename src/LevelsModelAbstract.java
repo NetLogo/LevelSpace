@@ -1,31 +1,24 @@
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.nlogo.agent.Agent;
-import org.nlogo.api.AgentSet;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoList;
-import org.nlogo.api.LogoListBuilder;
-import org.nlogo.api.Task;
-import org.nlogo.api.World;
-import org.nlogo.api.CompilerException;
+import org.nlogo.api.*;
 import org.nlogo.app.App;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
-import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
-import org.nlogo.nvm.Procedure;
 import org.nlogo.workspace.AbstractWorkspace;
 
 
@@ -121,7 +114,64 @@ public abstract class LevelsModelAbstract {
         }
     }
 
-    abstract public void kill() throws HaltException;
+    final public void kill() throws ExtensionException {
+        if(usesLevelsSpace()) {
+            Class<?> ls = getLevelSpace();
+            try {
+                ls.getMethod("reset").invoke(null);
+            } catch (IllegalAccessException e) {
+                throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+            } catch (NoSuchMethodException e) {
+                throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+            } catch (InvocationTargetException e) {
+                throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+            }
+        }
+
+        killJobThread();
+        killLifeguard();
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (frame() != null) {
+                    frame().dispose();
+                }
+            }
+        });
+    }
+
+    private void killJobThread() {
+        try {
+            ((AbstractWorkspace) workspace()).jobManager.die();
+        } catch (InterruptedException e) {
+            // we can safely ignore this I think
+        }
+    }
+
+    private void killLifeguard() {
+        for (Thread thread : Thread.getAllStackTraces().keySet()) {
+            if (thread.getName().equals("Lifeguard")) {
+                try {
+                    Field outerField = thread.getClass().getDeclaredField("this$0");
+                    outerField.setAccessible(true);
+                    Object outer = outerField.get(thread);
+                    if (outer == workspace()) {
+                        thread.interrupt();
+                        thread.join();
+                    }
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
+                }
+            }
+        }
+
+    }
+
     abstract public String getPath();
     abstract public String getName();
     abstract public void breathe();
@@ -138,13 +188,17 @@ public abstract class LevelsModelAbstract {
 
     abstract JFrame frame();
 
-    public boolean usesLevelsSpace() {
+    Class<?> getLevelSpace() {
         for (Object cm : this.workspace().getExtensionManager().loadedExtensions()) {
             if ("class LevelsSpace".equals(cm.getClass().toString())) {
-                return true;
+                return cm.getClass();
             }
         }
-        return false;
+        return null;
+    }
+
+    public boolean usesLevelsSpace() {
+        return getLevelSpace() != null;
     }
 
     public void show() {

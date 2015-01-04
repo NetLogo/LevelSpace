@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map.Entry;
@@ -9,18 +8,14 @@ import javax.swing.*;
 
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoException;
 import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
-import org.nlogo.app.App;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
-import org.nlogo.nvm.Workspace.OutputDestination;
-import org.nlogo.window.GUIWorkspace;
 import org.nlogo.window.SpeedSliderPanel;
 
 
@@ -83,11 +78,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
                                 switch (n) {
                                     case 0:
                                         try {
-                                            kill();
-                                            App.app().workspace().breathe();
-                                        } catch (HaltException e) {
-                                            // TODO Auto-generated catch block
-                                            e.printStackTrace();
+                                            LevelsSpace.closeModel(levelsSpaceNumber);
+                                        } catch (ExtensionException e) {
+                                            throw new RuntimeException(e);
                                         }
                                         break;
                                     case 1:
@@ -180,84 +173,6 @@ public class LevelsModelComponent extends LevelsModelAbstract {
         } catch (HaltException e) {
             return null;
         }
-    }
-
-    final public void kill() throws HaltException {
-        // before we do anything, we need to check if this model has child-models.
-        // If it does, we need to kill those too.
-        if(usesLevelsSpace()) {
-            Object theList = null;
-            try {
-                theList = report("ls:all-models");
-            } catch (Exception e) {
-                // Normally we'd want to bubble these up as ExtensionExceptions, but
-                // can't because this is inherited
-                throw new RuntimeException(e);
-            }
-            LogoList theLogoList = (LogoList)theList;
-            for (Object theIndex : theLogoList.toArray()){
-                final String theCommand = "ls:close-model " + String.valueOf(Math.round(Float.valueOf(theIndex.toString())));
-                try {
-                    App.app().workspace().outputObject(theCommand, null, true, true, OutputDestination.NORMAL);
-                } catch (LogoException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-                try {
-                    command(theCommand);
-                } catch (Exception e) {
-                    // Normally we'd want to bubble these up as ExtensionExceptions, but
-                    // can't because this is inherited
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-
-        killJobThread();
-        killLifeguard();
-
-        SwingUtilities.invokeLater(new Runnable(){
-
-            @Override
-            public void run() {
-                // TODO Auto-generated method stub
-                frame.dispose();
-            }
-
-        });
-    }
-
-    private void killJobThread() {
-        try {
-            ((GUIWorkspace) workspace()).jobManager.die();
-        } catch (InterruptedException e) {
-            // we can safely ignore this I think
-        }
-    }
-
-    private void killLifeguard() {
-        for (Thread thread : Thread.getAllStackTraces().keySet()) {
-            if (thread.getName().equals("Lifeguard")) {
-                try {
-                    Field outerField = thread.getClass().getDeclaredField("this$0");
-                    outerField.setAccessible(true);
-                    Object outer = outerField.get(thread);
-                    if (outer == workspace()) {
-                        thread.interrupt();
-                        thread.join();
-                    }
-                } catch (NoSuchFieldException e) {
-                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
-                }
-
-            }
-        }
-
     }
 
 

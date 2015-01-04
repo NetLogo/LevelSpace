@@ -217,16 +217,19 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
+    public static void reset() throws ExtensionException, HaltException {
+        modelCounter = 0;
+
+        for (LevelsModelAbstract model : myModels.values()){
+            model.kill();
+        }
+        myModels.clear();
+    }
+
     public static class Reset extends DefaultCommand {
         public void perform(Argument args[], Context context)
-                throws org.nlogo.api.LogoException {
-            // resets the counter
-            modelCounter = 0;
-
-            for (LevelsModelAbstract model : myModels.values()){
-                model.kill();
-            }
-            myModels.clear();
+                throws org.nlogo.api.LogoException, ExtensionException {
+            reset();
         }
     }
 
@@ -548,15 +551,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
         public void perform(Argument args[], Context context)
                 throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-            // find the model. if it exists, kill it
-            getModel(modelNumber).kill();
-            // and remove it from the hashtable
-            myModels.remove(modelNumber);
-            App.app().workspace().breathe();
+            closeModel((int) args[0].getDoubleValue());
         }
+    }
 
+    public static void closeModel(int modelNumber) throws ExtensionException {
+        getModel(modelNumber).kill();
+        myModels.remove(modelNumber);
     }
 
     public static class UpdateView extends DefaultCommand {

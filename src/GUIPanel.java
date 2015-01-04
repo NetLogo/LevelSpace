@@ -1,7 +1,6 @@
 import org.nlogo.app.CommandCenter;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.window.Events;
-import org.nlogo.workspace.AbstractWorkspace;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,6 +10,7 @@ public class GUIPanel extends JPanel implements Events.OutputEvent.Handler {
     CommandCenter cc;
 
     public GUIPanel(InterfaceComponent ws){
+        // Border layout makes contents expand with the frame.
         setLayout(new BorderLayout());
         cc = new CommandCenter(ws.workspace(), new AbstractAction(){
 
