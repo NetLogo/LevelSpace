@@ -6,10 +6,7 @@ import java.util.concurrent.Callable;
 
 import javax.swing.*;
 
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoList;
-import org.nlogo.api.LogoListBuilder;
+import org.nlogo.api.*;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
@@ -29,8 +26,9 @@ public class LevelsModelComponent extends LevelsModelAbstract {
     GUIPanel panel;
 
 
-    public LevelsModelComponent(final String path, final int levelsSpaceNumber) throws InterruptedException, InvocationTargetException, ExtensionException
-    {
+    public LevelsModelComponent(World parentWorld, final String path, final int levelsSpaceNumber)
+            throws InterruptedException, InvocationTargetException, ExtensionException {
+        super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
         // find the name of the model - it is the bit past the last dash
         this.path = path;

@@ -7,11 +7,7 @@ import java.util.concurrent.Callable;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoList;
-import org.nlogo.api.LogoListBuilder;
+import org.nlogo.api.*;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
@@ -27,7 +23,8 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
     String path;
     int levelsSpaceNumber;
 
-    public LevelsModelHeadless(String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException {
+    public LevelsModelHeadless(World parentWorld, String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException {
+        super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
         // find the name of the model - it is the bit past the last dash
         int lastDashPosition = path.lastIndexOf("/") + 1;

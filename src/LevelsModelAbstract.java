@@ -25,7 +25,10 @@ import org.nlogo.workspace.AbstractWorkspace;
 public abstract class LevelsModelAbstract {
 
 
-    public LevelsModelAbstract(){
+    private final World parentWorld;
+
+    public LevelsModelAbstract(World parentWorld){
+        this.parentWorld = parentWorld;
         CacheLoader<String, ReporterTask> reporterLoader =
                 new CacheLoader<String, ReporterTask>() {
                     public ReporterTask load(String reporterString) {
@@ -90,16 +93,16 @@ public abstract class LevelsModelAbstract {
         command(context, commands.getUnchecked(command), actuals);
     }
 
-    public void ask(Context context, CommandTask task, Object[] actuals) {
-        task.perform(context, actuals);
+    public void ask(Context context, CommandTask task, Object[] actuals) throws ExtensionException {
+        command(context, task, actuals);
     }
 
     public Object of(Context context, String reporter, Object[] actuals) throws ExtensionException{
         return report(context, reporters.getUnchecked(reporter), actuals);
     }
 
-    public Object of(Context context, ReporterTask task, Object[] actuals) {
-        return task.report(context, actuals);
+    public Object of(Context context, ReporterTask task, Object[] actuals) throws ExtensionException {
+        return report(context, task, actuals);
     }
 
     public void checkResult(Object reporterResult) throws ExtensionException {
@@ -215,27 +218,25 @@ public abstract class LevelsModelAbstract {
      * Runs the given callable such that it doesn't create a deadlock between
      * the AWT event thread and the JobThread. It does this using a similar
      * technique as ThreadUtils.waitForResponse().
-     * @param world The world to synchronize on. Should be the main model's world.
      * @param callable What to run.
      * @return
      */
     public <T> T runSafely(final Callable<T> callable) throws HaltException, ExtensionException {
-        final World world = App.app().workspace().world();
         final FutureTask<T> reporterTask = new FutureTask<T>(new Callable<T>() {
             @Override
             public T call() throws Exception {
                 T result = callable.call();
-                synchronized (world) {
-                    world.notify();
+                synchronized (parentWorld) {
+                    parentWorld.notify();
                 }
                 return result;
             }
         });
         safeExecutor.execute(reporterTask);
         while (!reporterTask.isDone()) {
-            synchronized (world) {
+            synchronized (parentWorld) {
                 try {
-                    world.wait(50);
+                    parentWorld.wait(50);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new HaltException(false);

@@ -184,7 +184,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
             LevelsModelHeadless aModel = null;
             try {
-                aModel = new LevelsModelHeadless(modelURL, modelCounter);
+                aModel = new LevelsModelHeadless(context.getAgent().world(), modelURL, modelCounter);
             } catch (IOException e) {
                 throw new ExtensionException ("There was no .nlogo file at the path: \"" + modelURL + "\"");
             } catch (CompilerException e) {
@@ -195,8 +195,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             myModels.put(modelCounter, aModel);
             // add to models counter
             modelCounter ++;
-            // stop up, take a breath. You will be okay.
-            App.app().workspace().breathe();
         }
     }
 
@@ -213,7 +211,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
             LevelsModelComponent aModel = null;
             try {
-                aModel = new LevelsModelComponent(modelURL, modelCounter);
+                aModel = new LevelsModelComponent(context.getAgent().world(), modelURL, modelCounter);
                 updateChildModelSpeed(aModel);
                 // add it to models
                 myModels.put(modelCounter, aModel);
@@ -224,8 +222,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             } catch (InvocationTargetException e) {
                 throw new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
             }
-            // stop up, take a breath. You will be okay.
-            App.app().workspace().breathe();
         }
     }
 
@@ -405,7 +401,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static class HierarchicalAsk extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    new int[] { Syntax.ListType(), Syntax.StringType() });
+                    new int[]{Syntax.ListType(), Syntax.StringType()});
         }
 
         public void perform(Argument args[], Context context)
@@ -458,7 +454,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static class HierarchicalReport extends DefaultReporter {
         public Syntax getSyntax(){
             return Syntax.reporterSyntax(
-                    new int[] {Syntax.ListType(), Syntax.StringType()},
+                    new int[]{Syntax.ListType(), Syntax.StringType()},
                     Syntax.StringType());
 
         }
@@ -519,7 +515,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static class ModelHierarchy extends DefaultReporter {
         public Syntax getSyntax(){
             return Syntax.reporterSyntax(
-                    new int[] {},
+                    new int[]{},
                     Syntax.StringType());
 
         }
@@ -575,7 +571,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static class UpdateView extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    new int[] { Syntax.NumberType() });
+                    new int[]{Syntax.NumberType()});
         }
 
         public void perform(Argument args[], Context context)
@@ -609,7 +605,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static class Hide extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    new int[] { Syntax.NumberType() });
+                    new int[]{Syntax.NumberType()});
         }
 
         public void perform(Argument args[], Context context)
