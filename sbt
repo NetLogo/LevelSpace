@@ -1,7 +1,7 @@
 #!/bin/sh
 
-LAUNCH=$HOME/.sbt/sbt-launch-0.12.2.jar
-URL='http://repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.12.2/sbt-launch.jar'
+LAUNCH=$HOME/.sbt/sbt-launch-0.13.7.jar
+URL='http://repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.7/sbt-launch.jar'
 
 if [ ! -f $LAUNCH ] ; then
   echo "downloading" $URL
