@@ -16,8 +16,6 @@ import javax.swing.MenuElement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.nlogo.agent.Agent;
-import org.nlogo.agent.AgentSet;
 import org.nlogo.api.Argument;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.Context;
@@ -38,7 +36,6 @@ import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
-import org.nlogo.nvm.Workspace;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -52,51 +49,25 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
-        // this allows you to run a command in another model
-        primitiveManager.addPrimitive("ask2", new RunTask());
         primitiveManager.addPrimitive("ask", new Ask());
         primitiveManager.addPrimitive("of", new Of());
-//		primitiveManager.addPrimitive("report", new RunReporterTask());
-        // this loads a model
         primitiveManager.addPrimitive("load-headless-model", new LoadHeadlessModel());
         primitiveManager.addPrimitive("load-gui-model", new LoadGUIModel());
-        // this returns the name (and path) of a model
         primitiveManager.addPrimitive("model-name", new ModelName());
-        // this closes a model
         primitiveManager.addPrimitive("close-model", new CloseModel());
-        // this returns a list of model IDs
         primitiveManager.addPrimitive("models", new AllModels());
-        // this returns a boolean - does the model exist
         primitiveManager.addPrimitive("model-exists?", new ModelExists());
-        // this resets the the levelsspace extension
         primitiveManager.addPrimitive("reset", new Reset());
-        // this returns the last model id number
         primitiveManager.addPrimitive("last-model-id", new LastModel());
-        // this returns whatever it is asked to report from a model
-        // this returns just the path of a model
         primitiveManager.addPrimitive("model-path", new ModelPath());
-        // These should probably go.
         primitiveManager.addPrimitive("display", new UpdateView());
         primitiveManager.addPrimitive("show", new Show());
         primitiveManager.addPrimitive("hide", new Hide());
-        // testing primitives
-        // this returns a list of all breeds. currently implemented as a nl
-        // primitive, but probably won't need it as such. Although it is
-        // sort of handy for LS programming
         primitiveManager.addPrimitive("_list-breeds", new ListBreeds());
         primitiveManager.addPrimitive("_globals", new Globals());
-        // this returns a list of all breeds and their own vars. currently implemented
-        // as a nl primitive, but probably won't need it as such. Although it is
-        // sort of handy for LS programming
         primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());
-        primitiveManager.addPrimitive("test", new Test());
-        // this is for exporting model information (like turtle vars, globals, etc)
-        // to an external, graphical programming environment for describing
-        // inter-model relationships and behaviors.
-        primitiveManager.addPrimitive("_export-models", new ExportModels());
-        primitiveManager.addPrimitive("_ask-hi", new HierarchicalAsk());
-        primitiveManager.addPrimitive("_report-hi", new HierarchicalReport());
-        primitiveManager.addPrimitive("_model-hierarchy", new ModelHierarchy());
+        primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
+        primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
 
 
         modelCounter = 0;
@@ -177,7 +148,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
         public void perform(Argument args[], Context context)
                 throws ExtensionException, org.nlogo.api.LogoException {
-            // saving current modelCounter as that will be the hashtable key to the
+            // saving current modelCounter as that will be the hash table key to the
             // model we are making
             // make a new LevelsModel
             String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
@@ -208,7 +179,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 throws ExtensionException, org.nlogo.api.LogoException {
             // Get the path for the model
             String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
-            GUIChildModel aModel = null;
+            GUIChildModel aModel;
             try {
                 aModel = new GUIChildModel(context.getAgent().world(), modelURL, modelCounter);
                 updateChildModelSpeed(aModel);
@@ -314,89 +285,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     }
 
 
-
-    public static class RunTask extends DefaultCommand {
-        public Syntax getSyntax(){
-            return Syntax.commandSyntax(
-                    new int[]{Syntax.NumberType(),
-                            Syntax.CommandTaskType() | Syntax.StringType(),
-                            Syntax.RepeatableType() | Syntax.WildcardType()},
-                    2);
-        }
-
-        @Override
-        public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            int modelNumber = args[0].getIntValue();
-            ChildModel model = getModel(modelNumber);
-            Object rawCommand = args[1].get();
-            int n = args.length - 2;
-            Object[] actuals = new Object[n];
-            for (int i = 0; i < n; i++) {
-                actuals[i] = args[i+2].get();
-            }
-            CommandTask task;
-            if (rawCommand instanceof CommandTask) {
-                task = (CommandTask) rawCommand;
-            } else {
-                String command = rawCommand.toString();
-                if (actuals.length > 0) {
-                    task = (CommandTask) model.report("task [ " + command + " ]");
-                } else {
-                    // No arguments, don't bother making a task and such
-                    model.command(command);
-                    return;
-                }
-            }
-            model.command(((ExtensionContext) context).nvmContext(), task, actuals);
-        }
-    }
-
-    public static class RunReporterTask extends DefaultReporter {
-        public Syntax getSyntax(){
-            return Syntax.reporterSyntax(
-                    new int[]{Syntax.NumberType(),
-                            Syntax.ReporterTaskType() | Syntax.StringType(),
-                            Syntax.RepeatableType() | Syntax.WildcardType()},
-                    Syntax.WildcardType(),
-                    2);
-        }
-
-
-
-
-        @Override
-        public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
-            int modelNumber = args[0].getIntValue();
-            ChildModel model = getModel(modelNumber);
-            Object rawReporter = args[1].get();
-            int n = args.length - 2;
-            Object[] actuals = new Object[n];
-            for (int i = 0; i < n; i++) {
-                actuals[i] = args[i+2].get();
-            }
-            ReporterTask task;
-            if (rawReporter instanceof ReporterTask) {
-                task = (ReporterTask) rawReporter;
-            } else {
-                String reporter = rawReporter.toString();
-                if (actuals.length > 0) {
-                    task = (ReporterTask) model.report("task [ " + reporter + " ]");
-                } else {
-                    // No arguments, don't bother making a task and such
-                    return model.report(reporter);
-                }
-            }
-            Object result = model.report(((ExtensionContext) context).nvmContext(), task, actuals);
-            if (result instanceof Agent || result instanceof AgentSet) {
-                throw new ExtensionException("You cannot report agents or agentsets. If you want to do something" +
-                        "with agents or agentsets use the ls:ask instead.");
-            }
-            return result;
-        }
-    }
-
-
-
     public static class HierarchicalAsk extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
@@ -430,7 +318,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 cmd = cmd.replace("\"", "\\\"");
                 // this currently doesn't work because it does this for the first and last
                 // quotation marks too - which it should not.
-                modelCommand = "ls:_ask-hi " + org.nlogo.api.Dump.logoObject(list) + " \"" + cmd + "\"";
+                modelCommand = "ls:ask-descendant " + org.nlogo.api.Dump.logoObject(list) + " \"" + cmd + "\"";
             }
 
             // if it is exactly 1 that means we are at the parent of the model that we want
@@ -450,36 +338,36 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     }
 
 
-    public static class HierarchicalReport extends DefaultReporter {
+    public static class HierarchicalOf extends DefaultReporter {
         public Syntax getSyntax(){
             return Syntax.reporterSyntax(
-                    new int[]{Syntax.ListType(), Syntax.StringType()},
-                    Syntax.StringType());
+                    Syntax.StringType(),
+                    new int[]{ Syntax.ListType() },
+                    Syntax.WildcardType(),
+                    org.nlogo.api.Syntax.NormalPrecedence() + 1,
+                    true
+            );
 
         }
 
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-
-        }
 
         @Override
         public Object report(Argument[] args, Context arg1)
                 throws ExtensionException, LogoException {
             // TODO Auto-generated method stub
             // get model number from args
-            LogoList list = args[0].getList();
+            LogoList list = args[1].getList();
             // get the command
-            String reporter = args[1].getString();
+            String reporter = args[0].getString();
             // get the model
             double modelNumber = (Double) list.first();
-            int modelno = (int)modelNumber;
+            int modelNum = (int)modelNumber;
             ChildModel aModel;
-            if (myModels.containsKey(modelno)){
-                aModel = myModels.get(modelno);
+            if (myModels.containsKey(modelNum)){
+                aModel = myModels.get(modelNum);
             }
             else {
-                throw new ExtensionException("The model with id " + modelno + " did not exist.");
+                throw new ExtensionException("The model with id " + modelNum + " did not exist.");
             }
             // then remove the model from the list
             list = list.butFirst();
@@ -492,7 +380,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 reporter = reporter.replace("\"", "\\\"");
                 // this currently doesn't work because it does this for the first and last
                 // quotation marks too - which it should not.
-                modelCommand = "ls:_report-hi " + org.nlogo.api.Dump.logoObject(list) + " \"" + reporter + "\"";
+                modelCommand = "ls:of-descendant " + org.nlogo.api.Dump.logoObject(list) + " \"" + reporter + "\"";
             }
 
             // if it is exactly 1 that means we are at the parent of the model that we want
@@ -500,50 +388,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             if (list.size() == 1){
                 // get the child model
                 double childModelNumber = (Double) list.first();
-                int childModelno = (int)childModelNumber;
+                int childModelNum = (int)childModelNumber;
                 reporter = reporter.replace("\"", "\\\"");
-                modelCommand = "ls:report " +  childModelno + " \""+ reporter + "\"";
+                modelCommand = "\"" + reporter + "\" ls:of " + childModelNum;
             }
 
             // then call command
             return aModel.report(modelCommand);
-
-        }
-
-    }
-    public static class ModelHierarchy extends DefaultReporter {
-        public Syntax getSyntax(){
-            return Syntax.reporterSyntax(
-                    new int[]{},
-                    Syntax.StringType());
-
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-
-        }
-
-        @Override
-        public Object report(Argument[] args, Context arg1)
-                throws ExtensionException, LogoException {
-            // TODO Auto-generated method stub
-            // get model number from args
-            String returnValue = " [";
-
-            for (Integer key : myModels.keySet()){
-                ChildModel model = myModels.get(key);
-                if (model.usesLevelsSpace()){
-                    returnValue = returnValue + "[ " + key.toString() + " \"" + model.getPath() + "\" " + model.report("ls:_model-hierarchy") + "]";
-                }
-                else{
-                    returnValue = returnValue + "[ " + key.toString() + " \"" + model.getPath() + "\" " + " [ ]]";
-                }
-            }
-
-            returnValue = returnValue + " ]";
-            // then return it
-            return returnValue;
 
         }
 
@@ -617,27 +468,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static class ExportModels extends DefaultCommand {
-        public Syntax getSyntax() {
-            return Syntax.commandSyntax(
-                    // we take in int[] {number, string}
-                    //					new int[] { Syntax.StringType()}
-            );
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            for (Integer d : myModels.keySet()){
-                ChildModel aModel = myModels.get(d);
-                aModel.usesLevelsSpace();
-            }
-
-
-        }
-    }
-
-
-
 
     // this returns the path of the model
     public static class ModelName extends DefaultReporter{
@@ -702,19 +532,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             int modelNumber = (int) args[0].getDoubleValue();
 
             // find the model. if it exists, update graphics
-            if(myModels.containsKey(modelNumber))
-            {
-                return true;
-            }
-            else{
-                return false;
-            }
+            return myModels.containsKey(modelNumber);
 
         }
     }
 
 
-    public static class Test extends DefaultReporter {
+    public static class UsesLevelSpace extends DefaultReporter {
         public Syntax getSyntax() {
             return Syntax.reporterSyntax(
                     // we take in int[] {modelNumber, varName}
@@ -838,7 +662,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             LogoListBuilder myLLB = new LogoListBuilder();
 
             for (Integer id :  myModels.keySet()) {
-                myLLB.add(new Double(id));
+                myLLB.add((double) id);
             }
             return myLLB.toLogoList();
         }
@@ -919,19 +743,4 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
         return actuals;
     }
-
-    public static void showMessage(String s){
-        try {
-            App.app().workspace().outputObject(s, null, true, true, Workspace.OutputDestination.NORMAL);
-        } catch (LogoException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    }
-
-
-    HashMap<Integer, ChildModel> getModels(){
-        return myModels;
-    }
-
 }
