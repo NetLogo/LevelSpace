@@ -13,7 +13,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.nlogo.agent.Agent;
 import org.nlogo.api.*;
-import org.nlogo.app.App;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
 import org.nlogo.nvm.HaltException;
@@ -22,12 +21,12 @@ import org.nlogo.nvm.Workspace;
 import org.nlogo.workspace.AbstractWorkspace;
 
 
-public abstract class LevelsModelAbstract {
+public abstract class ChildModel {
 
 
     private final World parentWorld;
 
-    public LevelsModelAbstract(World parentWorld){
+    public ChildModel(World parentWorld){
         this.parentWorld = parentWorld;
         CacheLoader<String, ReporterTask> reporterLoader =
                 new CacheLoader<String, ReporterTask>() {

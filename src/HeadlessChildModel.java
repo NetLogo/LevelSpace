@@ -15,7 +15,7 @@ import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
 
-public class LevelsModelHeadless extends LevelsModelAbstract {
+public class HeadlessChildModel extends ChildModel {
 
     HeadlessWorkspace myWS;
     ImageFrame frame;
@@ -23,7 +23,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
     String path;
     int levelsSpaceNumber;
 
-    public LevelsModelHeadless(World parentWorld, String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException {
+    public HeadlessChildModel(World parentWorld, String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException {
         super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
         // find the name of the model - it is the bit past the last dash
@@ -84,9 +84,9 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
                         try {
                             myWS.command(command);
                         } catch (LogoException e) {
-                            throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+                            throw ErrorUtils.handle(HeadlessChildModel.this, command, e);
                         } catch (CompilerException e) {
-                            throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+                            throw ErrorUtils.handle(HeadlessChildModel.this, command, e);
                         }
                         return null;
                     }
@@ -98,9 +98,9 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
             try {
                 myWS.command(command);
             } catch (LogoException e) {
-                throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+                throw ErrorUtils.handle(HeadlessChildModel.this, command, e);
             } catch (CompilerException e) {
-                throw ErrorUtils.handle(LevelsModelHeadless.this, command, e);
+                throw ErrorUtils.handle(HeadlessChildModel.this, command, e);
             }
         }
     }
@@ -112,7 +112,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
                 runSafely(new Callable<Object>() {
                     @Override
                     public Object call() throws ExtensionException {
-                        LevelsModelHeadless.super.command(context, command, args);
+                        HeadlessChildModel.super.command(context, command, args);
                         return null;
                     }
                 });
@@ -133,9 +133,9 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
                         try {
                             return myWS.report(reporter);
                         } catch (LogoException e) {
-                            throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+                            throw ErrorUtils.handle(HeadlessChildModel.this, reporter, e);
                         } catch (CompilerException e) {
-                            throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+                            throw ErrorUtils.handle(HeadlessChildModel.this, reporter, e);
                         }
                     }
                 });
@@ -147,9 +147,9 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
             try {
                 return myWS.report(reporter);
             } catch (LogoException e) {
-                throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+                throw ErrorUtils.handle(HeadlessChildModel.this, reporter, e);
             } catch (CompilerException e) {
-                throw ErrorUtils.handle(LevelsModelHeadless.this, reporter, e);
+                throw ErrorUtils.handle(HeadlessChildModel.this, reporter, e);
             }
         }
     }
@@ -161,7 +161,7 @@ public class LevelsModelHeadless extends LevelsModelAbstract {
                 return runSafely(new Callable<Object>() {
                     @Override
                     public Object call() throws ExtensionException {
-                        return LevelsModelHeadless.super.report(context, reporter, args);
+                        return HeadlessChildModel.super.report(context, reporter, args);
                     }
                 });
             } catch (HaltException e) {

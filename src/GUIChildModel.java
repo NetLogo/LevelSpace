@@ -16,7 +16,7 @@ import org.nlogo.nvm.Workspace;
 import org.nlogo.window.SpeedSliderPanel;
 
 
-public class LevelsModelComponent extends LevelsModelAbstract {
+public class GUIChildModel extends ChildModel {
 
     final javax.swing.JFrame frame = new javax.swing.JFrame();
     final InterfaceComponent myWS = new InterfaceComponent(frame);
@@ -26,7 +26,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
     GUIPanel panel;
 
 
-    public LevelsModelComponent(World parentWorld, final String path, final int levelsSpaceNumber)
+    public GUIChildModel(World parentWorld, final String path, final int levelsSpaceNumber)
             throws InterruptedException, InvocationTargetException, ExtensionException {
         super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
@@ -109,7 +109,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
                     try {
                         myWS.command(command);
                     } catch (CompilerException e) {
-                        throw ErrorUtils.handle(LevelsModelComponent.this, command, e);
+                        throw ErrorUtils.handle(GUIChildModel.this, command, e);
                     }
                     return null;
                 }
@@ -125,7 +125,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
             runSafely(new Callable<Object>() {
                 @Override
                 public Object call() throws ExtensionException {
-                    LevelsModelComponent.super.command(context, command, args);
+                    GUIChildModel.super.command(context, command, args);
                     return null;
                 }
             });
@@ -149,7 +149,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
                     try {
                         return myWS.report(reporter);
                     } catch (CompilerException e) {
-                        throw ErrorUtils.handle(LevelsModelComponent.this, reporter, e);
+                        throw ErrorUtils.handle(GUIChildModel.this, reporter, e);
                     }
                 }
             });
@@ -165,7 +165,7 @@ public class LevelsModelComponent extends LevelsModelAbstract {
             return runSafely(new Callable<Object>() {
                 @Override
                 public Object call() throws ExtensionException {
-                    return LevelsModelComponent.super.report(context, reporter, args);
+                    return GUIChildModel.super.report(context, reporter, args);
                 }
             });
         } catch (HaltException e) {
