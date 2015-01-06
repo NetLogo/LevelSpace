@@ -16,13 +16,8 @@ import javax.swing.MenuElement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.nlogo.api.Argument;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.Context;
-import org.nlogo.api.DefaultCommand;
-import org.nlogo.api.DefaultReporter;
-import org.nlogo.api.ExtensionException;
-import org.nlogo.api.ExtensionManager;
+import org.nlogo.api.*;
+import org.nlogo.app.App;
 import org.nlogo.api.ExtensionObject;
 import org.nlogo.api.ImportErrorHandler;
 import org.nlogo.api.LogoException;
@@ -152,7 +147,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             // model we are making
             // make a new LevelsModel
             String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
-            HeadlessChildModel aModel = null;
+            HeadlessChildModel aModel;
             try {
                 aModel = new HeadlessChildModel(context.getAgent().world(), modelURL, modelCounter);
             } catch (IOException e) {
@@ -233,7 +228,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             Object command = args[1].get();
             Object[] actuals = getActuals(args, 2);
             for (int modelID : models) {
-                ChildModel theModel = myModels.get(modelID);
+                ChildModel theModel = getModel(modelID);
                 if (command instanceof String) {
                     theModel.ask(nvmContext, (String) command, actuals);
                 } else if (command instanceof CommandTask) {
@@ -272,7 +267,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             Object reporter = args[0].get();
             Object[] actuals = getActuals(args, 2);
             for (int modelID : models){
-                ChildModel theModel = myModels.get(modelID);
+                ChildModel theModel = getModel(modelID);
                 if (reporter instanceof String) {
                     llb.add(theModel.of(nvmContext, (String) reporter, actuals));
                 }
@@ -293,26 +288,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
         public void perform(Argument args[], Context context)
                 throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
             LogoList list = args[0].getList();
-            // get the command
             String cmd = args[1].getString();
-            // get the model
-            double modelNumber = (Double) list.first();
-            int modelno = (int)modelNumber;
+            int modelNum = (Integer) list.first();
             ChildModel aModel;
-            if (myModels.containsKey(modelno)){
-                aModel = myModels.get(modelno);
-            }
-            else {
-                throw new ExtensionException("The model with id " + modelno + " did not exist.");
-            }
-            // then remove the model from the list
+            aModel = getModel(modelNum);
             list = list.butFirst();
-            // Command string
             String modelCommand = "";
 
-            // if the list is longer than one, we need to go deeper in the hierarchy
             if (list.size() > 1){
                 // need to reinsert escape chars
                 cmd = cmd.replace("\"", "\\\"");
@@ -538,34 +521,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     }
 
 
-    public static class UsesLevelSpace extends DefaultReporter {
-        public Syntax getSyntax() {
-            return Syntax.reporterSyntax(
-                    // we take in int[] {modelNumber, varName}
-                    new int[] { Syntax.NumberType() },
-                    // and return a number
-                    Syntax.BooleanType());
-        }
-
-        public Object report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-
-            // find the model. if it exists, get all breeds + owns
-            if(myModels.containsKey(modelNumber))
-            {
-                ChildModel theModel = myModels.get(modelNumber);
-                return theModel.usesLevelsSpace();
-
-            }
-            else{
-                return "no";
-            }
-
-        }
-    }
-
     public static class BreedsOwns extends DefaultReporter {
         public Syntax getSyntax() {
             return Syntax.reporterSyntax(
@@ -671,34 +626,31 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public List<String> additionalJars() {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public void clearAll() {
-        // TODO Auto-generated method stub
-
+        // We want to keep models between clear-alls, yes?
     }
 
     @Override
     public StringBuilder exportWorld() {
-        // TODO Auto-generated method stub
-        StringBuilder sb = new StringBuilder();
-        return sb;
+        // Not supported
+        return new StringBuilder();
     }
 
     @Override
     public void importWorld(List<String[]> arg0, ExtensionManager arg1,
                             ImportErrorHandler arg2) throws ExtensionException {
-        // TODO Auto-generated method stub
-
+        // Not supported
     }
+
     @Override
     public ExtensionObject readExtensionObject(ExtensionManager arg0,
                                                String arg1, String arg2) throws ExtensionException,
             CompilerException {
-        // TODO Auto-generated method stub
+        // Not supported
         return null;
     }
 
