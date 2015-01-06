@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -25,7 +24,6 @@ import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
-import org.nlogo.app.App;
 import org.nlogo.app.ToolsMenu;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.ExtensionContext;
@@ -33,7 +31,6 @@ import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
-import sun.rmi.runtime.Log;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
@@ -117,6 +114,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             return myModels.get(id);
         } else {
             throw new ExtensionException("There is no model with ID " + id);
+        }
+    }
+
+    public static int castToId(Object id) throws ExtensionException {
+        if (id instanceof Number) {
+            return ((Number) id).intValue();
+        } else {
+            throw new ExtensionException("Expected a model ID but got: " + id);
         }
     }
 
@@ -220,12 +225,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             ChildModel[] models = new ChildModel[idList.size()];
             int i = 0;
             for (Object modelIdObj : arg.getList()) {
-                if (modelIdObj instanceof Double) {
-                    models[i] = getModel(((Double) modelIdObj).intValue());
-                    i++;
-                } else {
-                    throw new ExtensionException("List should have only contained numbers but had: " + modelIdObj);
-                }
+                models[i] = getModel(castToId(modelIdObj));
+                i++;
             }
             return models;
         } else {
@@ -278,9 +279,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             for (ChildModel model : toModelList(args[1])){
                 if (reporter instanceof String) {
                     results.add(model.of(nvmContext, (String) reporter, actuals));
-                }
-                else if (reporter instanceof ReporterTask)
+                } else if (reporter instanceof ReporterTask) {
                     results.add(model.of(nvmContext, (ReporterTask) reporter, actuals));
+                }
             }
             LogoList returnValue = results.toLogoList();
             return args[1].get() instanceof Double ? returnValue.first() : returnValue;
@@ -297,7 +298,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 throws ExtensionException, org.nlogo.api.LogoException {
             LogoList list = args[0].getList();
             String cmd = args[1].getString();
-            int modelNum = (Integer) list.first();
+            int modelNum = ((Double) list.first()).intValue();
             ChildModel aModel;
             aModel = getModel(modelNum);
             list = list.butFirst();

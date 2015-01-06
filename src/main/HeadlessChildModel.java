@@ -14,6 +14,7 @@ import org.nlogo.nvm.Context;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
+import org.nlogo.workspace.AbstractWorkspace;
 
 public class HeadlessChildModel extends ChildModel {
 
@@ -178,7 +179,7 @@ public class HeadlessChildModel extends ChildModel {
     }
 
     @Override
-    public Workspace workspace() {
+    public AbstractWorkspace workspace() {
         return myWS;
     }
 

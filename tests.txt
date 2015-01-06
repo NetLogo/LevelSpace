@@ -34,3 +34,11 @@ ls-ask-and-of-work-for-lists
   O> ls:ask ls:models "crt 1"
   "count turtles" ls:of ls:models => [2 1]
   O> ls:reset
+
+# Currently fails
+#ls-*-descendant-works-for-one-item-list
+#  extensions [ ls ]
+#  O> ls:load-headless-model "Blank.nlogo"
+#  O> ls:ask-descendant [0] "crt 1"
+#  "count turtles" ls:of-descendant [0] => 1
+

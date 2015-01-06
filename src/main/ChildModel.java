@@ -13,11 +13,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.nlogo.agent.Agent;
 import org.nlogo.api.*;
+import org.nlogo.nvm.*;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
-import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
-import org.nlogo.nvm.Workspace;
 import org.nlogo.workspace.AbstractWorkspace;
 
 
@@ -181,7 +180,7 @@ public abstract class ChildModel {
     abstract public void breathe();
     abstract public void setSpeed(double d);
     abstract public void halt();
-    abstract public Workspace workspace();
+    abstract public AbstractWorkspace workspace();
     abstract public LogoList listBreeds();
     abstract public LogoList listBreedsOwns();
     abstract public LogoList listGlobals();

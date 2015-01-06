@@ -14,6 +14,7 @@ import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.nvm.Workspace;
 import org.nlogo.window.SpeedSliderPanel;
+import org.nlogo.workspace.AbstractWorkspace;
 
 
 public class GUIChildModel extends ChildModel {
@@ -202,7 +203,7 @@ public class GUIChildModel extends ChildModel {
     }
 
     @Override
-    public Workspace workspace() {
+    public AbstractWorkspace workspace() {
         return myWS.workspace();
     }
 
