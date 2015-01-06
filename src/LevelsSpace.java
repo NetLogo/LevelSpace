@@ -33,6 +33,7 @@ import org.nlogo.nvm.HaltException;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
+import sun.rmi.runtime.Log;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
@@ -206,6 +207,28 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
+    private static ChildModel[] toModelList(Argument arg) throws LogoException, ExtensionException {
+        Object obj = arg.get();
+        if (obj instanceof Double) {
+            return new ChildModel[] { getModel(arg.getIntValue()) };
+        } else if (obj instanceof LogoList) {
+            LogoList idList = arg.getList();
+            ChildModel[] models = new ChildModel[idList.size()];
+            int i = 0;
+            for (Object modelIdObj : arg.getList()) {
+                if (modelIdObj instanceof Double) {
+                    models[i] = getModel(((Double) modelIdObj).intValue());
+                    i++;
+                } else {
+                    throw new ExtensionException("List should have only contained numbers but had: " + modelIdObj);
+                }
+            }
+            return models;
+        } else {
+            throw new ExtensionException("Expected a number or list");
+        }
+    }
+
     public static class Ask extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
@@ -215,24 +238,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                     2);
         }
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            // @todo uncaught problem if sent a list of non-numbers or if models do not exist
-            ArrayList<Integer> models = new ArrayList<Integer>();
-            if (args[0].get()instanceof Double){
-                models.add(args[0].getIntValue());
-            }
-            if(args[0].get() instanceof LogoList) for (Object o : args[0].getList()) {
-                int modelId = ((Double) o).intValue();
-                models.add(modelId);
-            }
             org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
             Object command = args[1].get();
             Object[] actuals = getActuals(args, 2);
-            for (int modelID : models) {
-                ChildModel theModel = getModel(modelID);
+            for (ChildModel model : toModelList(args[0])) {
                 if (command instanceof String) {
-                    theModel.ask(nvmContext, (String) command, actuals);
+                    model.ask(nvmContext, (String) command, actuals);
                 } else if (command instanceof CommandTask) {
-                    theModel.ask(nvmContext, (CommandTask) command, actuals);
+                    model.ask(nvmContext, (CommandTask) command, actuals);
                 } else {
                     throw new ExtensionException("You must give ls:ask a command task or string to run");
                 }
@@ -254,31 +267,21 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             );
         }
         public Object report(Argument args[], Context context) throws LogoException, ExtensionException {
-            ArrayList<Integer> models = new ArrayList<Integer>();
-            LogoListBuilder llb = new LogoListBuilder();
-            if (args[1].get()instanceof Double){
-                models.add(args[1].getIntValue());
-            }
-            if(args[1].get() instanceof LogoList) for (Object o : args[1].getList()) {
-                int modelId = ((Double) o).intValue();
-                models.add(modelId);
-            }
+            LogoListBuilder results = new LogoListBuilder();
             org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
             Object reporter = args[0].get();
             Object[] actuals = getActuals(args, 2);
-            for (int modelID : models){
-                ChildModel theModel = getModel(modelID);
+            for (ChildModel model : toModelList(args[1])){
                 if (reporter instanceof String) {
-                    llb.add(theModel.of(nvmContext, (String) reporter, actuals));
+                    results.add(model.of(nvmContext, (String) reporter, actuals));
                 }
                 else if (reporter instanceof ReporterTask)
-                    llb.add(theModel.of(nvmContext, (ReporterTask) reporter, actuals));
+                    results.add(model.of(nvmContext, (ReporterTask) reporter, actuals));
             }
-            LogoList returnValue = llb.toLogoList();
+            LogoList returnValue = results.toLogoList();
             return returnValue.size() == 1 ? returnValue.first() : returnValue;
         }
     }
-
 
     public static class HierarchicalAsk extends DefaultCommand {
         public Syntax getSyntax() {
