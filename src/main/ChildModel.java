@@ -119,14 +119,16 @@ public abstract class ChildModel {
     final public void kill() throws ExtensionException {
         if(usesLevelsSpace()) {
             Class<?> ls = getLevelSpace();
-            try {
-                ls.getMethod("reset").invoke(null);
-            } catch (IllegalAccessException e) {
-                throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
-            } catch (NoSuchMethodException e) {
-                throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
-            } catch (InvocationTargetException e) {
-                throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+            if (ls != LevelsSpace.class) {
+                try {
+                    ls.getMethod("reset").invoke(null);
+                } catch (IllegalAccessException e) {
+                    throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+                } catch (NoSuchMethodException e) {
+                    throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+                } catch (InvocationTargetException e) {
+                    throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+                }
             }
         }
 
@@ -200,6 +202,9 @@ public abstract class ChildModel {
     }
 
     public boolean usesLevelsSpace() {
+        if (getLevelSpace() == LevelsSpace.class) {
+            System.err.println("same ls");
+        }
         return getLevelSpace() != null;
     }
 

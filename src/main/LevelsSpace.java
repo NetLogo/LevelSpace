@@ -64,48 +64,52 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());
         primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
         primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
+        primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
 
-
-        modelCounter = 0;
-
-        // Adding event listener to Halt for halting child models
-        MenuElement[] elements = App.app().frame().getJMenuBar().getSubElements();
-        for (MenuElement e : elements){
-            if (e instanceof ToolsMenu){
-                ToolsMenu tm = (ToolsMenu)e;
-                JMenuItem item = tm.getItem(0);
-                item.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent arg0) {
-                        haltChildModels(myModels);
-                    }
-                });
+        if (useGUI()) {
+            // Adding event listener to Halt for halting child models
+            MenuElement[] elements = App.app().frame().getJMenuBar().getSubElements();
+            for (MenuElement e : elements) {
+                if (e instanceof ToolsMenu) {
+                    ToolsMenu tm = (ToolsMenu) e;
+                    JMenuItem item = tm.getItem(0);
+                    item.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent arg0) {
+                            haltChildModels(myModels);
+                        }
+                    });
+                }
             }
-        }
 
-        // Attaching a ChangeEventLister to the main model's speed slider so we can
-        // update child models' speed sliders at the same time.
-        Component[] c = App.app().tabs().interfaceTab().getComponents();
-        for (Component co : c){
-            Component[] c2 = ((Container) co).getComponents();
-            for (Component co2 : c2){
-                if (co2 instanceof ViewUpdatePanel){
-                    Component[] c3 = ((Container) co2).getComponents();
-                    for(Component co3 : c3){
-                        if (co3 instanceof SpeedSliderPanel){
-                            SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel)co3;
-                            JSlider slider = (JSlider)speedSliderPanel.getComponents()[0];
-                            slider.addChangeListener(new ChangeListener(){
-                                @Override
-                                public void stateChanged(ChangeEvent arg0) {
-                                    updateChildModelsSpeed();
-                                }
-                            });
+            // Attaching a ChangeEventLister to the main model's speed slider so we can
+            // update child models' speed sliders at the same time.
+            Component[] c = App.app().tabs().interfaceTab().getComponents();
+            for (Component co : c) {
+                Component[] c2 = ((Container) co).getComponents();
+                for (Component co2 : c2) {
+                    if (co2 instanceof ViewUpdatePanel) {
+                        Component[] c3 = ((Container) co2).getComponents();
+                        for (Component co3 : c3) {
+                            if (co3 instanceof SpeedSliderPanel) {
+                                SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel) co3;
+                                JSlider slider = (JSlider) speedSliderPanel.getComponents()[0];
+                                slider.addChangeListener(new ChangeListener() {
+                                    @Override
+                                    public void stateChanged(ChangeEvent arg0) {
+                                        updateChildModelsSpeed();
+                                    }
+                                });
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    public static boolean useGUI() {
+        return !"true".equals(System.getProperty("java.awt.headless"));
     }
 
     public static ChildModel getModel(int id) throws ExtensionException {
@@ -160,7 +164,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             updateChildModelSpeed(aModel);
             myModels.put(modelCounter, aModel);
             // add to models counter
-            modelCounter ++;
+            modelCounter++;
         }
     }
 
@@ -434,7 +438,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             int modelNumber = (int) args[0].getDoubleValue();
             // find the model. if it exists, run the command
             getModel(modelNumber).show();
-            App.app().workspace().breathe();
         }
     }
 
@@ -450,7 +453,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             int modelNumber = (int) args[0].getDoubleValue();
             // find the model. if it exists, run the command
             getModel(modelNumber).hide();
-            App.app().workspace().breathe();
         }
     }
 
@@ -605,16 +607,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     }
 
     public static class AllModels extends DefaultReporter {
-
         public Syntax getSyntax() {
             return Syntax.reporterSyntax(
-                    // no parameters
                     new int[] {},
-                    // and return a logolist
                     Syntax.ListType());
         }
 
-        // returns a logo list with all model numbers
         public Object report(Argument args[], Context context)
                 throws ExtensionException, org.nlogo.api.LogoException {
             LogoListBuilder myLLB = new LogoListBuilder();
@@ -624,7 +622,18 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             }
             return myLLB.toLogoList();
         }
+    }
 
+    public static class UsesLevelSpace extends DefaultReporter {
+        @Override
+        public Syntax getSyntax() {
+            return Syntax.reporterSyntax(new int[] {Syntax.NumberType()}, Syntax.BooleanType());
+        }
+
+        @Override
+        public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
+            return getModel(args[0].getIntValue()).usesLevelsSpace();
+        }
     }
 
     @Override
@@ -663,22 +672,18 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     }
 
     void updateChildModelsSpeed(){
-        double theSpeed = App.app().workspace().speedSliderPosition();
         for (ChildModel model : myModels.values()){
-            // find out if they have a LevelsSpace extension loaded
-            if (model instanceof GUIChildModel){
-                GUIChildModel lmodel = (GUIChildModel)model;
-                lmodel.myWS.getComponents();
-            }
-            model.setSpeed(theSpeed);
-
+            updateChildModelSpeed(model);
         }
     }
 
 
     static void updateChildModelSpeed(ChildModel model){
-        double theSpeed = App.app().workspace().speedSliderPosition();
-        model.setSpeed(theSpeed);
+        // If we're running tests, this should noop. So, we check if we've got a GUI.
+        if (useGUI()) {
+            double theSpeed = App.app().workspace().speedSliderPosition();
+            model.setSpeed(theSpeed);
+        }
     }
 
     static void haltChildModels( HashMap<Integer, ChildModel> models){

@@ -1,0 +1,27 @@
+# There's funny business with language tests and extensions. They don't seem
+# to be isolated in their own classloaders. They don't unload between tests.
+# But they do seem to reload in the middle of tests for some reason.
+# So:
+# * ls:reset at the end of every test
+# * You can't do more than one level right now
+
+ls-load-and-close-models
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  ls:uses-level-space? 0 => false
+  ls:models => [0]
+  O> ls:load-headless-model "Blank.nlogo"
+  ls:models => [0 1]
+  O> ls:close-model 0
+  ls:models => [1]
+  O> ls:reset
+  ls:models => []
+
+ls-ask-and-of-work-for-single-models
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  O> ls:ask 0 "crt 1"
+  "count turtles" ls:of 0 => 1
+  "count turtles" ls:of ls:models => [1]
+
+
