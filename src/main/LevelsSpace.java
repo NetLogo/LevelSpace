@@ -283,7 +283,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                     results.add(model.of(nvmContext, (ReporterTask) reporter, actuals));
             }
             LogoList returnValue = results.toLogoList();
-            return returnValue.size() == 1 ? returnValue.first() : returnValue;
+            return args[1].get() instanceof Double ? returnValue.first() : returnValue;
         }
     }
 
