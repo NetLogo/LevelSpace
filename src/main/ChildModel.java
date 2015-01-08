@@ -1,5 +1,7 @@
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -23,13 +25,10 @@ import org.nlogo.workspace.AbstractWorkspace;
 
 
 public abstract class ChildModel {
-
-
     private final World parentWorld;
     private JobOwner owner;
     private Procedure reporterRunner;
     private Procedure commandRunner;
-
     private LoadingCache<String, Reporter> tasks;
 
     public ChildModel(World parentWorld) throws ExtensionException {
@@ -175,9 +174,45 @@ public abstract class ChildModel {
 
     abstract public void setSpeed(double d);
     abstract public AbstractWorkspace workspace();
-    abstract public LogoList listBreeds();
-    abstract public LogoList listBreedsOwns();
-    abstract public LogoList listGlobals();
+
+    public LogoList listBreeds() {
+        LogoListBuilder llb = new LogoListBuilder();
+        for (String entry : workspace().world().getBreeds().keySet())
+        {
+            llb.add(entry);
+        }
+        return llb.toLogoList();
+    }
+
+    public LogoList listBreedsOwns() {
+        LogoListBuilder llb = new LogoListBuilder();
+        for (Map.Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
+        {
+            LogoListBuilder tuple  = new LogoListBuilder();
+            LogoListBuilder vars = new LogoListBuilder();
+            for (String s : entry.getValue()){
+                vars.add(s);
+            }
+            // add turtles own to all of them too
+            for (String s: workspace().world().program().turtlesOwn()){
+                vars.add(s);
+            }
+            tuple.add(entry.getKey());
+            tuple.add(vars.toLogoList());
+            llb.add(tuple.toLogoList());
+        }
+        return llb.toLogoList();
+
+    }
+
+    public LogoList listGlobals() {
+        LogoListBuilder llb = new LogoListBuilder();
+
+        for (Object var : workspace().world().observer().variables()){
+            llb.add(var);
+        }
+        return llb.toLogoList();
+    }
 
     abstract JFrame frame();
 
