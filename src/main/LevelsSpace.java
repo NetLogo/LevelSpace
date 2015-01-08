@@ -276,44 +276,59 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
+    public static void askDescendant(LogoList modelTreePath, String command, Object[] args) throws ExtensionException, HaltException {
+        ChildModel child = getModel(castToId(modelTreePath.first()));
+        if (modelTreePath.size() == 1) {
+            child.ask(command, args);
+        } else {
+            try {
+                child.getLevelSpace()
+                        .getMethod("askDescendant", LogoList.class, String.class, Object[].class)
+                        .invoke(null, modelTreePath.butFirst(), command, args);
+            } catch (NoSuchMethodException e) {
+                throw ErrorUtils.bugDetected(e);
+            } catch (InvocationTargetException e) {
+                throw ErrorUtils.bugDetected(e);
+            } catch (IllegalAccessException e) {
+                throw ErrorUtils.bugDetected(e);
+            }
+        }
+    }
+
     public static class HierarchicalAsk extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    new int[]{Syntax.ListType(), Syntax.StringType()});
+                    new int[]{Syntax.ListType(), Syntax.StringType(), Syntax.RepeatableType() | Syntax.WildcardType()},
+                    2);
         }
 
         public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
+                throws ExtensionException, LogoException {
             LogoList list = args[0].getList();
             String cmd = args[1].getString();
-            int modelNum = ((Double) list.first()).intValue();
-            ChildModel aModel;
-            aModel = getModel(modelNum);
-            list = list.butFirst();
-            String modelCommand = "";
-
-            if (list.size() > 1){
-                // need to reinsert escape chars
-                cmd = cmd.replace("\"", "\\\"");
-                // this currently doesn't work because it does this for the first and last
-                // quotation marks too - which it should not.
-                modelCommand = "ls:ask-descendant " + org.nlogo.api.Dump.logoObject(list) + " \"" + cmd + "\"";
-            }
-
-            // if it is exactly 1 that means we are at the parent of the model that we want
-            // to ask to do something, so we just get the parent to ask its child
-            if (list.size() == 1){
-                // get the child model
-                double childModelNumber = (Double) list.first();
-                int childModelno = (int)childModelNumber;
-                cmd = cmd.replace("\"", "\\\"");
-                modelCommand = "ls:ask " +  childModelno + " \""+ cmd + "\"";
-            }
-            // then call command
-            aModel.ask(modelCommand, new Object[0]);
-
+            Object[] actuals = getActuals(args, 2);
+            askDescendant(list, cmd, actuals);
         }
 
+    }
+
+    public static Object ofDescendant(LogoList modelTreePath, String command, Object[] args) throws ExtensionException, HaltException {
+        ChildModel child = getModel(castToId(modelTreePath.first()));
+        if (modelTreePath.size() == 1) {
+            return child.of(command, args);
+        } else {
+            try {
+                return child.getLevelSpace()
+                        .getMethod("ofDescendant", LogoList.class, String.class, Object[].class)
+                        .invoke(null, modelTreePath.butFirst(), command, args);
+            } catch (NoSuchMethodException e) {
+                throw ErrorUtils.bugDetected(e);
+            } catch (InvocationTargetException e) {
+                throw ErrorUtils.bugDetected(e);
+            } catch (IllegalAccessException e) {
+                throw ErrorUtils.bugDetected(e);
+            }
+        }
     }
 
 
@@ -329,51 +344,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
         }
 
-
         @Override
         public Object report(Argument[] args, Context arg1)
                 throws ExtensionException, LogoException {
-            // TODO Auto-generated method stub
-            // get model number from args
-            LogoList list = args[1].getList();
-            // get the command
             String reporter = args[0].getString();
-            // get the model
-            double modelNumber = (Double) list.first();
-            int modelNum = (int)modelNumber;
-            ChildModel aModel;
-            if (myModels.containsKey(modelNum)){
-                aModel = myModels.get(modelNum);
-            }
-            else {
-                throw new ExtensionException("The model with id " + modelNum + " did not exist.");
-            }
-            // then remove the model from the list
-            list = list.butFirst();
-            // Command string
-            String modelCommand = "";
-
-            // if the list is longer than one, we need to go deeper in the hierarchy
-            if (list.size() > 1){
-                // need to reinsert escape chars
-                reporter = reporter.replace("\"", "\\\"");
-                // this currently doesn't work because it does this for the first and last
-                // quotation marks too - which it should not.
-                modelCommand = "ls:of-descendant " + org.nlogo.api.Dump.logoObject(list) + " \"" + reporter + "\"";
-            }
-
-            // if it is exactly 1 that means we are at the parent of the model that we want
-            // to ask to do something, so we just get the parent to ask its child
-            if (list.size() == 1){
-                // get the child model
-                double childModelNumber = (Double) list.first();
-                int childModelNum = (int)childModelNumber;
-                reporter = reporter.replace("\"", "\\\"");
-                modelCommand = "\"" + reporter + "\" ls:of " + childModelNum;
-            }
-
-            // then call command
-            return aModel.of(modelCommand, new Object[0]);
+            LogoList modelTreePath = args[1].getList();
+            return ofDescendant(modelTreePath, reporter, new Object[0]);
         }
 
     }
