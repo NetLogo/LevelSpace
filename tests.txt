@@ -24,6 +24,14 @@ ls-ask-and-of-work-for-single-models
   "count turtles" ls:of 0 => 1
   O> ls:reset
 
+ls-ask-and-of-take-arguments
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  O> (ls:ask 0 "crt ?" 5)
+  "count turtles" ls:of 0 => 5
+  O> (ls:ask 0 "crt ?" 10)
+  "count turtles" ls:of 0 => 15
+
 ls-ask-and-of-work-for-lists
   extensions [ ls ]
   "count turtles" ls:of [] => []

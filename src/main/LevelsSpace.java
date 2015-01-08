@@ -264,9 +264,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             return Syntax.reporterSyntax(
                     Syntax.ReporterTaskType() | Syntax.StringType(), // Code
                     new int[]{
-                            Syntax.NumberType() | Syntax.ListType(), // Model(s)
+                            Syntax.WildcardType() | Syntax.RepeatableType() // This covers both models (as a number or list) and args
                     },
-                    Syntax.WildcardType() | Syntax.RepeatableType(),
+                    Syntax.WildcardType(),
                     org.nlogo.api.Syntax.NormalPrecedence() + 1,
                     true
             );

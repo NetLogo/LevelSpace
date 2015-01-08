@@ -16,7 +16,9 @@ import org.nlogo.api.*;
 import org.nlogo.nvm.*;
 import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.Context;
+import org.nlogo.nvm.Reporter;
 import org.nlogo.nvm.ReporterTask;
+import org.nlogo.prim.*;
 import org.nlogo.workspace.AbstractWorkspace;
 
 
@@ -24,8 +26,15 @@ public abstract class ChildModel {
 
 
     private final World parentWorld;
+    private JobOwner owner;
+    private Procedure reporterRunner;
+    private Procedure commandRunner;
 
-    public ChildModel(World parentWorld){
+    private LoadingCache<String, CommandTask> commands;
+    private LoadingCache<String, ReporterTask> reporters;
+    private LoadingCache<String, Reporter> tasks;
+
+    public ChildModel(World parentWorld) throws ExtensionException {
         this.parentWorld = parentWorld;
         CacheLoader<String, ReporterTask> reporterLoader =
                 new CacheLoader<String, ReporterTask>() {
@@ -46,10 +55,47 @@ public abstract class ChildModel {
         commands =
                 CacheBuilder.newBuilder()
                         .build(commandLoader);
+
+        tasks = CacheBuilder.newBuilder().build(new CacheLoader<String, Reporter>() {
+            @Override
+            public Reporter load(String s) throws Exception {
+                return compileTaskReporter(s);
+            }
+        });
+    }
+
+    void init() throws ExtensionException {
+        try {
+            reporterRunner = workspace().compileReporter("runresult task [ 0 ]");
+            commandRunner = workspace().compileCommands("run task []");
+        } catch (CompilerException e) {
+            throw new ExtensionException("There is a bug in LevelSpace! Please report! ", e);
+        }
+        owner = new SimpleJobOwner(getName(), workspace().world.mainRNG, Observer.class);
     }
 
     abstract public void command(String command) throws ExtensionException;
     abstract public Object report(String reporter) throws ExtensionException;
+
+    public void command(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
+        runSafely(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                workspace().runCompiledCommands(owner, getCommandRunner(task, args));
+                return null;
+            }
+        });
+    }
+
+    public Object report(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
+        return runSafely(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                return workspace().runCompiledReporter(owner, getReporterRunner(task, args));
+            }
+        });
+    }
+
     public void command(Context context, CommandTask command, Object[] args) throws ExtensionException {
         checkTask(command);
         Agent oldAgent = context.agent;
@@ -87,16 +133,16 @@ public abstract class ChildModel {
         }
     }
 
-    public void ask(Context context, String command, Object[] actuals) throws ExtensionException{
-        command(context, commands.getUnchecked(command), actuals);
+    public void ask(Context context, String command, Object[] actuals) throws ExtensionException, HaltException {
+        command(tasks.getUnchecked(command), actuals);
     }
 
     public void ask(Context context, CommandTask task, Object[] actuals) throws ExtensionException {
         command(context, task, actuals);
     }
 
-    public Object of(Context context, String reporter, Object[] actuals) throws ExtensionException{
-        return report(context, reporters.getUnchecked(reporter), actuals);
+    public Object of(Context context, String reporter, Object[] actuals) throws ExtensionException, HaltException {
+        return report(tasks.getUnchecked(reporter), actuals);
     }
 
     public Object of(Context context, ReporterTask task, Object[] actuals) throws ExtensionException {
@@ -175,19 +221,18 @@ public abstract class ChildModel {
 
     }
 
+    public void halt() {
+        workspace().halt();
+    }
+
     abstract public String getPath();
     abstract public String getName();
     abstract public void breathe();
     abstract public void setSpeed(double d);
-    abstract public void halt();
     abstract public AbstractWorkspace workspace();
     abstract public LogoList listBreeds();
     abstract public LogoList listBreedsOwns();
     abstract public LogoList listGlobals();
-
-    LoadingCache<String, CommandTask> commands;
-    LoadingCache<String, ReporterTask> reporters;
-    public int levelsSpaceNumber;
 
     abstract JFrame frame();
 
@@ -261,8 +306,54 @@ public abstract class ChildModel {
         return null;
     }
 
+    /**
+     * Creates a tasked wrapped in a reporter that can then be inserted into `run` or `runresult`.
+     * Can be used on both commands and reporters.
+     * @param code Command or reporter code in task syntax (with args and stuff).
+     * @return The compiled task wrapped in a reporter.
+     * @throws CompilerException
+     */
+    private Reporter compileTaskReporter (String code) throws CompilerException {
+        return workspace().compileReporter("task [ " + code + " ]").code[0].args[0].args[0];
+    }
+
+    private Reporter makeConstantReporter(Object value) {
+        // ConstantParser.makeConstantReporter is private, so had to make my own.
+        if (value instanceof Boolean) {
+            return new _constboolean((Boolean) value);
+        } else if (value instanceof Double) {
+            return new _constdouble((Double) value);
+        } else if (value instanceof LogoList) {
+            return new _constlist((LogoList) value);
+        } else if (value instanceof String) {
+            return new _conststring((String) value);
+        } else {
+            throw new IllegalArgumentException(value.getClass().getName());
+        }
+    }
+
+    private Reporter[] makeArgumentArray(Reporter task, Object[] taskArgs) {
+        Reporter[] args = new Reporter[1 + taskArgs.length];
+        args[0] = task;
+        for (int i=0; i<taskArgs.length; i++) {
+            args[i+1] = makeConstantReporter(taskArgs[i]);
+        }
+        return args;
+    }
+
+    private Procedure getReporterRunner(Reporter task, Object[] taskArgs) {
+        reporterRunner.code[0].args[0].args = makeArgumentArray(task, taskArgs);
+        return reporterRunner;
+    }
+
+    private Procedure getCommandRunner(Reporter task, Object[] taskArgs) {
+        commandRunner.code[0].args = makeArgumentArray(task, taskArgs);
+        return commandRunner;
+    }
+
     public ReporterTask compileReporterTask(String s){
         ReporterTask r = null;
+
         try {
             r = (ReporterTask)report("task [ " + s + "]");
         } catch (ExtensionException e) {

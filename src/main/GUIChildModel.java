@@ -45,6 +45,7 @@ public class GUIChildModel extends ChildModel {
                         frame.setVisible(true);
                         try {
                             myWS.open(path);
+                            init();
                         } catch (Exception e) {
                             ex[0] = e;
                         }

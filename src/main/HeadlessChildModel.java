@@ -24,7 +24,7 @@ public class HeadlessChildModel extends ChildModel {
     String path;
     int levelsSpaceNumber;
 
-    public HeadlessChildModel(World parentWorld, String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException {
+    public HeadlessChildModel(World parentWorld, String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException, ExtensionException {
         super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
         // find the name of the model - it is the bit past the last dash
@@ -35,6 +35,7 @@ public class HeadlessChildModel extends ChildModel {
         // make a new headless workspace
         myWS = HeadlessWorkspace.newInstance();
         myWS.open(path);
+        init();
     }
 
     private void ensureImageFrame() {
