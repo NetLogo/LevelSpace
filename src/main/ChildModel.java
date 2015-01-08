@@ -30,40 +30,27 @@ public abstract class ChildModel {
     private Procedure reporterRunner;
     private Procedure commandRunner;
 
-    private LoadingCache<String, CommandTask> commands;
-    private LoadingCache<String, ReporterTask> reporters;
     private LoadingCache<String, Reporter> tasks;
 
     public ChildModel(World parentWorld) throws ExtensionException {
         this.parentWorld = parentWorld;
-        CacheLoader<String, ReporterTask> reporterLoader =
-                new CacheLoader<String, ReporterTask>() {
-                    public ReporterTask load(String reporterString) {
-                        return compileReporterTask(reporterString);
-                    }
-                };
-        reporters =
-                CacheBuilder.newBuilder()
-                        .build(reporterLoader);
-
-        CacheLoader<String, CommandTask> commandLoader =
-                new CacheLoader<String, CommandTask>() {
-                    public CommandTask load(String reporterString) {
-                        return compileCommandTask(reporterString);
-                    }
-                };
-        commands =
-                CacheBuilder.newBuilder()
-                        .build(commandLoader);
 
         tasks = CacheBuilder.newBuilder().build(new CacheLoader<String, Reporter>() {
             @Override
-            public Reporter load(String s) throws Exception {
-                return compileTaskReporter(s);
+            public Reporter load(String code) throws ExtensionException {
+                try {
+                    return compileTaskReporter(code);
+                } catch (CompilerException e) {
+                    throw ErrorUtils.handle(ChildModel.this, code, e);
+                }
             }
         });
     }
 
+    /**
+     * This must be called by child class constructors. It initializes things using the model's workspace.
+     * @throws ExtensionException
+     */
     void init() throws ExtensionException {
         try {
             reporterRunner = workspace().compileReporter("runresult task [ 0 ]");
@@ -73,9 +60,6 @@ public abstract class ChildModel {
         }
         owner = new SimpleJobOwner(getName(), workspace().world.mainRNG, Observer.class);
     }
-
-    abstract public void command(String command) throws ExtensionException;
-    abstract public Object report(String reporter) throws ExtensionException;
 
     public void command(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
         runSafely(new Callable<Object>() {
@@ -88,72 +72,28 @@ public abstract class ChildModel {
     }
 
     public Object report(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
-        return runSafely(new Callable<Object>() {
+        Object result = runSafely(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
                 return workspace().runCompiledReporter(owner, getReporterRunner(task, args));
             }
         });
-    }
-
-    public void command(Context context, CommandTask command, Object[] args) throws ExtensionException {
-        checkTask(command);
-        Agent oldAgent = context.agent;
-        context.agent = workspace().world().observer();
-        context.agentBit = context.agent.getAgentBit();
-        synchronized (workspace().world()) {
-            command.perform(context, args);
-        }
-        context.agent = oldAgent;
-        context.agentBit = context.agent.getAgentBit();
-    }
-    public Object report(Context context, ReporterTask reporter, Object[] args) throws ExtensionException {
-        checkTask(reporter);
-        Agent oldAgent = context.agent;
-        context.agent = workspace().world().observer();
-        context.agentBit = context.agent.getAgentBit();
-        Object result = null;
-        synchronized (workspace().world()) {
-            result = reporter.report(context, args);
-        }
-        context.agent = oldAgent;
-        context.agentBit = context.agent.getAgentBit();
-        // check if result contains any agents or agentsets
         checkResult(result);
         return result;
     }
-    public void checkTask(CommandTask task) throws ExtensionException {
-        if (task.procedure().code.length > 0 && task.procedure().code[0].workspace != workspace()) {
-            throw new ExtensionException("You can only run a task in the model that it was created in.");
-        }
-    }
-    public void checkTask(ReporterTask task) throws ExtensionException {
-        if (task.body().workspace != workspace()) {
-            throw new ExtensionException("You can only run a task in the model that it was created in.");
-        }
-    }
 
-    public void ask(Context context, String command, Object[] actuals) throws ExtensionException, HaltException {
+    public void ask(String command, Object[] actuals) throws ExtensionException, HaltException {
         command(tasks.getUnchecked(command), actuals);
     }
 
-    public void ask(Context context, CommandTask task, Object[] actuals) throws ExtensionException {
-        command(context, task, actuals);
-    }
-
-    public Object of(Context context, String reporter, Object[] actuals) throws ExtensionException, HaltException {
+    public Object of(String reporter, Object[] actuals) throws ExtensionException, HaltException {
         return report(tasks.getUnchecked(reporter), actuals);
     }
 
-    public Object of(Context context, ReporterTask task, Object[] actuals) throws ExtensionException {
-        return report(context, task, actuals);
-    }
-
-    public void checkResult(Object reporterResult) throws ExtensionException {
+    void checkResult(Object reporterResult) throws ExtensionException {
         if (reporterResult instanceof org.nlogo.agent.Agent || reporterResult instanceof AgentSet) {
             throw new ExtensionException("You cannot report agents or agentsets from LevelSpace models.");
-        }
-        else if (reporterResult instanceof LogoList) {
+        } else if (reporterResult instanceof LogoList) {
             LogoList resultList = (LogoList)reporterResult;
             for(Object elem : resultList) {
                 checkResult(elem);
@@ -225,9 +165,14 @@ public abstract class ChildModel {
         workspace().halt();
     }
 
-    abstract public String getPath();
-    abstract public String getName();
-    abstract public void breathe();
+    public String getPath() {
+        return workspace().getModelPath();
+    }
+
+    public String getName() {
+        return workspace().modelNameForDisplay();
+    }
+
     abstract public void setSpeed(double d);
     abstract public AbstractWorkspace workspace();
     abstract public LogoList listBreeds();
@@ -301,10 +246,6 @@ public abstract class ChildModel {
             throw new ExtensionException(e);
         }
     }
-    public LogoListBuilder getDescendants() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     /**
      * Creates a tasked wrapped in a reporter that can then be inserted into `run` or `runresult`.
@@ -350,28 +291,4 @@ public abstract class ChildModel {
         commandRunner.code[0].args = makeArgumentArray(task, taskArgs);
         return commandRunner;
     }
-
-    public ReporterTask compileReporterTask(String s){
-        ReporterTask r = null;
-
-        try {
-            r = (ReporterTask)report("task [ " + s + "]");
-        } catch (ExtensionException e) {
-            e.printStackTrace();
-        }
-        return r;
-    }
-
-    public CommandTask compileCommandTask(String s){
-//        LevelsSpace.showMessage("Compiling Command: " + s);
-        CommandTask t = null;
-        try {
-            t = (CommandTask)report("task [ " + s + "]");
-        } catch (ExtensionException e) {
-            e.printStackTrace();
-        }
-        return t;
-    }
-
-
 }

@@ -243,17 +243,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                     2);
         }
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
-            Object command = args[1].get();
+            String command = args[1].getString();
             Object[] actuals = getActuals(args, 2);
             for (ChildModel model : toModelList(args[0])) {
-                if (command instanceof String) {
-                    model.ask(nvmContext, (String) command, actuals);
-                } else if (command instanceof CommandTask) {
-                    model.ask(nvmContext, (CommandTask) command, actuals);
-                } else {
-                    throw new ExtensionException("You must give ls:ask a command task or string to run");
-                }
+                model.ask(command, actuals);
             }
         }
     }
@@ -273,15 +266,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
         public Object report(Argument args[], Context context) throws LogoException, ExtensionException {
             LogoListBuilder results = new LogoListBuilder();
-            org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
-            Object reporter = args[0].get();
+            String reporter = args[0].getString();
             Object[] actuals = getActuals(args, 2);
             for (ChildModel model : toModelList(args[1])){
-                if (reporter instanceof String) {
-                    results.add(model.of(nvmContext, (String) reporter, actuals));
-                } else if (reporter instanceof ReporterTask) {
-                    results.add(model.of(nvmContext, (ReporterTask) reporter, actuals));
-                }
+                results.add(model.of(reporter, actuals));
             }
             LogoList returnValue = results.toLogoList();
             return args[1].get() instanceof Double ? returnValue.first() : returnValue;
@@ -322,7 +310,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 modelCommand = "ls:ask " +  childModelno + " \""+ cmd + "\"";
             }
             // then call command
-            aModel.command(modelCommand);
+            aModel.ask(modelCommand, new Object[0]);
 
         }
 
@@ -385,8 +373,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             }
 
             // then call command
-            return aModel.report(modelCommand);
-
+            return aModel.of(modelCommand, new Object[0]);
         }
 
     }

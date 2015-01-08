@@ -21,8 +21,6 @@ public class GUIChildModel extends ChildModel {
 
     final javax.swing.JFrame frame = new javax.swing.JFrame();
     final InterfaceComponent myWS = new InterfaceComponent(frame);
-    String name;
-    String path;
     final int levelsSpaceNumber;
     GUIPanel panel;
 
@@ -32,7 +30,6 @@ public class GUIChildModel extends ChildModel {
         super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
         // find the name of the model - it is the bit past the last dash
-        this.path = path;
 
         final Exception[] ex = new Exception[] { null };
 
@@ -57,8 +54,7 @@ public class GUIChildModel extends ChildModel {
                                 ((SpeedSliderPanel) co).setValue(0);
                             }
                         }
-                        name = myWS.workspace().modelNameForDisplay();
-                        frame.setTitle(name + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
+                        frame.setTitle(getName() + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
                         frame.pack();
                         // Make sure that the model doesn't close if people accidentally click the close button
                         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -96,100 +92,6 @@ public class GUIChildModel extends ChildModel {
         }
     }
 
-
-    /**
-     * Runs the given command in this model safely.
-     * @param command
-     * @throws CompilerException
-     */
-    @Override
-    public void command(final String command) throws ExtensionException {
-        try {
-            runSafely(new Callable<Object>() {
-                @Override
-                public Object call() throws ExtensionException {
-                    try {
-                        myWS.command(command);
-                    } catch (CompilerException e) {
-                        throw ErrorUtils.handle(GUIChildModel.this, command, e);
-                    }
-                    return null;
-                }
-            });
-        } catch (HaltException e) {
-            // okay
-        }
-    }
-
-    @Override
-    public void command(final Context context, final CommandTask command, final Object[] args) throws ExtensionException {
-        try {
-            runSafely(new Callable<Object>() {
-                @Override
-                public Object call() throws ExtensionException {
-                    GUIChildModel.super.command(context, command, args);
-                    return null;
-                }
-            });
-        } catch (HaltException e) {
-            // ignore
-        }
-    }
-
-    /**
-     * Runs the reporter in this model and returns the result safely.
-     * @param reporter
-     * @return
-     * @throws ExtensionException
-     */
-    @Override
-    public Object report (final String reporter) throws ExtensionException {
-        try {
-            return runSafely(new Callable<Object>() {
-                @Override
-                public Object call() throws ExtensionException {
-                    try {
-                        return myWS.report(reporter);
-                    } catch (CompilerException e) {
-                        throw ErrorUtils.handle(GUIChildModel.this, reporter, e);
-                    }
-                }
-            });
-        } catch (HaltException e) {
-            // okay
-            return null;
-        }
-    }
-
-    @Override
-    public Object report(final Context context, final ReporterTask reporter, final Object[] args) throws ExtensionException {
-        try {
-            return runSafely(new Callable<Object>() {
-                @Override
-                public Object call() throws ExtensionException {
-                    return GUIChildModel.super.report(context, reporter, args);
-                }
-            });
-        } catch (HaltException e) {
-            return null;
-        }
-    }
-
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public String getPath(){
-        return path;
-    }
-
-    @Override
-    public void breathe() {
-        myWS.workspace().breathe();
-    }
-
     public void setSpeed(double d){
         Component[] c = myWS.workspace().viewWidget.controlStrip.getComponents();
         for (Component co : c){
@@ -198,9 +100,6 @@ public class GUIChildModel extends ChildModel {
             }
         }
 
-    }
-    public void halt(){
-        myWS.workspace().halt();
     }
 
     @Override
@@ -214,7 +113,6 @@ public class GUIChildModel extends ChildModel {
     }
 
 
-    // @TODO implement
     public LogoList listBreeds() {
         LogoListBuilder llb = new LogoListBuilder();
         for (String entry : workspace().world().getBreeds().keySet())
@@ -224,12 +122,8 @@ public class GUIChildModel extends ChildModel {
         return llb.toLogoList();
     }
 
-
-    // @TODO implement this
     public LogoList listBreedsOwns() {
-        // TODO Auto-generated method stub
         LogoListBuilder llb = new LogoListBuilder();
-        // TODO Auto-generated method stub
         for (Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
         {
             LogoListBuilder tuple  = new LogoListBuilder();
@@ -249,9 +143,6 @@ public class GUIChildModel extends ChildModel {
 
     }
 
-
-
-
     @Override
     public LogoList listGlobals() {
         LogoListBuilder llb = new LogoListBuilder();
@@ -261,7 +152,4 @@ public class GUIChildModel extends ChildModel {
         }
         return llb.toLogoList();
     }
-
-
-
 }
