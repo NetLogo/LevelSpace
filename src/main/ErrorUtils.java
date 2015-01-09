@@ -4,10 +4,7 @@ import org.nlogo.api.LogoException;
 import org.nlogo.nvm.EngineException;
 
 public class ErrorUtils {
-    public static ExtensionException handle(ChildModel model, String code, EngineException e) {
-        return new ExtensionException("Something went wrong when " + model.getName() + " ran '" + code + "': " + e.getMessage(), e);
-    }
-    public static ExtensionException handle(ChildModel model, String code, LogoException e) {
+    public static ExtensionException handle(ChildModel model, String code, Exception e) {
         return new ExtensionException("Something went wrong when " + model.getName() + " ran '" + code + "': " + e.getMessage(), e);
     }
     public static ExtensionException handle(ChildModel model, String code, CompilerException e) {

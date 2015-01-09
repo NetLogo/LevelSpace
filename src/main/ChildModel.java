@@ -82,11 +82,27 @@ public abstract class ChildModel {
     }
 
     public void ask(String command, Object[] actuals) throws ExtensionException, HaltException {
-        command(tasks.getUnchecked(command), actuals);
+        try {
+            command(tasks.get(command), actuals);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ExtensionException) {
+                throw (ExtensionException) e.getCause();
+            } else {
+                throw ErrorUtils.handle(this, command, e);
+            }
+        }
     }
 
     public Object of(String reporter, Object[] actuals) throws ExtensionException, HaltException {
-        return report(tasks.getUnchecked(reporter), actuals);
+        try {
+            return report(tasks.get(reporter), actuals);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ExtensionException) {
+                throw (ExtensionException) e.getCause();
+            } else {
+                throw ErrorUtils.handle(this, reporter, e);
+            }
+        }
     }
 
     void checkResult(Object reporterResult) throws ExtensionException {
