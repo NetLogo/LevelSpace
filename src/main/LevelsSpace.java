@@ -52,7 +52,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("model-exists?", new ModelExists());
         primitiveManager.addPrimitive("reset", new Reset());
         primitiveManager.addPrimitive("last-model-id", new LastModel());
-        primitiveManager.addPrimitive("model-path", new ModelPath());
+        primitiveManager.addPrimitive("path-of", new ModelPath());
         primitiveManager.addPrimitive("display", new UpdateView());
         primitiveManager.addPrimitive("show", new Show());
         primitiveManager.addPrimitive("hide", new Hide());
