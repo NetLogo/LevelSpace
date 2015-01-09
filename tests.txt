@@ -12,7 +12,7 @@ ls-load-and-close-models
   ls:models => [0]
   O> ls:load-headless-model "Blank.nlogo"
   ls:models => [0 1]
-  O> ls:close-model 0
+  O> ls:close 0
   ls:models => [1]
   O> ls:reset
   ls:models => []
