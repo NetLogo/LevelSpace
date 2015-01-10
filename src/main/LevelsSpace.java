@@ -195,7 +195,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             } catch (InterruptedException e) {
                 throw new HaltException(false);
             } catch (InvocationTargetException e) {
-                throw new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getMessage());
+                throw new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getCause().getMessage(), (Exception)e.getCause());
             }
         }
     }
@@ -367,7 +367,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static void closeModel(int modelNumber) throws ExtensionException {
+    public static void closeModel(int modelNumber) throws ExtensionException, HaltException {
         getModel(modelNumber).kill();
         myModels.remove(modelNumber);
     }

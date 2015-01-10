@@ -1,19 +1,11 @@
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 import org.nlogo.api.*;
 import org.nlogo.headless.HeadlessWorkspace;
-import org.nlogo.nvm.CommandTask;
-import org.nlogo.nvm.Context;
-import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.ReporterTask;
-import org.nlogo.nvm.Workspace;
 import org.nlogo.workspace.AbstractWorkspace;
 
 public class HeadlessChildModel extends ChildModel {
@@ -33,15 +25,12 @@ public class HeadlessChildModel extends ChildModel {
     private void ensureImageFrame() {
         if (frame == null) {
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
+                frame = runUISafely(new Callable<ImageFrame>() {
                     @Override
-                    public void run() {
-                        // get an image from the model so we know how big it is
+                    public ImageFrame call() throws Exception {
                         final BufferedImage bi = myWS.exportView();
-                        // create a new image frame to show what's going on in the model
-                        // send it the image to set the size correctly
                         final String aTitle = getName().concat(" (LevelsSpace Model No. ").concat(Integer.toString(levelsSpaceNumber)).concat(")");
-                        frame = new ImageFrame(bi, aTitle);
+                        return new ImageFrame(bi, aTitle);
                     }
                 });
             } catch (Exception e) {

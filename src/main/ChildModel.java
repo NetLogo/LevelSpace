@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -13,13 +14,9 @@ import javax.swing.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.nlogo.agent.Agent;
 import org.nlogo.api.*;
 import org.nlogo.nvm.*;
-import org.nlogo.nvm.CommandTask;
-import org.nlogo.nvm.Context;
 import org.nlogo.nvm.Reporter;
-import org.nlogo.nvm.ReporterTask;
 import org.nlogo.prim.*;
 import org.nlogo.workspace.AbstractWorkspace;
 
@@ -61,7 +58,7 @@ public abstract class ChildModel {
     }
 
     public void command(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
-        runSafely(new Callable<Object>() {
+        runNlogoSafely(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
                 workspace().runCompiledCommands(owner, getCommandRunner(task, args));
@@ -71,7 +68,7 @@ public abstract class ChildModel {
     }
 
     public Object report(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
-        Object result = runSafely(new Callable<Object>() {
+        Object result = runNlogoSafely(new Callable<Object>() {
             @Override
             public Object call() throws Exception {
                 return workspace().runCompiledReporter(owner, getReporterRunner(task, args));
@@ -116,7 +113,7 @@ public abstract class ChildModel {
         }
     }
 
-    final public void kill() throws ExtensionException {
+    final public void kill() throws ExtensionException, HaltException {
         if(usesLevelsSpace()) {
             Class<?> ls = getLevelSpace();
             if (ls != LevelsSpace.class) {
@@ -135,12 +132,13 @@ public abstract class ChildModel {
         killJobThread();
         killLifeguard();
 
-        SwingUtilities.invokeLater(new Runnable() {
+        runUISafely(new Callable<Object>() {
             @Override
-            public void run() {
+            public Object call() {
                 if (frame() != null) {
                     frame().dispose();
                 }
+                return null;
             }
         });
     }
@@ -265,8 +263,33 @@ public abstract class ChildModel {
      * @param callable What to run.
      * @return
      */
-    public <T> T runSafely(final Callable<T> callable) throws HaltException, ExtensionException {
-        final FutureTask<T> reporterTask = new FutureTask<T>(new Callable<T>() {
+    public <T> T runNlogoSafely(final Callable<T> callable) throws HaltException, ExtensionException {
+        FutureTask<T> task = makeTask(callable);
+        safeExecutor.execute(task);
+        return waitFor(task);
+    }
+
+    public <T> T runUISafely(final Callable<T> callable) throws ExtensionException, HaltException {
+        // waitFor is unsafe on the event queue, so if we're on the event queue, just run directly.
+        if (EventQueue.isDispatchThread()) {
+            try {
+                return callable.call();
+            } catch (ExtensionException e) {
+                throw e;
+            } catch (HaltException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new ExtensionException(e);
+            }
+        } else {
+            FutureTask<T> task = makeTask(callable);
+            SwingUtilities.invokeLater(task);
+            return waitFor(task);
+        }
+    }
+
+    private <T> FutureTask<T> makeTask(final Callable<T> callable) {
+        return new FutureTask<T>(new Callable<T>() {
             @Override
             public T call() throws Exception {
                 T result = callable.call();
@@ -276,8 +299,10 @@ public abstract class ChildModel {
                 return result;
             }
         });
-        safeExecutor.execute(reporterTask);
-        while (!reporterTask.isDone()) {
+    }
+
+    private <T> T waitFor(final FutureTask<T> task) throws HaltException, ExtensionException {
+        while (!task.isDone()) {
             synchronized (parentWorld) {
                 try {
                     parentWorld.wait(50);
@@ -289,13 +314,14 @@ public abstract class ChildModel {
             }
         }
         try {
-            return reporterTask.get();
+            return task.get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new HaltException(false);
         } catch (ExecutionException e) {
             throw new ExtensionException(e);
         }
+
     }
 
     /**
