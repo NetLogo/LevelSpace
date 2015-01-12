@@ -3,6 +3,7 @@
 
 [Primitives](#primitives)
 - [Opening and Closing Models] (#Opening and Closing Models)
+-   [load-headless-model] (#ls:load-headless-model path)
 - [Command and Reporting models] (#Command and Reporting models)
 - [Logic & Control] (#Logic & Control)
 
