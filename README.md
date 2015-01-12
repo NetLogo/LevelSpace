@@ -117,12 +117,13 @@ end
 ```
 
 ### 'max-', 'min', etc. in LevelSpace
-Let's say that we want to find the model that has the highest number of sheep. Again we need to use NetLogo's built in list primitives.
+Let's say that we want to find the model that has the highest number of sheep. Again we need to use NetLogo's built in list primitives. Notice that we randomize the list of models first, since `position` will always return the _first_ match, and we don't want to bias the model that we report in case two or more models have the same number of sheep.
 
 ```
-to-report max-one-of-model [reporter]
-  let the-values reporter ls:of ls:models
-  let the-max-position position (max the-values) the-values
-  report item the-max-position ls:models
+to-report max-one-of-models [reporter]
+  let randomized-model-list shuffle ls:models
+  let the-value reporter ls:of randomized-model-list
+  let the-max-position position (max the-value) the-value
+  report item the-max-position randomized-model-list
 end
 ```
