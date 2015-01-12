@@ -112,6 +112,17 @@ The best way to do the equivalent of `with` in LevelSpace is to combine `filter`
 ```
 to go
     let wsp-models (filter [member? "Wolf Sheep Predation" ls:name-of ?] ls:models
-    ls:ask (filter ["count sheep" ls:of ?] wsp-models) "go"
+    ls:ask (filter ["count sheep" ls:of ? > 100] wsp-models) "go"
+end
+```
+
+### 'max-', 'min', etc. in LevelSpace
+Let's say that we want to find the model that has the highest number of sheep. Again we need to use NetLogo's built in list primitives.
+
+```
+to-report max-one-of-model [reporter]
+  let the-values reporter ls:of ls:models
+  let the-max-position position (max the-values) the-values
+  report item the-max-position ls:models
 end
 ```
