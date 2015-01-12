@@ -1,7 +1,10 @@
 # Index
 [General](#general)
+
 [Primitives](#primitives)
 - [Opening and Closing Models] (#Opening and Closing Models)
+- [Command and Reporting models] (#Command and Reporting models)
+- [Logic & Control] (#Logic & Control)
 
 # General
 
@@ -24,8 +27,8 @@ The easiest way to work with multiple models is to store their ```model-id``` in
 
 Both of these commands will take a full, absolute path to a .nlogo model.
 
-`ls:load-gui-model` _path_
-`ls:load-headless-model` _path_
+####`ls:load-gui-model` _path_
+####`ls:load-headless-model` _path_
 
 To get the ID of the last model you opened, this will report the ```model-id``` of the last model created in LevelSpace.
 
