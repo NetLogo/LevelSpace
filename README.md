@@ -7,7 +7,10 @@
     - [load-gui-model](#lsload-gui-model-path)
     - [last-model-id](#last-model-id)
 - [Command and Reporting models] (#Command and Reporting models)
-    - 
+    - [ask](#lsask-model-id--list-string-of-commands)
+    - [of](#reporter-string-lsof-model-id--list)
+    - [ask-descendent](#lsask-descendent-list-string-of-commands)
+    - [of-descendent](#reporter-string-lsof-descendent-list)
 - [Logic & Control] (#Logic & Control)
 
 # General
