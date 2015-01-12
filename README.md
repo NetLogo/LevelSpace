@@ -17,8 +17,8 @@ Child models are kept track of in the extension with a serial number, starting w
 
 Both of these commands will take a full, absolute path to a .nlogo model.
 
-```ls:load-gui-model *path*``` & ```ls:load-headless-model *path*```
+```ls:load-gui-model``` *path* & ```ls:load-headless-model``` *path*
 
 This command will close a model with the given ID.
 
-```ls:close-model *model-id*```
+```ls:close-model``` *model-id*
