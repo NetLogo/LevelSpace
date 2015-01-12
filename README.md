@@ -3,8 +3,8 @@
 
 [Primitives](#primitives)
 - [Opening and Closing Models] (#Opening and Closing Models)
--   [load-headless-model] (#lsload-headless-model-path)
--   [load-gui-model](#lsload-gui-model-path)
+  -[load-headless-model] (#lsload-headless-model-path)
+  -[load-gui-model](#lsload-gui-model-path)
 - [Command and Reporting models] (#Command and Reporting models)
 - [Logic & Control] (#Logic & Control)
 
