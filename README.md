@@ -32,10 +32,14 @@ This command will close a model with the given ID.
 
 ### Command and Reporting models
 
-You run commands in a child model using
+There are two different ways to ask child models to do things; either by providing a list of model-ids, or by providing just one model-id.
 
-`ls:ask` _model-id_ _string-of-commands_
+`ls:ask` (_model-id_ | _list_) _string-of-commands_
 
-You can report from a child model using 
+Similarly, you can report from a child model using 
 
-_reporter-string_ `ls:of` _model-id_
+_reporter-string_ `ls:of` (_model-id_ | _list_)
+
+Similarly, sometimes you will want to 
+
+###
