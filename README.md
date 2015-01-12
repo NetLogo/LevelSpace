@@ -1,4 +1,9 @@
-# LevelsSpace
+# Index
+[General](#general)
+[Primitives](#primitives)
+- [Opening and Closing Models] (#Opening and Closing Models)
+
+# General
 
 LevelSpace is an extension for NetLogo that allows you to run several models concurrently and have them talk with each other. LevelSpace models are hierarchical, meaning that a model has child models. In this documentation, we will refer to models that have loaded LevelSpace and have opened models as 'parents', and to the models they have opened as 'children' or 'child models'.
 
