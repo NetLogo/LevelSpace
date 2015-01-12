@@ -130,12 +130,11 @@ end
 
 
 ### 'with' in LevelSpace.
-The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we have a bunch of models, some of which are Wolf Sheep Predation models. Let's further say that we only want to do something particular with those models in which there are more than 100 sheep. We would need to first find the models that are WSP, and then filter
+The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we only want the models that satisfy a set of particular criteria. We could write a procedure that gives us only those models:
 
 ```
-to go
-    let wsp-models (filter [member? "Wolf Sheep Predation" ls:name-of ?] ls:models
-    ls:ask (filter ["count sheep" ls:of ? > 100] wsp-models) "go"
+to-report models-with [reporter]
+    report (filter [reporter] ls:models)
 end
 ```
 
