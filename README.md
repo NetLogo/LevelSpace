@@ -21,9 +21,7 @@ Both of these commands will take a full, absolute path to a .nlogo model.
 
 ```ls:load-gui-model``` *path* & ```ls:load-headless-model``` *path*
 
-To get the ID of the last model you opened, use
-
-```ls:last-model-id``` 
+To get the ID of the last model you opened, this will report the ```model-id``` of the last model created in LevelSpace.
 
 This command will close a model with the given ID.
 
