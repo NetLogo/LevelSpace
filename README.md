@@ -1,13 +1,13 @@
 # Index
 [General](#general)
-
-[LevelSpace fundamentals](#LevelSpace fundamentals)
-
+[LevelSpace fundamentals](#levelspace-fundamentals)
 [Primitives](#primitives)
 - [Opening and Closing Models] (#Opening and Closing Models)
     - [load-headless-model] (#lsload-headless-model-path)
     - [load-gui-model](#lsload-gui-model-path)
+    - [last-model-id](#last-model-id)
 - [Command and Reporting models] (#Command and Reporting models)
+    - 
 - [Logic & Control] (#Logic & Control)
 
 # General
@@ -36,53 +36,53 @@ Both of these commands will take a full, absolute path to a .nlogo model.
 
 To get the ID of the last model you opened, this will report the ```model-id``` of the last model created in LevelSpace.
 
-`ls:last-model-id`
+####`ls:last-model-id`
 
 This command will close a model with the given ID.
 
-`ls:close-model` _model-id_
+####`ls:close-model` _model-id_
 
 ### Command and Reporting models
 
 There are two different ways to ask child models to do things; either by providing a list of model-ids, or by providing just one model-id.
 
-`ls:ask` (_model-id_ | _list_) _string-of-commands_
+####`ls:ask` (_model-id_ | _list_) _string-of-commands_
 
 Similarly, you can report from a child model using 
 
-_reporter-string_ `ls:of` (_model-id_ | _list_)
+####`_reporter-string_ `ls:of` (_model-id_ | _list_)
 
 Sometimes you'll want grandchildren or child models even further down the hierarchy to do or report things. LevelSpace has special hierarchical primitives for this purpose:
 
-`ls:ask-descendent` _list_ _string-of-commands_
+####`ls:ask-descendent` _list_ _string-of-commands_
 
-_reporter-string_ `ls:of-descendent` _list_
+####`_reporter-string_ `ls:of-descendent` _list_
 
 For the hierarchical primitives, the list is read from left to right, and the reporter or command is passed down through the hierarchy. For instance, if we want to ask model 0's child model 1 to ask its child model 9 to call its `setup`, we would write
 
-`ls:ask-descendent [0 1 9] "setup"`
+####`ls:ask-descendent [0 1 9] "setup"`
 
 ### Logic & Control
 LevelSpace provides a variety of primitives for keeping track of your models. Depending on your purpose, some of these might be useful, others might not be.
 
-`ls:reset`
+####`ls:reset`
 
 This command closes down all child models (and, recursively, their child models). You'll basically always want to call this in your setup procedure.
 
-`ls:show` _model-id_
+####`ls:show` _model-id_
 
-`ls:hide` _model-id_
+####`ls:hide` _model-id_
 
 These commands respectively show and hide GUI models. This is useful for when your models are cluttering your screen, or for running the models faster, since there is no overhead for drawing the models' views.
 
-`ls:path-of` _model-id_
+####`ls:path-of` _model-id_
 
 This reports the full path, including the .nlogo file name, of the model.
 
-`ls:name-of` _model-id_
+####`ls:name-of` _model-id_
 
 This reports the name of the .nlogo file of the model.
 
-`ls:model-exists` _model-id_
+####`ls:model-exists` _model-id_
 
 This reports a boolean value for whether there is a model with that model-id. This is often useful when you are dynamically generating models, and want to make sure that you are not asking models that no longer exist to do stuff.
