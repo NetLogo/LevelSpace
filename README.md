@@ -142,8 +142,8 @@ end
 Let's say that we want to find the model that has the highest number of sheep. Again we need to use NetLogo's built in list primitives. Notice that we randomize the list of models first, since `position` will always return the _first_ match, and we don't want to bias the model that we report in case two or more models have the same number of sheep.
 
 ```
-to-report max-one-of-models [reporter]
-  let randomized-model-list shuffle ls:models
+to-report max-one-of-models [model-list reporter]
+  let randomized-model-list shuffle model-list
   let the-value reporter ls:of randomized-model-list
   let the-max-position position (max the-value) the-value
   report item the-max-position randomized-model-list
