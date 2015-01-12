@@ -28,14 +28,14 @@ To get the ID of the last model you opened, this will report the ```model-id``` 
 
 This command will close a model with the given ID.
 
-    ls:close-model _model-id_
+`ls:close-model` _model-id_
 
 ### Command and Reporting models
 
 You run commands in a child model using
 
-```ls:ask``` *model-id* *string-of-commands*
+`ls:ask` _model-id_ _string-of-commands_
 
 You can report from a child model using 
 
-*reporter-string* ```ls:of``` *model-id*
+_reporter-string_ `ls:of` _model-id_
