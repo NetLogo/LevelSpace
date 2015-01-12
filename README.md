@@ -106,6 +106,27 @@ This reports a boolean value for whether there is a model with that model-id. Th
 ## Examples of use
 Models are stored in lists, and we therefore need to use NetLogo's list primitives, rather than set primitives, when working with child models. The following contains best practice suggestions for doing so.
 
+### A general usecase
+A simple thing we can do is to open up some models, run them concurrently, and find out an average of some reporter. Let's say that we are interested in finding the mean and spread of the number of sheep in a bunch of wolf sheep predation models. First we would open up some of these models, and set them up:
+
+```
+to setup
+    ca
+    ls:reset
+    repeat 30 [ ls:load-headless-model "Wolf Sheep Predation.nlogo" ]
+    ls:ask ls:models "set grass? true setup"
+    reset-ticks
+end
+```
+We then want to run all our child models, and then find out what the mean number of sheep is:
+```
+to go
+    ls:ask ls:models "go"
+    show mean "count sheep" ls:of ls:models
+end
+```
+
+
 ### 'with' in LevelSpace.
 The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we have a bunch of models, some of which are Wolf Sheep Predation models. Let's further say that we only want to do something particular with those models in which there are more than 100 sheep. We would need to first find the models that are WSP, and then filter
 
