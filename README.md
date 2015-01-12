@@ -1,7 +1,7 @@
 # Index
 [General](#general)
 
-[LevelSpace fundamentals)(#LevelSpace fundamentals)
+[LevelSpace fundamentals](#LevelSpace fundamentals)
 
 [Primitives](#primitives)
 - [Opening and Closing Models] (#Opening and Closing Models)
