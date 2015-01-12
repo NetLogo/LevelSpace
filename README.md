@@ -8,7 +8,7 @@ LevelSpace must be loaded in a model using the ```extensions [ls]``` command. On
 
 LevelSpace has two different child model types, headless models and GUI models. They each have their strengths and weaknesses: Headless models are slightly faster than GUI models (about 10-15%). GUI models allow you full access to a model's view, its interface + widgets, and its Command Center. Typically you will want to use Headless models when you are running a large number of models, or if you simply want to run them faster - GUI models are good if you run a small amount of models, or if you are writing a LevelSpace model and need to be able to debug.
 
-LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets.
+Commanding and reporting in LevelSpace is pretty simple: you pass strings to a child model, and the child model acts as if you wrote that string in its command center input line. LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets.
 
 Child models are kept track of in the extension with a serial number, starting with 0, and all communication from parent to child is done by referencing this number, henceforth referred to as ```model-id```. 
 
@@ -23,7 +23,9 @@ Both of these commands will take a full, absolute path to a .nlogo model.
 
 To get the ID of the last model you opened, this will report the ```model-id``` of the last model created in LevelSpace.
 
-This command will close a model with the given ID.
+```ls:last-model-id```
+
+Finally, this 
 
 ```ls:close-model``` *model-id*
 
