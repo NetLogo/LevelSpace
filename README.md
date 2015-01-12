@@ -1,6 +1,23 @@
 # LevelsSpace
+
+LevelSpace is an extension for NetLogo that allows you to run several models concurrently and have them talk with each other. LevelSpace models are hierarchical, meaning that a model has child models. In this documentation, we will refer to models that have loaded LevelSpace and have opened models as 'parents', and to the models they have opened as 'children' or 'child models'.
+
+## LevelSpace fundamentals
+
+LevelSpace must be loaded in a model using the ```extensions [ls]``` command. Once this is done, a model will be able to load up other models using the LevelSpace primitives, run commands and reporters in them, and close them down when they are no longer needed.
+
+LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets.
+
+Child models are kept track of in the extension with a serial number, starting with 0. 
+
 ## Primitives
 ### Opening and Closing Models
-**ls:load-gui-model *path***
 
-**ls:load-headless-model *path***
+Both of these commands will take a full, absolute path to a .nlogo model.
+
+'''ls:load-gui-model *path*'''
+'''ls:load-headless-model *path*'''
+
+This command will close a model with the given ID.
+
+'''ls:close-model *model-id*'''
