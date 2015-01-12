@@ -114,23 +114,23 @@ public abstract class ChildModel {
     }
 
     final public void kill() throws ExtensionException, HaltException {
-        if(usesLevelsSpace()) {
-            Class<?> ls = getLevelSpace();
-            if (ls != LevelsSpace.class) {
+        runNlogoSafely(new Callable<Object> () {
+            @Override
+            public Object call() {
                 try {
-                    ls.getMethod("reset").invoke(null);
-                } catch (IllegalAccessException e) {
-                    throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
-                } catch (NoSuchMethodException e) {
-                    throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
-                } catch (InvocationTargetException e) {
-                    throw new ExtensionException("This is a bug in LevelSpace! Please report!", e);
+                    try {
+                        workspace().dispose();
+                    } catch (UnsupportedOperationException e) {
+                        // In 5.1, you can't do dispose with GUIWorkspace
+                        workspace().jobManager.die();
+                        // This leaves LifeGuard up, but we're leaking permgen anyway, so whatever
+                    }
+                } catch (InterruptedException e) {
+                    // I was leaving anyway...
                 }
+                return null;
             }
-        }
-
-        killJobThread();
-        killLifeguard();
+        });
 
         runUISafely(new Callable<Object>() {
             @Override
@@ -141,37 +141,6 @@ public abstract class ChildModel {
                 return null;
             }
         });
-    }
-
-    private void killJobThread() {
-        try {
-            ((AbstractWorkspace) workspace()).jobManager.die();
-        } catch (InterruptedException e) {
-            // we can safely ignore this I think
-        }
-    }
-
-    private void killLifeguard() {
-        for (Thread thread : Thread.getAllStackTraces().keySet()) {
-            if (thread.getName().equals("Lifeguard")) {
-                try {
-                    Field outerField = thread.getClass().getDeclaredField("this$0");
-                    outerField.setAccessible(true);
-                    Object outer = outerField.get(thread);
-                    if (outer == workspace()) {
-                        thread.interrupt();
-                        thread.join();
-                    }
-                } catch (NoSuchFieldException e) {
-                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("There is a bug in LevelSpace! Please report this.", e);
-                }
-            }
-        }
-
     }
 
     public void halt() {

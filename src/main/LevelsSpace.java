@@ -324,7 +324,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             } catch (NoSuchMethodException e) {
                 throw ErrorUtils.bugDetected(e);
             } catch (InvocationTargetException e) {
-                throw ErrorUtils.bugDetected(e);
+                if (e.getCause() instanceof ExtensionException) {
+                    throw (ExtensionException) e.getCause();
+                } else if (e.getCause() instanceof HaltException) {
+                    throw (HaltException) e.getCause();
+                } else {
+                    throw ErrorUtils.bugDetected(e);
+                }
             } catch (IllegalAccessException e) {
                 throw ErrorUtils.bugDetected(e);
             }

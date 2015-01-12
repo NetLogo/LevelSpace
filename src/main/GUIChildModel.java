@@ -7,8 +7,6 @@ import javax.swing.*;
 import org.nlogo.api.*;
 import org.nlogo.lite.InterfaceComponent;
 import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.Workspace;
-import org.nlogo.window.InvalidVersionException;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.workspace.AbstractWorkspace;
 

@@ -22,7 +22,6 @@ ls-ask-and-of-work-for-single-models
   O> ls:load-headless-model "Blank.nlogo"
   O> ls:ask 0 "crt 1"
   "count turtles" ls:of 0 => 1
-  O> ls:reset
 
 ls-ask-and-of-take-arguments
   extensions [ ls ]
@@ -41,11 +40,9 @@ ls-ask-and-of-work-for-lists
   O> ls:load-headless-model "Blank.nlogo"
   O> ls:ask ls:models "crt 1"
   "count turtles" ls:of ls:models => [2 1]
-  O> ls:reset
 
 ls-*-descendant-works-for-one-item-list
   extensions [ ls ]
   O> ls:load-headless-model "Blank.nlogo"
   O> ls:ask-descendant [0] "crt 1"
   "count turtles" ls:of-descendant [0] => 1
-
