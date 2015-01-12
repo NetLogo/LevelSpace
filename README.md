@@ -62,6 +62,8 @@ Similarly, you can report from a child model using
 
 ####_reporter-string_ `ls:of` (_model-id_ | _list_)
 
+`ls:of` is designed to work like NetLogo's inbuilt `of`: If you send `ls:of` a model-id, it will report the value of the reporter from that model. If you send it a list of model-ids, it will report a list of values of the reporter string from all models. 
+
 Sometimes you'll want grandchildren or child models even further down the hierarchy to do or report things. LevelSpace has special hierarchical primitives for this purpose:
 
 ####`ls:ask-descendent` _list_ _string-of-commands_
@@ -101,14 +103,15 @@ This reports the name of the .nlogo file of the model.
 
 This reports a boolean value for whether there is a model with that model-id. This is often useful when you are dynamically generating models, and want to make sure that you are not asking models that no longer exist to do stuff.
 
-## Examples of use / 
-Let's say that we want to clear LevelSpace to make sure we don't have old models open, and then open up five Wolf Sheep Predation Models, in our setup procedure. We could do this:
+## Examples of use
+Models are stored in lists, and we therefore need to use NetLogo's list primitives, rather than set primitives, when working with child models. The following contains best practice suggestions for doing so.
+
+### 'with' in LevelSpace.
+The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we have a bunch of models, some of which are Wolf Sheep Predation models. Let's further say that we only want to do something particular with those models in which there are more than 100 sheep. We would need to first find the models that are WSP, and then filter
 
 ```
-to setup
-    ls:reset
-    repeat 5 [load-headless-model "Wolf Sheep Predation.nlogo"]
+to go
+    let wsp-models (filter [member? "Wolf Sheep Predation" ls:name-of ?] ls:models
+    ls:ask (filter ["count sheep" ls:of ?] wsp-models) "go"
 end
 ```
-
-Now, let's say that we want to keep running our parent model until there are no wolves in any of the models. Because 
