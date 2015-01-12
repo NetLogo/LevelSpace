@@ -133,8 +133,8 @@ end
 The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we only want the models that satisfy a set of particular criteria. We could write a procedure that gives us only those models:
 
 ```
-to-report models-with [reporter]
-    report (filter [reporter] ls:models)
+to-report models-with [models reporter]
+    report (filter [reporter ls:of ?] models)
 end
 ```
 
