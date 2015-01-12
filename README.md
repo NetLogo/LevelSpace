@@ -12,6 +12,12 @@
     - [ask-descendent](#lsask-descendent-list-string-of-commands)
     - [of-descendent](#reporter-string-lsof-descendent-list)
 - [Logic & Control] (#Logic & Control)
+    - [reset](#lsreset)
+    - [show](#lsshow-model-id)
+    - [hide](#lshide-model-id)
+    - [path-of](#lspath-of-model-id)
+    - [name-of](#lsname-of-model-id)
+    - [model-exists?](#lsmodel-exists-model-id)
 
 # General
 
