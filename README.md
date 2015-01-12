@@ -12,6 +12,7 @@
         - [ask-descendent](#lsask-descendent-list-string-of-commands)
         - [of-descendent](#reporter-string-lsof-descendent-list)
     - [Logic & Control] (#Logic & Control)
+        - [models](#lsmodels)
         - [reset](#lsreset)
         - [show](#lsshow-model-id)
         - [hide](#lshide-model-id)
@@ -74,6 +75,10 @@ For the hierarchical primitives, the list is read from left to right, and the re
 ### Logic & Control
 LevelSpace provides a variety of primitives for keeping track of your models. Depending on your purpose, some of these might be useful, others might not be.
 
+####`ls:models`
+
+This returns a list of model-ids for all existing models.
+
 ####`ls:reset`
 
 This command closes down all child models (and, recursively, their child models). You'll basically always want to call this in your setup procedure.
@@ -95,3 +100,15 @@ This reports the name of the .nlogo file of the model.
 ####`ls:model-exists` _model-id_
 
 This reports a boolean value for whether there is a model with that model-id. This is often useful when you are dynamically generating models, and want to make sure that you are not asking models that no longer exist to do stuff.
+
+## Examples of use / 
+Let's say that we want to clear LevelSpace to make sure we don't have old models open, and then open up five Wolf Sheep Predation Models, in our setup procedure. We could do this:
+
+```
+to setup
+    ls:reset
+    repeat 5 [load-headless-model "Wolf Sheep Predation.nlogo"]
+end
+```
+
+Now, let's say that we want to keep running our parent model until there are no wolves in any of the models. Because 
