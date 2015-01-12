@@ -40,6 +40,14 @@ Similarly, you can report from a child model using
 
 _reporter-string_ `ls:of` (_model-id_ | _list_)
 
-Similarly, sometimes you will want to 
+Sometimes you'll want grandchildren or child models even further down the hierarchy to do or report things. LevelSpace has special hierarchical primitives for this purpose:
+
+`ls:ask-descendent` _list_ _string-of-commands_
+
+_reporter-string_ `ls:of-descendent` _list_
+
+For the hierarchical primitives, the list is read from left to right, and the reporter or command is passed down through the hierarchy. For instance, if we want to ask model 0's child model 1 to ask its child model 9 to call its `setup`, we would write
+
+`ls:ask-descendent [0 1 9] "setup"`
 
 ###
