@@ -25,20 +25,34 @@ import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.ToolsMenu;
-import org.nlogo.nvm.CommandTask;
 import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.ReporterTask;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 
-    final static HashMap<Integer, ChildModel> myModels = new HashMap<Integer, ChildModel>();
+    private final static HashMap<Integer, ChildModel> models = new HashMap<Integer, ChildModel>();
 
     // counter for keeping track of new models
-    static int modelCounter = 0;
+    private static int modelCounter = 0;
+
+    // These need to be cleaned up on unload
+    private static JMenuItem haltButton;
+    private static JSlider speedSlider;
+    private static ChangeListener speedSliderListener = new ChangeListener() {
+        @Override
+        public void stateChanged(ChangeEvent arg0) {
+            updateChildModelsSpeed();
+        }
+    };
+    private static ActionListener haltListener = new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+            haltChildModels(models);
+        }
+    };
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
@@ -69,13 +83,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             for (MenuElement e : elements) {
                 if (e instanceof ToolsMenu) {
                     ToolsMenu tm = (ToolsMenu) e;
-                    JMenuItem item = tm.getItem(0);
-                    item.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent arg0) {
-                            haltChildModels(myModels);
-                        }
-                    });
+                    haltButton = tm.getItem(0);
+                    haltButton.addActionListener(haltListener);
                 }
             }
 
@@ -90,13 +99,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                         for (Component co3 : c3) {
                             if (co3 instanceof SpeedSliderPanel) {
                                 SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel) co3;
-                                JSlider slider = (JSlider) speedSliderPanel.getComponents()[0];
-                                slider.addChangeListener(new ChangeListener() {
-                                    @Override
-                                    public void stateChanged(ChangeEvent arg0) {
-                                        updateChildModelsSpeed();
-                                    }
-                                });
+                                speedSlider = (JSlider) speedSliderPanel.getComponents()[0];
+                                speedSlider.addChangeListener(speedSliderListener);
                             }
                         }
                     }
@@ -110,8 +114,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     }
 
     public static ChildModel getModel(int id) throws ExtensionException {
-        if (myModels.containsKey(id)) {
-            return myModels.get(id);
+        if (models.containsKey(id)) {
+            return models.get(id);
         } else {
             throw new ExtensionException("There is no model with ID " + id);
         }
@@ -128,6 +132,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void unload(ExtensionManager arg0) throws ExtensionException {
+        if (haltButton != null) {
+            haltButton.removeActionListener(haltListener);
+        }
+        if (speedSlider != null) {
+            speedSlider.removeChangeListener(speedSliderListener);
+        }
         try {
             reset();
         } catch (HaltException e) {
@@ -167,7 +177,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                         "with its code. Exception said" + e.getMessage());
             }
             updateChildModelSpeed(aModel);
-            myModels.put(modelCounter, aModel);
+            models.put(modelCounter, aModel);
             // add to models counter
             modelCounter++;
         }
@@ -189,7 +199,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 aModel = new GUIChildModel(context.getAgent().world(), modelURL, modelCounter);
                 updateChildModelSpeed(aModel);
                 // add it to models
-                myModels.put(modelCounter, aModel);
+                models.put(modelCounter, aModel);
                 // add to models counter
                 modelCounter ++;
             } catch (InterruptedException e) {
@@ -203,10 +213,10 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static void reset() throws ExtensionException, HaltException {
         modelCounter = 0;
 
-        for (ChildModel model : myModels.values()){
+        for (ChildModel model : models.values()){
             model.kill();
         }
-        myModels.clear();
+        models.clear();
     }
 
     public static class Reset extends DefaultCommand {
@@ -375,7 +385,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     public static void closeModel(int modelNumber) throws ExtensionException, HaltException {
         getModel(modelNumber).kill();
-        myModels.remove(modelNumber);
+        models.remove(modelNumber);
     }
 
     public static class UpdateView extends DefaultCommand {
@@ -490,7 +500,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             int modelNumber = (int) args[0].getDoubleValue();
 
             // find the model. if it exists, update graphics
-            return myModels.containsKey(modelNumber);
+            return models.containsKey(modelNumber);
 
         }
     }
@@ -511,9 +521,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             int modelNumber = (int) args[0].getDoubleValue();
 
             // find the model. if it exists, get all breeds + owns
-            if(myModels.containsKey(modelNumber))
+            if(models.containsKey(modelNumber))
             {
-                ChildModel theModel = myModels.get(modelNumber);
+                ChildModel theModel = models.get(modelNumber);
                 return theModel.listBreedsOwns();
 
             }
@@ -537,9 +547,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             // get model number from args
             int modelNumber = (int) args[0].getDoubleValue();
             // find the model. if it exists, update graphics
-            if(myModels.containsKey(modelNumber))
+            if(models.containsKey(modelNumber))
             {
-                ChildModel theModel = myModels.get(modelNumber);
+                ChildModel theModel = models.get(modelNumber);
                 return theModel.listBreedsOwns();
             }
             else{
@@ -563,9 +573,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             // get model number from args
             int modelNumber = (int) args[0].getDoubleValue();
             // find the model. if it exists, update graphics
-            if(myModels.containsKey(modelNumber))
+            if(models.containsKey(modelNumber))
             {
-                ChildModel theModel = myModels.get(modelNumber);
+                ChildModel theModel = models.get(modelNumber);
                 return theModel.listGlobals();
             }
             else{
@@ -587,7 +597,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 throws ExtensionException, org.nlogo.api.LogoException {
             LogoListBuilder myLLB = new LogoListBuilder();
 
-            for (Integer id :  myModels.keySet()) {
+            for (Integer id :  models.keySet()) {
                 myLLB.add((double) id);
             }
             return myLLB.toLogoList();
@@ -641,14 +651,14 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     }
 
-    void updateChildModelsSpeed(){
-        for (ChildModel model : myModels.values()){
+    private static void updateChildModelsSpeed(){
+        for (ChildModel model : models.values()){
             updateChildModelSpeed(model);
         }
     }
 
 
-    static void updateChildModelSpeed(ChildModel model){
+    private static void updateChildModelSpeed(ChildModel model){
         // If we're running tests, this should noop. So, we check if we've got a GUI.
         if (useGUI()) {
             double theSpeed = App.app().workspace().speedSliderPosition();
@@ -656,7 +666,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    static void haltChildModels( HashMap<Integer, ChildModel> models){
+    private static void haltChildModels( HashMap<Integer, ChildModel> models){
         // Iterate through child models
         // First stop the child model, then get its (potential) child models and
         // send them here too
