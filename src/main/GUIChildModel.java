@@ -23,7 +23,6 @@ public class GUIChildModel extends ChildModel {
             throws InterruptedException, InvocationTargetException, ExtensionException, HaltException {
         super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
-        // find the name of the model - it is the bit past the last dash
 
         component = runUISafely(new Callable<InterfaceComponent>() {
             public InterfaceComponent call() throws Exception {
@@ -42,7 +41,7 @@ public class GUIChildModel extends ChildModel {
                         ((SpeedSliderPanel) co).setValue(0);
                     }
                 }
-                frame.setTitle(component.getName() + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
+                frame.setTitle(component.workspace().getModelFileName() + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
                 frame.pack();
                 // Make sure that the model doesn't close if people accidentally click the close button
                 frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

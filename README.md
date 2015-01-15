@@ -6,6 +6,8 @@
         - [load-headless-model](#lsload-headless-model-path)
         - [load-gui-model](#lsload-gui-model-path)
         - [last-model-id](#last-model-id)
+        - [close](#lsclose-mode-id)
+        - [reset](#lsreset)
     - [Command and Reporting models](#command-and-reporting-models)
         - [ask](#lsask-model-id--list-string-of-commands)
         - [of](#reporter-string-lsof-model-id--list)
@@ -13,7 +15,6 @@
         - [of-descendent](#reporter-string-lsof-descendent-list)
     - [Logic & Control](#logic-control)
         - [models](#lsmodels)
-        - [reset](#lsreset)
         - [show](#lsshow-model-id)
         - [hide](#lshide-model-id)
         - [path-of](#lspath-of-model-id)
@@ -50,10 +51,14 @@ Load the given .nlogo model. The path can be absolute, or relative to the main m
 
 Reports the ID of the last model opened. After loading a model, you typically use this to setup the model and store the model id in a variable for later reference.
 
-
-####`ls:close-model` _model-id_
+####`ls:close` _model-id_
 
 Close the model with the given `model-id`.
+
+####`ls:reset`
+
+Close down all child models (and, recursively, their child models). You'll often want to call this in your setup procedure.
+
 
 ### Command and Reporting models
 
@@ -109,10 +114,6 @@ LevelSpace provides a variety of primitives for keeping track of your models. De
 ####`ls:models`
 
 Report a list of model-ids for all existing models.
-
-####`ls:reset`
-
-Close down all child models (and, recursively, their child models). You'll often want to call this in your setup procedure.
 
 ####`ls:show` _model-id_
 
