@@ -138,7 +138,7 @@ Report a boolean value for whether there is a model with that model-id. This is 
 Models are stored in lists, and we therefore need to use NetLogo's list primitives, rather than set primitives, when working with child models. The following contains best practice suggestions for doing so.
 
 ### A general usecase
-A simple thing we can do is to open up some models, run them concurrently, and find out an average of some reporter. Let's say that we are interested in finding the mean and spread of the number of sheep in a bunch of wolf sheep predation models. First we would open up some of these models, and set them up:
+A simple thing we can do is to open up some models, run them concurrently, and find out an average of some reporter. Let's say that we are interested in finding the mean of the number of sheep in a bunch of wolf sheep predation models. First we would open up some of these models, and set them up:
 
 ```
 to setup
@@ -162,7 +162,7 @@ end
 The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we only want the models that satisfy a set of particular criteria. We could write a procedure that gives us only those models:
 
 ```
-to-report models-with [models reporter]
+to-report models-with [models reporter] ; models is a list of model-ids, reporter is a string
     report (filter [reporter ls:of ?] models)
 end
 ```
