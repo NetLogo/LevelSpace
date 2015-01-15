@@ -95,8 +95,6 @@ let turtle-id 5
 
 ####_reporter-string_ `ls:of-descendent` _list_
 
-Sometimes you'll want grandchildren or child models even further down the hierarchy to do or report things. LevelSpace has special hierarchical primitives for this purpose:
-
 Like `ls:ask` and `ls:of`, but the list specifies a model at an arbitray place down the tree of models. This is useful when you child models that have child models that have child models and so forth.
 
 For the hierarchical primitives, the list is read from left to right, and the reporter or command is passed down through the hierarchy. For instance, if we want to ask model 0's child model 1 to ask its child model 9 to call its `setup`, we would write
