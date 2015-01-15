@@ -2,16 +2,16 @@
 - [General](#general)
 - [LevelSpace fundamentals](#levelspace-fundamentals)
 - [Primitives](#primitives)
-    - [Opening and Closing Models] (#Opening and Closing Models)
-        - [load-headless-model] (#lsload-headless-model-path)
+    - [Opening and Closing Models](#opening-and-closing-models)
+        - [load-headless-model](#lsload-headless-model-path)
         - [load-gui-model](#lsload-gui-model-path)
         - [last-model-id](#last-model-id)
-    - [Command and Reporting models] (#Command and Reporting models)
+    - [Command and Reporting models](#command-and-reporting-models)
         - [ask](#lsask-model-id--list-string-of-commands)
         - [of](#reporter-string-lsof-model-id--list)
         - [ask-descendent](#lsask-descendent-list-string-of-commands)
         - [of-descendent](#reporter-string-lsof-descendent-list)
-    - [Logic & Control] (#Logic & Control)
+    - [Logic & Control](#logic-control)
         - [models](#lsmodels)
         - [reset](#lsreset)
         - [show](#lsshow-model-id)
@@ -20,7 +20,6 @@
         - [name-of](#lsname-of-model-id)
         - [model-exists?](#lsmodel-exists-model-id)
     - [Examples of use](#examples-of-use)
-        -
 
 # General
 
