@@ -89,13 +89,14 @@ let turtle-id 5
 (word "[ color ] of turtle " turtle-id) ls:of ls:last-model-id
 ```
 
-Sometimes you'll want grandchildren or child models even further down the hierarchy to do or report things. LevelSpace has special hierarchical primitives for this purpose:
 
 ####`ls:ask-descendent` _list_ _string-of-commands_
 
 ####(`ls:ask-descendent` _list_ _string-of-commands_ _arguments_ ...)
 
 ####_reporter-string_ `ls:of-descendent` _list_
+
+Sometimes you'll want grandchildren or child models even further down the hierarchy to do or report things. LevelSpace has special hierarchical primitives for this purpose:
 
 Like `ls:ask` and `ls:of`, but the list specifies a model at an arbitray place down the tree of models. This is useful when you child models that have child models that have child models and so forth.
 
