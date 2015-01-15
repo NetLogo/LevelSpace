@@ -6,7 +6,7 @@
         - [load-headless-model](#lsload-headless-model-path)
         - [load-gui-model](#lsload-gui-model-path)
         - [last-model-id](#last-model-id)
-        - [close](#lsclose-mode-id)
+        - [close](#lsclose-model-id)
         - [reset](#lsreset)
     - [Command and Reporting models](#command-and-reporting-models)
         - [ask](#lsask-model-id--list-string-of-commands)
