@@ -114,17 +114,25 @@ public abstract class ChildModel {
     }
 
     final public void kill() throws ExtensionException, HaltException {
-        try {
-            try {
-                workspace().dispose();
-            } catch (UnsupportedOperationException e) {
-                // In 5.1, you can't do dispose with GUIWorkspace
-                workspace().jobManager.die();
-                // This leaves LifeGuard up, but we're leaking permgen anyway, so whatever
+        // We can't run this synchronously at all. I kept getting freezes when closing/quitting/opening new models
+        // through the GUI. It looks like the EDT can't wait for the job thread to die. BCH 1/15/2015
+        runLater(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                try {
+                    try {
+                        workspace().dispose();
+                    } catch (UnsupportedOperationException e) {
+                        // In 5.1, you can't do dispose with GUIWorkspace
+                        workspace().jobManager.die();
+                        // This leaves LifeGuard up, but we're leaking permgen anyway, so whatever
+                    }
+                } catch (InterruptedException e) {
+                    // ok
+                }
+                return null;
             }
-        } catch (InterruptedException e) {
-            // ok
-        }
+        });
 
         runUISafely(new Callable<Object>() {
             @Override
@@ -249,6 +257,10 @@ public abstract class ChildModel {
             SwingUtilities.invokeLater(task);
             return waitFor(task);
         }
+    }
+
+    public void runLater(final Callable<?> callable) throws ExtensionException, HaltException {
+        safeExecutor.execute(makeTask(callable));
     }
 
     private <T> FutureTask<T> makeTask(final Callable<T> callable) {
