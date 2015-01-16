@@ -114,23 +114,17 @@ public abstract class ChildModel {
     }
 
     final public void kill() throws ExtensionException, HaltException {
-        runNlogoSafely(new Callable<Object> () {
-            @Override
-            public Object call() {
-                try {
-                    try {
-                        workspace().dispose();
-                    } catch (UnsupportedOperationException e) {
-                        // In 5.1, you can't do dispose with GUIWorkspace
-                        workspace().jobManager.die();
-                        // This leaves LifeGuard up, but we're leaking permgen anyway, so whatever
-                    }
-                } catch (InterruptedException e) {
-                    // I was leaving anyway...
-                }
-                return null;
+        try {
+            try {
+                workspace().dispose();
+            } catch (UnsupportedOperationException e) {
+                // In 5.1, you can't do dispose with GUIWorkspace
+                workspace().jobManager.die();
+                // This leaves LifeGuard up, but we're leaking permgen anyway, so whatever
             }
-        });
+        } catch (InterruptedException e) {
+            // ok
+        }
 
         runUISafely(new Callable<Object>() {
             @Override
