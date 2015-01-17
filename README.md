@@ -5,7 +5,6 @@
     - [Opening and Closing Models](#opening-and-closing-models)
         - [load-headless-model](#lsload-headless-model-path)
         - [load-gui-model](#lsload-gui-model-path)
-        - [last-model-id](#last-model-id)
         - [close](#lsclose-model-id)
         - [reset](#lsreset)
     - [Command and Reporting models](#command-and-reporting-models)
@@ -43,13 +42,20 @@ The easiest way to work with multiple models is to store their ```model-id``` in
 
 ####`ls:load-gui-model` _path_
 
+####(`ls:load-gui-model` _path_ _command-task_)
+
 ####`ls:load-headless-model` _path_
+
+####(`ls:load-headless-model` _path_ _command-task_)
 
 Load the given .nlogo model. The path can be absolute, or relative to the main model.
 
-####`ls:last-model-id`
+If given a command task, LevelSpace will call the command task after loading the model with the model id as the an
+argument. This allows you to easily store model ids in a variable or list when loading models, or do other
+intialization. For example, to store the model id in a variable, you can do:
 
-Reports the ID of the last model opened. After loading a model, you typically use this to setup the model and store the model id in a variable for later reference.
+    let model-id 0
+    (ls:load-gui-model "My-Model.nlogo" [ set model-id ? ]
 
 ####`ls:close` _model-id_
 
@@ -69,7 +75,7 @@ Close down all child models (and, recursively, their child models). You'll often
 Tell the given child model or list of child models to run the given command. This is the main way you get child models to actually do things. For example:
 
 ```
-ls:ask ls:last-model-id "create-turtles 5"
+ls:ask model-id "create-turtles 5"
 ```
 
 You may also supply the command with arguments, just like you would with tasks:
@@ -77,7 +83,7 @@ You may also supply the command with arguments, just like you would with tasks:
 ```
 let turtle-id 0
 let speed 5
-(ls:ask ls:last-model-id "ask turtle ?1 [ fd ?2 ]" turtle-id speed)
+(ls:ask model-id "ask turtle ?1 [ fd ?2 ]" turtle-id speed)
 ```
 
 ####_reporter-string_ `ls:of` (_model-id_ | _list_)
@@ -90,7 +96,7 @@ Unfortunately, you can't give the reporter in `ls:of` arguments like you can wit
 
 ```
 let turtle-id 5
-(word "[ color ] of turtle " turtle-id) ls:of ls:last-model-id
+(word "[ color ] of turtle " turtle-id) ls:of model-id
 ```
 
 
