@@ -20,7 +20,7 @@ public class GUIChildModel extends ChildModel {
 
 
     public GUIChildModel(World parentWorld, final String path, final int levelsSpaceNumber)
-            throws InterruptedException, InvocationTargetException, ExtensionException, HaltException {
+            throws InterruptedException, ExtensionException, HaltException {
         super(parentWorld);
         this.levelsSpaceNumber = levelsSpaceNumber;
 

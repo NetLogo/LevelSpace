@@ -15,6 +15,7 @@ import javax.swing.MenuElement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.sun.tools.example.debug.gui.GUI;
 import org.nlogo.api.*;
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
@@ -61,14 +62,13 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
         primitiveManager.addPrimitive("ask", new Ask());
         primitiveManager.addPrimitive("of", new Of());
-        primitiveManager.addPrimitive("load-headless-model", new LoadHeadlessModel());
-        primitiveManager.addPrimitive("load-gui-model", new LoadGUIModel());
+        primitiveManager.addPrimitive("load-headless-model", new LoadModel<HeadlessChildModel>(HeadlessChildModel.class));
+        primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
         primitiveManager.addPrimitive("name-of", new ModelName());
         primitiveManager.addPrimitive("close", new CloseModel());
         primitiveManager.addPrimitive("models", new AllModels());
         primitiveManager.addPrimitive("model-exists?", new ModelExists());
         primitiveManager.addPrimitive("reset", new Reset());
-        primitiveManager.addPrimitive("last-model-id", new LastModel());
         primitiveManager.addPrimitive("path-of", new ModelPath());
         primitiveManager.addPrimitive("display", new UpdateView());
         primitiveManager.addPrimitive("show", new Show());
@@ -157,58 +157,42 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static class LoadHeadlessModel extends DefaultCommand {
+    public static class LoadModel<T extends ChildModel> extends DefaultCommand {
+        private Class<T> modelType;
+
+        private LoadModel(Class<T> modelType) {
+            this.modelType = modelType;
+        }
+
+        @Override
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
                     new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
         }
 
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
-            HeadlessChildModel aModel;
+        @Override
+        public void perform(Argument args[], Context ctx) throws ExtensionException, org.nlogo.api.LogoException {
+            String modelPath = getModelPath((ExtensionContext) ctx, args[0].getString());
             try {
-                aModel = new HeadlessChildModel(context.getAgent().world(), modelURL, modelCounter);
-            } catch (IOException e) {
-                throw new ExtensionException ("There was no .nlogo file at the path: \"" + modelURL + "\"");
-            } catch (CompilerException e) {
-                throw new ExtensionException (modelURL + " did not compile properly. There is probably something wrong " +
-                        "with its code. Exception said" + e.getMessage());
-            }
-            updateChildModelSpeed(aModel);
-            models.put(modelCounter, aModel);
-            if (args.length > 1) {
-                args[1].getCommandTask().perform(context, new Object[] {(double)modelCounter});
-            }
-            modelCounter++;
-        }
-    }
-
-    public static class LoadGUIModel extends DefaultCommand {
-        public Syntax getSyntax() {
-            return Syntax.commandSyntax(
-                    new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // Get the path for the model
-            String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
-            GUIChildModel aModel;
-            try {
-                aModel = new GUIChildModel(context.getAgent().world(), modelURL, modelCounter);
-                updateChildModelSpeed(aModel);
-                // add it to models
-                models.put(modelCounter, aModel);
-                if (args.length > 1) {
-                    args[1].getCommandTask().perform(context, new Object[] {(double)modelCounter});
+                T model;
+                if (modelType == HeadlessChildModel.class) {
+                    model = modelType.cast(new HeadlessChildModel(ctx.getAgent().world(), modelPath, modelCounter));
+                } else {
+                    model = modelType.cast(new GUIChildModel(ctx.getAgent().world(), modelPath, modelCounter));
+                    updateChildModelSpeed(model);
                 }
-                // add to models counter
-                modelCounter ++;
+                models.put(modelCounter, model);
+                if (args.length > 1) {
+                    args[1].getCommandTask().perform(ctx, new Object[]{(double) modelCounter});
+                }
+                modelCounter++;
+            } catch (CompilerException e) {
+                throw new ExtensionException(modelPath + " did not compile properly. There is probably something wrong " +
+                        "with its code. Exception said" + e.getMessage());
+            } catch (IOException e) {
+                throw new ExtensionException("There was no .nlogo file at the path: \"" + modelPath + "\"");
             } catch (InterruptedException e) {
                 throw new HaltException(false);
-            } catch (InvocationTargetException e) {
-                throw new ExtensionException("Loading " + modelURL + " failed with this message: " + e.getCause().getMessage(), (Exception)e.getCause());
             }
         }
     }
@@ -466,26 +450,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
         }
 
-    }
-
-    /*
-     * This primitive returns the last created model number
-     */
-    public static class LastModel extends DefaultReporter {
-        public Syntax getSyntax() {
-            return Syntax.reporterSyntax(
-                    // no parameters
-                    new int[] {},
-                    // and return a number
-                    Syntax.NumberType());
-        }
-
-        public Double report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-
-            return (double) modelCounter - 1;
-
-        }
     }
 
     public static class ModelExists extends DefaultReporter {
