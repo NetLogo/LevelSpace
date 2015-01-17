@@ -5,6 +5,14 @@
 # * ls:reset at the end of every test
 # * You can't do more than one level right now
 
+ls-load-reference
+  extensions [ ls ]
+  O> set glob1 5
+  O> (ls:load-headless-model "Blank.nlogo" [ set glob1 ? ])
+  glob1 => 0
+  O> ls:close glob1
+  ls:models => []
+
 ls-load-and-close-models
   extensions [ ls ]
   O> ls:load-headless-model "Blank.nlogo"

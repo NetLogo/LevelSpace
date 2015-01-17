@@ -16,6 +16,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.nlogo.api.*;
+import org.nlogo.api.Argument;
+import org.nlogo.api.Context;
 import org.nlogo.app.App;
 import org.nlogo.api.ExtensionObject;
 import org.nlogo.api.ImportErrorHandler;
@@ -25,10 +27,11 @@ import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.ToolsMenu;
-import org.nlogo.nvm.ExtensionContext;
-import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.*;
+import org.nlogo.nvm.Reporter;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
+import sun.management.resources.agent;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
@@ -157,15 +160,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static class LoadHeadlessModel extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    // we take in int[] {number, string}
-                    new int[] { Syntax.StringType()});
+                    new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
         }
 
         public void perform(Argument args[], Context context)
                 throws ExtensionException, org.nlogo.api.LogoException {
-            // saving current modelCounter as that will be the hash table key to the
-            // model we are making
-            // make a new LevelsModel
             String modelURL = getModelPath((ExtensionContext) context, args[0].getString());
             HeadlessChildModel aModel;
             try {
@@ -178,7 +177,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             }
             updateChildModelSpeed(aModel);
             models.put(modelCounter, aModel);
-            // add to models counter
+            if (args.length > 1) {
+                args[1].getCommandTask().perform(context, new Object[] {(double)modelCounter});
+            }
             modelCounter++;
         }
     }
@@ -186,8 +187,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static class LoadGUIModel extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    // we take in int[] {number, string}
-                    new int[] { Syntax.StringType()});
+                    new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
         }
 
         public void perform(Argument args[], Context context)
@@ -200,6 +200,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 updateChildModelSpeed(aModel);
                 // add it to models
                 models.put(modelCounter, aModel);
+                if (args.length > 1) {
+                    args[1].getCommandTask().perform(context, new Object[] {(double)modelCounter});
+                }
                 // add to models counter
                 modelCounter ++;
             } catch (InterruptedException e) {
