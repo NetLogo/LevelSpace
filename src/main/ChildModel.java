@@ -125,6 +125,7 @@ public abstract class ChildModel {
                     } catch (UnsupportedOperationException e) {
                         // In 5.1, you can't do dispose with GUIWorkspace
                         workspace().jobManager.die();
+                        workspace().getExtensionManager().reset();
                         // This leaves LifeGuard up, but we're leaking permgen anyway, so whatever
                     }
                 } catch (InterruptedException e) {
