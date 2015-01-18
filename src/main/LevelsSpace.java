@@ -15,7 +15,6 @@ import javax.swing.MenuElement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.sun.tools.example.debug.gui.GUI;
 import org.nlogo.api.*;
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
@@ -29,10 +28,8 @@ import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.ToolsMenu;
 import org.nlogo.nvm.*;
-import org.nlogo.nvm.Reporter;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
-import sun.management.resources.agent;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
