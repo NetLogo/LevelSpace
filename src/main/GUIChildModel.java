@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
 
 import javax.swing.*;
@@ -27,11 +26,14 @@ public class GUIChildModel extends ChildModel {
         component = runUISafely(new Callable<InterfaceComponent>() {
             public InterfaceComponent call() throws Exception {
                 // For some reason, the IC must be added to the frame before the model is opened.
-                new JFrame();
                 InterfaceComponent component = new InterfaceComponent(frame);
                 panel = new GUIPanel(component);
                 frame.add(panel);
+                Window currentlyFocused = FocusManager.getCurrentManager().getActiveWindow();
+                frame.setLocationRelativeTo(currentlyFocused);
+                frame.setLocationByPlatform(true);
                 frame.setVisible(true);
+                currentlyFocused.toFront();
                 component.open(path);
                 // get all components, find the speed slider, and hide it.
                 Component[] c = component.workspace().viewWidget.controlStrip.getComponents();
