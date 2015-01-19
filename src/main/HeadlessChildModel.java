@@ -6,6 +6,7 @@ import javax.swing.JFrame;
 
 import org.nlogo.api.*;
 import org.nlogo.headless.HeadlessWorkspace;
+import org.nlogo.nvm.HaltException;
 import org.nlogo.workspace.AbstractWorkspace;
 
 public class HeadlessChildModel extends ChildModel {
@@ -48,6 +49,19 @@ public class HeadlessChildModel extends ChildModel {
 
             frame.updateImage(bi);
         }
+    }
+
+    @Override
+    public void ask(String command, Object[] actuals) throws ExtensionException, HaltException {
+        super.ask(command, actuals);
+        updateView();
+    }
+
+    @Override
+    public Object of(String reporter, Object[] actuals) throws ExtensionException, HaltException {
+        Object result = super.of(reporter, actuals);
+        updateView();
+        return result;
     }
 
     @Override
