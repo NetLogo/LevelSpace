@@ -59,6 +59,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
         primitiveManager.addPrimitive("ask", new Ask());
         primitiveManager.addPrimitive("of", new Of());
+        primitiveManager.addPrimitive("report", new Report());
         primitiveManager.addPrimitive("load-headless-model", new LoadModel<HeadlessChildModel>(HeadlessChildModel.class));
         primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
         primitiveManager.addPrimitive("name-of", new ModelName());
@@ -267,6 +268,31 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             }
             LogoList returnValue = results.toLogoList();
             return args[1].get() instanceof Double ? returnValue.first() : returnValue;
+        }
+    }
+
+    public static class Report extends DefaultReporter {
+        @Override
+        public Syntax getSyntax() {
+            return Syntax.reporterSyntax(
+                    new int[]{
+                            Syntax.NumberType() | Syntax.ListType(),
+                            Syntax.ReporterTaskType() | Syntax.StringType(),
+                            Syntax.WildcardType() | Syntax.RepeatableType()
+                    },
+                    Syntax.WildcardType(),
+                    2
+            );
+        }
+        public Object report(Argument args[], Context context) throws LogoException, ExtensionException {
+            LogoListBuilder results = new LogoListBuilder();
+            String reporter = args[1].getString();
+            Object[] actuals = getActuals(args, 2);
+            for (ChildModel model : toModelList(args[0])){
+                results.add(model.of(reporter, actuals));
+            }
+            LogoList returnValue = results.toLogoList();
+            return args[0].get() instanceof Double ? returnValue.first() : returnValue;
         }
     }
 

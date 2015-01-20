@@ -31,13 +31,15 @@ ls-ask-and-of-work-for-single-models
   O> ls:ask 0 "crt 1"
   "count turtles" ls:of 0 => 1
 
-ls-ask-and-of-take-arguments
+ls-ask-and-report-take-arguments
   extensions [ ls ]
   O> ls:load-headless-model "Blank.nlogo"
   O> (ls:ask 0 "crt ?" 5)
   "count turtles" ls:of 0 => 5
   O> (ls:ask 0 "crt ?" 10)
   "count turtles" ls:of 0 => 15
+  (ls:report 0 "?" 5) => 5
+  (ls:report 0 "?1 + ?2" 5 6) => 11
 
 ls-ask-and-of-work-for-lists
   extensions [ ls ]
