@@ -14,14 +14,12 @@ public class GUIChildModel extends ChildModel {
 
     final JFrame frame = new JFrame();
     InterfaceComponent component;
-    int levelsSpaceNumber;
     GUIPanel panel;
 
 
     public GUIChildModel(World parentWorld, final String path, final int levelsSpaceNumber)
             throws InterruptedException, ExtensionException, HaltException {
-        super(parentWorld);
-        this.levelsSpaceNumber = levelsSpaceNumber;
+        super(parentWorld, levelsSpaceNumber);
 
         component = runUISafely(new Callable<InterfaceComponent>() {
             public InterfaceComponent call() throws Exception {
@@ -43,7 +41,6 @@ public class GUIChildModel extends ChildModel {
                         ((SpeedSliderPanel) co).setValue(0);
                     }
                 }
-                frame.setTitle(component.workspace().getModelFileName() + " (LevelsSpace model-id: " + String.valueOf(levelsSpaceNumber) + ")");
                 frame.pack();
                 // Make sure that the model doesn't close if people accidentally click the close button
                 frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

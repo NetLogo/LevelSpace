@@ -13,11 +13,9 @@ public class HeadlessChildModel extends ChildModel {
 
     HeadlessWorkspace myWS;
     ImageFrame frame;
-    int levelsSpaceNumber;
 
     public HeadlessChildModel(World parentWorld, String path, final int levelsSpaceNumber) throws IOException, CompilerException, LogoException, ExtensionException {
-        super(parentWorld);
-        this.levelsSpaceNumber = levelsSpaceNumber;
+        super(parentWorld, levelsSpaceNumber);
         myWS = HeadlessWorkspace.newInstance();
         myWS.open(path);
         init();
@@ -30,8 +28,7 @@ public class HeadlessChildModel extends ChildModel {
                     @Override
                     public ImageFrame call() throws Exception {
                         final BufferedImage bi = myWS.exportView();
-                        final String aTitle = getName().concat(" (LevelsSpace Model No. ").concat(Integer.toString(levelsSpaceNumber)).concat(")");
-                        return new ImageFrame(bi, aTitle);
+                        return new ImageFrame(myWS.exportView(), getFrameTitle());
                     }
                 });
             } catch (Exception e) {

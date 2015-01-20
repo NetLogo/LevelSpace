@@ -63,6 +63,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("load-headless-model", new LoadModel<HeadlessChildModel>(HeadlessChildModel.class));
         primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
         primitiveManager.addPrimitive("name-of", new ModelName());
+        primitiveManager.addPrimitive("set-name", new SetName());
         primitiveManager.addPrimitive("close", new CloseModel());
         primitiveManager.addPrimitive("models", new AllModels());
         primitiveManager.addPrimitive("model-exists?", new ModelExists());
@@ -452,13 +453,23 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         public Syntax getSyntax(){
             return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
                     Syntax.StringType());
-
         }
         public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
             int modelNumber = args[0].getIntValue();
             return getModel(modelNumber).getName();
         }
+    }
 
+    public static class SetName extends DefaultCommand {
+
+        @Override
+        public Syntax getSyntax() {
+            return Syntax.commandSyntax(new int[] {Syntax.NumberType(), Syntax.StringType()});
+        }
+        @Override
+        public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
+            getModel(args[0].getIntValue()).setName(args[1].getString());
+        }
     }
 
     // this returns the path of the model

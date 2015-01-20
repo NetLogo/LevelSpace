@@ -25,9 +25,12 @@ public abstract class ChildModel {
     private Procedure reporterRunner;
     private Procedure commandRunner;
     private LoadingCache<String, Reporter> tasks;
+    private String name;
+    private int modelID;
 
-    public ChildModel(World parentWorld) throws ExtensionException {
+    public ChildModel(World parentWorld, int modelID) throws ExtensionException {
         this.parentWorld = parentWorld;
+        this.modelID = modelID;
 
         tasks = CacheBuilder.newBuilder().build(new CacheLoader<String, Reporter>() {
             @Override
@@ -46,6 +49,7 @@ public abstract class ChildModel {
      * @throws ExtensionException
      */
     void init() throws ExtensionException {
+        setName(workspace().getModelFileName());
         try {
             reporterRunner = workspace().compileReporter("runresult task [ 0 ]");
             commandRunner = workspace().compileCommands("run task []");
@@ -152,8 +156,19 @@ public abstract class ChildModel {
         return workspace().getModelPath();
     }
 
+    String getFrameTitle() {
+        return name + " (LevelSpace model #" + modelID + ")";
+    }
+
     public String getName() {
-        return workspace().modelNameForDisplay();
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        if (this.frame() != null) {
+            this.frame().setTitle(getFrameTitle());
+        }
     }
 
     abstract public void setSpeed(double d);

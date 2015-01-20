@@ -56,3 +56,9 @@ ls-*-descendant-works-for-one-item-list
   O> ls:load-headless-model "Blank.nlogo"
   O> ls:ask-descendant [0] "crt 1"
   "count turtles" ls:of-descendant [0] => 1
+
+ls-set-name
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  O> ls:set-name 0 "foo"
+  ls:name-of 0 => "foo"
