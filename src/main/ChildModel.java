@@ -32,16 +32,10 @@ public abstract class ChildModel {
         this.parentWorld = parentWorld;
         this.modelID = modelID;
 
-        tasks = CacheBuilder.newBuilder().build(new CacheLoader<String, Reporter>() {
-            @Override
-            public Reporter load(String code) throws ExtensionException {
-                try {
-                    return compileTaskReporter(code);
-                } catch (CompilerException e) {
-                    throw ErrorUtils.handle(ChildModel.this, code, e);
-                }
-            }
-        });
+    }
+
+    public void setTasks(LoadingCache<String, Reporter> tasks){
+        this.tasks = tasks;
     }
 
     /**
@@ -320,7 +314,7 @@ public abstract class ChildModel {
      * @return The compiled task wrapped in a reporter.
      * @throws CompilerException
      */
-    private Reporter compileTaskReporter (String code) throws CompilerException {
+    public Reporter compileTaskReporter (String code) throws CompilerException {
         return workspace().compileReporter("task [ " + code + " ]").code[0].args[0].args[0];
     }
 

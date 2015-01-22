@@ -3,9 +3,16 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,6 +22,9 @@ import javax.swing.MenuElement;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.nlogo.api.*;
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
@@ -28,13 +38,19 @@ import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.ToolsMenu;
 import org.nlogo.nvm.*;
+import org.nlogo.nvm.Reporter;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
+
+import static java.security.MessageDigest.*;
 
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     private final static HashMap<Integer, ChildModel> models = new HashMap<Integer, ChildModel>();
+    private final static HashMap<String, LoadingCache<String, Reporter>> modelHashes = new HashMap<String, LoadingCache<String, Reporter>>();
+//    private final static HashMap<String, Procedure> modelProcedures = new HashMap<String, Procedure>();
+
 
     // counter for keeping track of new models
     private static int modelCounter = 0;
@@ -166,7 +182,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         @Override
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
+                    new int[]{Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
         }
 
         @Override
@@ -181,6 +197,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                     updateChildModelSpeed(model);
                 }
                 models.put(modelCounter, model);
+                model.setTasks(getOrCreateNewCache(model, modelPath));
                 if (args.length > 1) {
                     args[1].getCommandTask().perform(ctx, new Object[]{(double) modelCounter});
                 }
@@ -194,6 +211,43 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 throw new HaltException(false);
             }
         }
+
+        private LoadingCache<String, Reporter> getOrCreateNewCache(final ChildModel model, String modelPath) throws IOException {
+            String key = fileToString(modelPath);
+            if (modelHashes.containsKey(key)) {
+                return modelHashes.get(key);
+            } else {
+                LoadingCache<String, Reporter> tasks = CacheBuilder.newBuilder().build(new CacheLoader<String, Reporter>() {
+                    @Override
+                    public Reporter load(String code) throws ExtensionException {
+                        try {
+                            return model.compileTaskReporter(code);
+                        } catch (CompilerException e) {
+//                            throw ErrorUtils.handle(ChildModel.this, code, e);
+                            return null;
+                        }
+                    }
+                });
+                modelHashes.put(key, tasks);
+                return tasks;
+            }
+        }
+
+        private String fileToString(String modelPath) throws IOException {
+            StringBuffer fileData = new StringBuffer();
+            BufferedReader reader = new BufferedReader(
+                    new FileReader(modelPath));
+            char[] buf = new char[1024];
+            int numRead = 0;
+            while ((numRead = reader.read(buf)) != -1) {
+                String readData = String.valueOf(buf, 0, numRead);
+                fileData.append(readData);
+            }
+            reader.close();
+            return fileData.toString();
+        }
+
+
     }
 
     public static void reset() throws ExtensionException, HaltException {
@@ -363,7 +417,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         public Syntax getSyntax(){
             return Syntax.reporterSyntax(
                     Syntax.StringType(),
-                    new int[]{ Syntax.ListType() },
+                    new int[]{Syntax.ListType()},
                     Syntax.WildcardType(),
                     org.nlogo.api.Syntax.NormalPrecedence() + 1,
                     true
