@@ -4,9 +4,6 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -49,7 +46,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     private final static HashMap<Integer, ChildModel> models = new HashMap<Integer, ChildModel>();
     private final static HashMap<String, LoadingCache<String, Reporter>> modelHashes = new HashMap<String, LoadingCache<String, Reporter>>();
-//    private final static HashMap<String, Procedure> modelProcedures = new HashMap<String, Procedure>();
 
 
     // counter for keeping track of new models
@@ -209,10 +205,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 throw new ExtensionException("There was no .nlogo file at the path: \"" + modelPath + "\"");
             } catch (InterruptedException e) {
                 throw new HaltException(false);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
             }
         }
 
-        private LoadingCache<String, Reporter> getOrCreateNewCache(final ChildModel model, String modelPath) throws IOException {
+        private LoadingCache<String, Reporter> getOrCreateNewCache(final ChildModel model, String modelPath) throws IOException, NoSuchAlgorithmException {
             String key = fileToString(modelPath);
             if (modelHashes.containsKey(key)) {
                 return modelHashes.get(key);
@@ -233,7 +231,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             }
         }
 
-        private String fileToString(String modelPath) throws IOException {
+        private String fileToString(String modelPath) throws IOException, NoSuchAlgorithmException {
             StringBuffer fileData = new StringBuffer();
             BufferedReader reader = new BufferedReader(
                     new FileReader(modelPath));
@@ -244,6 +242,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 fileData.append(readData);
             }
             reader.close();
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(fileData.toString().getBytes());
+            // @TODO turn fileData into an MD5 checksum and return that instead
             return fileData.toString();
         }
 
@@ -257,6 +258,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             model.kill();
         }
         models.clear();
+        modelHashes.clear();
     }
 
     public static class Reset extends DefaultCommand {
