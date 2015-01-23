@@ -211,7 +211,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
 
         private LoadingCache<String, Reporter> getOrCreateNewCache(final ChildModel model, String modelPath) throws IOException, NoSuchAlgorithmException {
-            String key = fileToString(modelPath);
+            String key = fileContents(modelPath);
             if (modelHashes.containsKey(key)) {
                 return modelHashes.get(key);
             } else {
@@ -231,7 +231,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             }
         }
 
-        private String fileToString(String modelPath) throws IOException, NoSuchAlgorithmException {
+        private String fileContents(String modelPath) throws IOException, NoSuchAlgorithmException {
             StringBuffer fileData = new StringBuffer();
             BufferedReader reader = new BufferedReader(
                     new FileReader(modelPath));
@@ -242,8 +242,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 fileData.append(readData);
             }
             reader.close();
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(fileData.toString().getBytes());
             // @TODO turn fileData into an MD5 checksum and return that instead
             return fileData.toString();
         }
