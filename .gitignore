@@ -11,3 +11,4 @@ project/target/
 *.jar
 *.jar.pack.gz
 *.zip
+extensions
