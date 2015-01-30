@@ -38,7 +38,8 @@ packageBin in Compile := {
   val libraryJarPaths =
     classpath.files.filter{path =>
       path.getName.endsWith(".jar") &&
-      !path.getName.startsWith("scala-library")}
+      !path.getName.startsWith("scala-library") &&
+      !path.getName.startsWith("NetLogo")}
   for(path <- libraryJarPaths) {
     IO.copyFile(path, target /  path.getName)
   }
