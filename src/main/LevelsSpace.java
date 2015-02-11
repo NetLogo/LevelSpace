@@ -74,7 +74,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("hide", new Hide());
         primitiveManager.addPrimitive("_list-breeds", new ListBreeds());
         primitiveManager.addPrimitive("_globals", new Globals());
-        primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());
+//        primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());
         primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
         primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());

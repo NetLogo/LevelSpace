@@ -207,8 +207,10 @@ public abstract class ChildModel {
     public LogoList listGlobals() {
         LogoListBuilder llb = new LogoListBuilder();
 
-        for (Object var : workspace().world().observer().variables()){
-            llb.add(var);
+        for (int i = 0; i < workspace().world().observer().getVariableCount(); i++){
+//				theList.add(myWS.world().observer().variableName(i));
+            // we add all of them. We can manually edit the json file later.
+            llb.add(workspace().world().observer().variableName(i));
         }
         return llb.toLogoList();
     }
