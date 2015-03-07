@@ -13,6 +13,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.nlogo.api.*;
+import org.nlogo.api.Task;
 import org.nlogo.nvm.*;
 import org.nlogo.nvm.Reporter;
 import org.nlogo.prim.*;
@@ -106,7 +107,7 @@ public abstract class ChildModel {
 
     void checkResult(Object reporterResult) throws ExtensionException {
         if (reporterResult instanceof org.nlogo.agent.Agent || reporterResult instanceof AgentSet) {
-            throw new ExtensionException("You cannot report agents or agentsets from LevelSpace models.");
+//            throw new ExtensionException("You cannot report agents or agentsets from LevelSpace models.");
         } else if (reporterResult instanceof LogoList) {
             LogoList resultList = (LogoList)reporterResult;
             for(Object elem : resultList) {
