@@ -11,5 +11,6 @@
     <orderEntry type="library" name="ls1" level="project" />
     <orderEntry type="library" name="guava-18.0" level="project" />
     <orderEntry type="library" name="NetLogo-tests-5.1.0" level="project" />
+    <orderEntry type="library" name="scala-library-2.9.2 (2)" level="project" />
   </component>
 </module>

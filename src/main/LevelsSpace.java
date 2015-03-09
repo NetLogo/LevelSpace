@@ -17,6 +17,7 @@ import javax.swing.event.ChangeListener;
 
 import org.nlogo.api.*;
 import org.nlogo.api.Argument;
+import org.nlogo.api.CommandTask;
 import org.nlogo.api.Context;
 import org.nlogo.app.App;
 import org.nlogo.api.ExtensionObject;
@@ -78,6 +79,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
         primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
+        primitiveManager.addPrimitive("_model-procedures", new ModelProcedures());
+
 
         if (useGUI()) {
             // Adding event listener to Halt for halting child models
@@ -235,14 +238,21 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             return Syntax.commandSyntax(
                     new int[]{Syntax.NumberType() | Syntax.ListType(),
                             Syntax.CommandTaskType() | Syntax.StringType(),
-                            Syntax.RepeatableType() | Syntax.WildcardType()},
+                            Syntax.RepeatableType() | Syntax.ReporterTaskType() |
+                                    Syntax.CommandBlockType() | Syntax.WildcardType()},
                     2);
         }
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            String command = args[1].getString();
+            Object command = args[1].getString();
             Object[] actuals = getActuals(args, 2);
             for (ChildModel model : toModelList(args[0])) {
-                model.ask(command, actuals);
+                if (command instanceof String){
+                    model.ask((String)command, actuals);
+                }
+                if(command instanceof CommandTask){
+                    model.command((org.nlogo.nvm.Reporter)command, actuals);
+                }
+
             }
         }
     }
@@ -457,6 +467,18 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
             int modelNumber = args[0].getIntValue();
             return getModel(modelNumber).getName();
+        }
+    }
+
+    // this returns the path of the model
+    public static class ModelProcedures extends DefaultReporter{
+        public Syntax getSyntax(){
+            return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
+                    Syntax.ListType());
+        }
+        public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
+            int modelNumber = args[0].getIntValue();
+            return getModel(modelNumber).getProcedures();
         }
     }
 
