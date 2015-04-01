@@ -191,15 +191,21 @@ public abstract class ChildModel {
 
     public LogoList listBreedsOwns() {
         LogoListBuilder llb = new LogoListBuilder();
+        // add turtle vars as a separate tuple
+        LogoListBuilder tuple  = new LogoListBuilder();
+        LogoListBuilder vars = new LogoListBuilder();
+        for (String s: workspace().world().program().turtlesOwn()){
+            vars.add(s);
+        }
+        tuple.add("TURTLES");
+        tuple.add(vars.toLogoList());
+        llb.add(tuple.toLogoList());
+
         for (Map.Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
         {
-            LogoListBuilder tuple  = new LogoListBuilder();
-            LogoListBuilder vars = new LogoListBuilder();
+            tuple  = new LogoListBuilder();
+            vars = new LogoListBuilder();
             for (String s : entry.getValue()){
-                vars.add(s);
-            }
-            // add turtles own to all of them too
-            for (String s: workspace().world().program().turtlesOwn()){
                 vars.add(s);
             }
             tuple.add(entry.getKey());
@@ -387,8 +393,8 @@ public abstract class ChildModel {
                 String theString = p.args.get(i);
                 argLLB.add(theString);
             }
-//            p.syntax().
             pList.add(argLLB.toLogoList());
+//            pList.add(org.nlogo.api.Synp.syntax().ret()) find names here
             outerLLB.add(pList.toLogoList());
         }
         return outerLLB.toLogoList();

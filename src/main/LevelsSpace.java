@@ -29,6 +29,8 @@ import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.ToolsMenu;
 import org.nlogo.nvm.*;
+import org.nlogo.nvm.ReporterTask;
+import org.nlogo.nvm.Task;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -80,6 +82,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
         primitiveManager.addPrimitive("_model-procedures", new ModelProcedures());
+        primitiveManager.addPrimitive("to-OTPL", new ToOTPL());
 
 
         if (useGUI()) {
@@ -250,7 +253,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                     model.ask((String)command, actuals);
                 }
                 if(command instanceof CommandTask){
-                    model.command((org.nlogo.nvm.Reporter)command, actuals);
+                    model.command((org.nlogo.nvm.Reporter) command, actuals);
                 }
 
             }
@@ -387,6 +390,26 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             String reporter = args[0].getString();
             LogoList modelTreePath = args[1].getList();
             return ofDescendant(modelTreePath, reporter, new Object[0]);
+        }
+
+    }
+
+    public static class ToOTPL extends DefaultReporter {
+            public Syntax getSyntax(){
+                return Syntax.reporterSyntax(new int[] {Syntax.CommandTaskType() | Syntax.ReporterTaskType() },
+                        Syntax.StringType());
+            }
+        @Override
+        public Object report(Argument[] args, Context arg1)
+                throws ExtensionException, LogoException {
+            Object task = args[0].get();
+            if (task instanceof ReporterTask) {
+                ReporterTask rTask = (ReporterTask) task;
+                return rTask.body().agentClassString;
+            } else {
+                org.nlogo.nvm.CommandTask cTask = (org.nlogo.nvm.CommandTask) task;
+                return cTask.procedure().syntax().agentClassString();
+            }
         }
 
     }
