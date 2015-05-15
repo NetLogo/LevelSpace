@@ -4,7 +4,9 @@ scalaVersion := "2.9.2"
 
 retrieveManaged := true
 
-javaSource in Compile <<= baseDirectory(_ / "src" / "main")
+javaSource  in Compile <<= baseDirectory(_ / "src" / "main")
+
+scalaSource in Compile <<= baseDirectory(_ / "src" / "main")
 
 scalaSource in Test <<= baseDirectory(_ / "src" / "test")
 
