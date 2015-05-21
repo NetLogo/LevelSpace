@@ -114,6 +114,13 @@ public abstract class ChildModel {
         }
     }
 
+    volatile private boolean jobThreadFinished = false;
+    volatile private boolean uiThreadFinished  = false;
+
+    final public boolean isDead() {
+        return jobThreadFinished && uiThreadFinished;
+    }
+
     final public void kill() throws ExtensionException, HaltException {
         // We can't run this synchronously at all. I kept getting freezes when closing/quitting/opening new models
         // through the GUI. It looks like the EDT can't wait for the job thread to die. BCH 1/15/2015
@@ -131,6 +138,8 @@ public abstract class ChildModel {
                     }
                 } catch (InterruptedException e) {
                     // ok
+                } finally {
+                    jobThreadFinished = false;
                 }
                 return null;
             }
@@ -142,6 +151,7 @@ public abstract class ChildModel {
                 if (frame() != null) {
                     frame().dispose();
                 }
+                uiThreadFinished = true;
                 return null;
             }
         });

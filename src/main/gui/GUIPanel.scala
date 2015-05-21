@@ -1,9 +1,12 @@
-import org.nlogo.app.CommandCenter
-import org.nlogo.lite.InterfaceComponent
-import org.nlogo.window.{Zoomable, Events}
-import javax.swing._
+package gui
+
 import java.awt._
 import java.awt.event.ActionEvent
+import javax.swing._
+
+import org.nlogo.app.CommandCenter
+import org.nlogo.lite.InterfaceComponent
+import org.nlogo.window.Events
 
 class GUIPanel(ws: InterfaceComponent) extends JPanel with Events.OutputEvent.Handler {
   setLayout(new BorderLayout)
@@ -19,7 +22,7 @@ class GUIPanel(ws: InterfaceComponent) extends JPanel with Events.OutputEvent.Ha
 
   def handle(outputEvent: Events.OutputEvent): Unit = {
     if (outputEvent.clear)
-      cc.output.clear
+      cc.output.clear()
     else
       cc.output.append(outputEvent.outputObject, outputEvent.wrapLines)
   }

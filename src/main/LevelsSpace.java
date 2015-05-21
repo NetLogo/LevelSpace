@@ -9,16 +9,14 @@ import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.swing.JMenuItem;
-import javax.swing.JSlider;
-import javax.swing.MenuElement;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.nlogo.api.*;
 import org.nlogo.api.Argument;
 import org.nlogo.api.Context;
-import org.nlogo.app.App;
+import org.nlogo.app.*;
 import org.nlogo.api.ExtensionObject;
 import org.nlogo.api.ImportErrorHandler;
 import org.nlogo.api.LogoException;
@@ -26,7 +24,7 @@ import org.nlogo.api.LogoList;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
-import org.nlogo.app.ToolsMenu;
+import org.nlogo.awt.EventQueue$;
 import org.nlogo.nvm.*;
 import org.nlogo.nvm.ReporterTask;
 import org.nlogo.window.SpeedSliderPanel;
@@ -55,6 +53,8 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             haltChildModels(models);
         }
     };
+
+    private static BackingModelManager modelManager = new BackingModelManager();
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
@@ -137,6 +137,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void unload(ExtensionManager arg0) throws ExtensionException {
+        App.app().frame().getJMenuBar().remove(modelManager.guiComponent());
         if (haltButton != null) {
             haltButton.removeActionListener(haltListener);
         }
@@ -188,6 +189,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                     args[1].getCommandTask().perform(ctx, new Object[]{(double) modelCounter});
                 }
                 modelCounter++;
+                updateModelMenu();
             } catch (CompilerException e) {
                 throw new ExtensionException(modelPath + " did not compile properly. There is probably something wrong " +
                         "with its code. Exception said" + e.getMessage());
@@ -197,6 +199,16 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
                 throw new HaltException(false);
             }
         }
+    }
+
+    public static void updateModelMenu() {
+        Runnable reportModelOpened = new Runnable() {
+            @Override
+            public void run() {
+                modelManager.updateChildModels(models);
+            }
+        };
+        EventQueue$.MODULE$.invokeLater(reportModelOpened);
     }
 
     public static void reset() throws ExtensionException, HaltException {
@@ -420,6 +432,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public static void closeModel(int modelNumber) throws ExtensionException, HaltException {
         getModel(modelNumber).kill();
         models.remove(modelNumber);
+        updateModelMenu();
     }
 
     public static class UpdateView extends DefaultCommand {
@@ -656,7 +669,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void runOnce(ExtensionManager arg0) throws ExtensionException {
+        modelManager.updateChildModels(models);
 
+        final JMenuBar menuBar = App.app().frame().getJMenuBar();
+        if (menuBar.getComponentIndex(modelManager.guiComponent()) == -1) {
+            menuBar.add(modelManager.guiComponent());
+        }
     }
 
     private static void updateChildModelsSpeed(){

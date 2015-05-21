@@ -2,6 +2,7 @@ import java.awt._
 import java.awt.event.{ WindowAdapter, WindowEvent }
 import java.util.concurrent.Callable
 import javax.swing.{ FocusManager, JFrame, JMenuBar, JOptionPane, WindowConstants }
+import gui.{ZoomableInterfaceComponent, GUIPanel}
 import org.nlogo.api._
 import org.nlogo.lite.{LiteWorkspace, InterfaceComponent}
 import org.nlogo.nvm.HaltException
