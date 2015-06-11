@@ -28,6 +28,7 @@ import org.nlogo.api.PrimitiveManager;
 import org.nlogo.api.Syntax;
 import org.nlogo.app.ToolsMenu;
 import org.nlogo.nvm.*;
+import org.nlogo.nvm.ReporterTask;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -74,10 +75,12 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("hide", new Hide());
         primitiveManager.addPrimitive("_list-breeds", new ListBreeds());
         primitiveManager.addPrimitive("_globals", new Globals());
-//        primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());
         primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
         primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
+        primitiveManager.addPrimitive("_model-procedures", new ModelProcedures());
+        primitiveManager.addPrimitive("to-OTPL", new ToOTPL());
+
 
         if (useGUI()) {
             // Adding event listener to Halt for halting child models
@@ -242,7 +245,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
             String command = args[1].getString();
             Object[] actuals = getActuals(args, 2);
             for (ChildModel model : toModelList(args[0])) {
-                model.ask(command, actuals);
+              model.ask(command, actuals);
             }
         }
     }
@@ -381,6 +384,26 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     }
 
+    public static class ToOTPL extends DefaultReporter {
+            public Syntax getSyntax(){
+                return Syntax.reporterSyntax(new int[] {Syntax.CommandTaskType() | Syntax.ReporterTaskType() },
+                        Syntax.StringType());
+            }
+        @Override
+        public Object report(Argument[] args, Context arg1)
+                throws ExtensionException, LogoException {
+            Object task = args[0].get();
+            if (task instanceof ReporterTask) {
+                ReporterTask rTask = (ReporterTask) task;
+                return rTask.body().agentClassString;
+            } else {
+                org.nlogo.nvm.CommandTask cTask = (org.nlogo.nvm.CommandTask) task;
+                return cTask.procedure().syntax().agentClassString();
+            }
+        }
+
+    }
+
 
     public static class CloseModel extends DefaultCommand {
         public Syntax getSyntax() {
@@ -460,6 +483,18 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
+    // this returns the path of the model
+    public static class ModelProcedures extends DefaultReporter{
+        public Syntax getSyntax(){
+            return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
+                    Syntax.ListType());
+        }
+        public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
+            int modelNumber = args[0].getIntValue();
+            return getModel(modelNumber).getProcedures();
+        }
+    }
+
     public static class SetName extends DefaultCommand {
 
         @Override
@@ -506,34 +541,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-
-    public static class BreedsOwns extends DefaultReporter {
-        public Syntax getSyntax() {
-            return Syntax.reporterSyntax(
-                    // we take in int[] {modelNumber, varName}
-                    new int[] { Syntax.NumberType() },
-                    // and return a number
-                    Syntax.ListType());
-        }
-
-        public Object report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-
-            // find the model. if it exists, get all breeds + owns
-            if(models.containsKey(modelNumber))
-            {
-                ChildModel theModel = models.get(modelNumber);
-                return theModel.listBreedsOwns();
-
-            }
-            else{
-                return false;
-            }
-
-        }
-    }
     public static class ListBreeds extends DefaultReporter {
         public Syntax getSyntax() {
             return Syntax.reporterSyntax(

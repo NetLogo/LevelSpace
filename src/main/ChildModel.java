@@ -18,7 +18,6 @@ import org.nlogo.nvm.Reporter;
 import org.nlogo.prim.*;
 import org.nlogo.workspace.AbstractWorkspace;
 
-
 public abstract class ChildModel {
     private final World parentWorld;
     private JobOwner owner;
@@ -185,17 +184,19 @@ public abstract class ChildModel {
 
     public LogoList listBreedsOwns() {
         LogoListBuilder llb = new LogoListBuilder();
+        // add turtle vars as a separate tuple
+        LogoListBuilder tuple  = new LogoListBuilder();
+        LogoListBuilder vars = new LogoListBuilder();
+        vars.addAll(workspace().world().program().turtlesOwn());
+        tuple.add("TURTLES");
+        tuple.add(vars.toLogoList());
+        llb.add(tuple.toLogoList());
+
         for (Map.Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
         {
-            LogoListBuilder tuple  = new LogoListBuilder();
-            LogoListBuilder vars = new LogoListBuilder();
-            for (String s : entry.getValue()){
-                vars.add(s);
-            }
-            // add turtles own to all of them too
-            for (String s: workspace().world().program().turtlesOwn()){
-                vars.add(s);
-            }
+            tuple = new LogoListBuilder();
+            vars  = new LogoListBuilder();
+            vars.addAll(entry.getValue());
             tuple.add(entry.getKey());
             tuple.add(vars.toLogoList());
             llb.add(tuple.toLogoList());
@@ -204,12 +205,18 @@ public abstract class ChildModel {
 
     }
 
+    public LogoList listObserverProcedures(){
+        return null;
+    }
+
+    public LogoList listTurtleProcedures(){
+        return null;
+    }
+
     public LogoList listGlobals() {
         LogoListBuilder llb = new LogoListBuilder();
 
         for (int i = 0; i < workspace().world().observer().getVariableCount(); i++){
-//				theList.add(myWS.world().observer().variableName(i));
-            // we add all of them. We can manually edit the json file later.
             llb.add(workspace().world().observer().variableName(i));
         }
         return llb.toLogoList();
@@ -358,5 +365,26 @@ public abstract class ChildModel {
     private Procedure getCommandRunner(Reporter task, Object[] taskArgs) {
         commandRunner.code[0].args = makeArgumentArray(task, taskArgs);
         return commandRunner;
+    }
+
+    public LogoList getProcedures() {
+        LogoListBuilder outerLLB = new LogoListBuilder();
+        for (String pName : workspace().getProcedures().keySet()){
+            LogoListBuilder pList = new LogoListBuilder();
+            Procedure p = workspace().getProcedures().get(pName);
+            pList.add(pName);
+            pList.add(p.tyype.toString());
+            pList.add(p.usableBy);
+            LogoListBuilder argLLB = new LogoListBuilder();
+            // args contains dummies (temp 'lets') so we don't include them.
+            // localsCount contains number of lets so we just subtract that
+            for (int i = 0; i < p.args.size() - p.localsCount;i++){
+                String theString = p.args.get(i);
+                argLLB.add(theString);
+            }
+            pList.add(argLLB.toLogoList());
+            outerLLB.add(pList.toLogoList());
+        }
+        return outerLLB.toLogoList();
     }
 }
