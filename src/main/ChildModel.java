@@ -275,7 +275,7 @@ public abstract class ChildModel {
 
     public <T> T runUISafely(final Callable<T> callable) throws ExtensionException, HaltException {
         // waitFor is unsafe on the event queue, so if we're on the event queue, just run directly.
-        if (EventQueue.isDispatchThread()) {
+        if (SwingUtilities.isEventDispatchThread()) {
             try {
                 return callable.call();
             } catch (ExtensionException e) {
