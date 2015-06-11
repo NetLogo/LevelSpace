@@ -75,7 +75,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("hide", new Hide());
         primitiveManager.addPrimitive("_list-breeds", new ListBreeds());
         primitiveManager.addPrimitive("_globals", new Globals());
-//        primitiveManager.addPrimitive("_breeds-own", new BreedsOwns());
         primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
         primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
@@ -542,34 +541,6 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-
-    public static class BreedsOwns extends DefaultReporter {
-        public Syntax getSyntax() {
-            return Syntax.reporterSyntax(
-                    // we take in int[] {modelNumber, varName}
-                    new int[] { Syntax.NumberType() },
-                    // and return a number
-                    Syntax.ListType());
-        }
-
-        public Object report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-
-            // find the model. if it exists, get all breeds + owns
-            if(models.containsKey(modelNumber))
-            {
-                ChildModel theModel = models.get(modelNumber);
-                return theModel.listBreedsOwns();
-
-            }
-            else{
-                return false;
-            }
-
-        }
-    }
     public static class ListBreeds extends DefaultReporter {
         public Syntax getSyntax() {
             return Syntax.reporterSyntax(
