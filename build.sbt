@@ -15,8 +15,8 @@ scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings",
 
 libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "18.0",
-  "org.nlogo" % "NetLogo" % "5.1.0" from "http://ccl.northwestern.edu/netlogo/5.1.0/NetLogo.jar",
-  "org.nlogo" % "NetLogo-tests" % "5.1.0" % "test" from "http://ccl.northwestern.edu/netlogo/5.1.0/NetLogo-tests.jar",
+  "org.nlogo" % "NetLogo" % "5.2.0-LS1" from "http://ccl.northwestern.edu/devel/5.2.0-LS1/NetLogo.jar",
+  "org.nlogo" % "NetLogo-tests" % "5.2.0-LS1" % "test" from "http://ccl.northwestern.edu/devel/5.2.0-LS1/NetLogo-tests.jar",
   "org.scalatest" %% "scalatest" % "1.8" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
   "asm" % "asm-all" % "3.3.1" % "test"
