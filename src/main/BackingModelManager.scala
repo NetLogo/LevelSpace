@@ -1,13 +1,20 @@
 import gui.{ModelProceduresTab, LevelSpaceMenu}
 
+import java.util.{ Map => JMap }
+
 import org.nlogo.app.App
 import org.nlogo.workspace.AbstractWorkspace
 
 import scala.collection.JavaConversions._
 import scala.collection.parallel.mutable.ParHashMap
 
-class BackingModelManager extends gui.ModelManager {
-  val guiComponent  = new LevelSpaceMenu(App.app.tabs, this)
+trait LSModelManager extends gui.ModelManager {
+  def updateChildModels(map: JMap[java.lang.Integer, ChildModel]): Unit = {}
+  def guiComponent: LevelSpaceMenu = null
+}
+
+class BackingModelManager extends LSModelManager {
+  override val guiComponent  = new LevelSpaceMenu(App.app.tabs, this)
   val backingModels = ParHashMap.empty[String, (ChildModel, ModelProceduresTab)]
   var openModels    = Map.empty[String, ChildModel]
 
@@ -17,8 +24,8 @@ class BackingModelManager extends gui.ModelManager {
     val closedModelsPaths       = (openModels.values.toSet &~ models.toSet).map(_.workspace().getModelPath)
     val newlyOpenedPaths        = (models.toSet &~ openModels.values.toSet).map(_.workspace().getModelPath)
     openModels                  = (modelPaths zip models).toMap
-    (closedModelsPaths & openModelPaths).foreach(replaceTabAtPath)
-    (newlyOpenedPaths & openModelPaths).foreach(replaceTabAtPath)
+    (closedModelsPaths intersect openModelPaths).foreach(replaceTabAtPath)
+    (newlyOpenedPaths  intersect openModelPaths).foreach(replaceTabAtPath)
     guiComponent.addMenuItemsForOpenModels(
       models.map(_.workspace().getModelPath).toSeq)
   }
@@ -60,3 +67,10 @@ class BackingModelManager extends gui.ModelManager {
   }
 }
 
+// this is an example of the
+class HeadlessBackingModelManager extends LSModelManager {
+  def removeTab(tab: ModelProceduresTab): Unit = {}
+  def existingTab(filePath: String): Option[ModelProceduresTab] = None
+  def registerTab(filePath: String)
+                 (f: AbstractWorkspace => ModelProceduresTab): Option[ModelProceduresTab] = None
+}

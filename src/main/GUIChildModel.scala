@@ -15,24 +15,24 @@ import org.nlogo.workspace.AbstractWorkspace
 class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (parentWorld: World, path: String, levelsSpaceNumber: Int)
   extends ChildModel(parentWorld, levelsSpaceNumber) {
 
-  final val _frame: JFrame = new JFrame
+  final val frame: JFrame = new JFrame
 
   var panel: GUIPanel = null
-  val component = runUISafely(new RunGUIChildModel)
+  val component = runUISafely(RunGUIChildModel)
 
   init()
 
-  class RunGUIChildModel extends Callable[InterfaceComponent] {
+  object RunGUIChildModel extends Callable[InterfaceComponent] {
     @throws(classOf[Exception])
     def call: InterfaceComponent = {
-      val component: InterfaceComponent = new ZoomableInterfaceComponent(frame())
+      val component: InterfaceComponent = new ZoomableInterfaceComponent(frame)
       panel = new GUIPanel(component)
-      frame().add(panel)
+      frame.add(panel)
       val currentlyFocused: Window =
         Option(KeyboardFocusManager.getCurrentKeyboardFocusManager.getActiveWindow).getOrElse(App.app.frame)
-      frame().setLocationRelativeTo(currentlyFocused)
-      frame().setLocationByPlatform(true)
-      frame().setVisible(true)
+      frame.setLocationRelativeTo(currentlyFocused)
+      frame.setLocationByPlatform(true)
+      frame.setVisible(true)
       currentlyFocused.toFront()
       component.open(path)
       val c: Array[Component] = component.workspace.viewWidget.controlStrip.getComponents
@@ -42,9 +42,9 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
           ssp.setValue(0)
         case _ =>
       }
-      frame().pack()
-      frame().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
-      frame().addWindowListener(new GUIWindowAdapter)
+      frame.pack()
+      frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+      frame.addWindowListener(new GUIWindowAdapter)
       val newMenuBar = new JMenuBar()
       val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
       newMenuBar.add(zoomMenuClass.newInstance().asInstanceOf[org.nlogo.swing.Menu])
@@ -52,7 +52,6 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
       component
     }
   }
-
 
   class GUIWindowAdapter extends WindowAdapter {
     override def windowClosing(windowEvent: WindowEvent): Unit = {
@@ -82,6 +81,4 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   }
 
   def workspace: AbstractWorkspace = component.workspace
-
-  def frame(): JFrame = _frame
 }

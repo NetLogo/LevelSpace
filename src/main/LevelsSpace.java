@@ -30,6 +30,7 @@ import org.nlogo.nvm.ReporterTask;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
+import gui.ModelManager;
 
 public class LevelsSpace implements org.nlogo.api.ClassManager {
 
@@ -54,7 +55,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         }
     };
 
-    private static BackingModelManager modelManager = new BackingModelManager();
+    private static LSModelManager modelManager = useGUI() ? new BackingModelManager() : new HeadlessBackingModelManager();
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
@@ -137,7 +138,9 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void unload(ExtensionManager arg0) throws ExtensionException {
-        App.app().frame().getJMenuBar().remove(modelManager.guiComponent());
+        if (useGUI()) {
+            App.app().frame().getJMenuBar().remove(modelManager.guiComponent());
+        }
         if (haltButton != null) {
             haltButton.removeActionListener(haltListener);
         }
@@ -671,9 +674,11 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public void runOnce(ExtensionManager arg0) throws ExtensionException {
         modelManager.updateChildModels(models);
 
-        final JMenuBar menuBar = App.app().frame().getJMenuBar();
-        if (menuBar.getComponentIndex(modelManager.guiComponent()) == -1) {
-            menuBar.add(modelManager.guiComponent());
+        if (useGUI()) {
+            final JMenuBar menuBar = App.app().frame().getJMenuBar();
+            if (menuBar.getComponentIndex(modelManager.guiComponent()) == -1) {
+                menuBar.add(modelManager.guiComponent());
+            }
         }
     }
 
