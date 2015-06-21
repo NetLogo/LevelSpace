@@ -18,7 +18,7 @@ class BackingModelManager extends LSModelManager {
   val backingModels = ParHashMap.empty[String, (ChildModel, ModelProceduresTab)]
   var openModels    = Map.empty[String, ChildModel]
 
-  def updateChildModels(indexedModels: java.util.HashMap[java.lang.Integer, ChildModel]): Unit = {
+  override def updateChildModels(indexedModels: JMap[java.lang.Integer, ChildModel]): Unit = {
     val models                  = indexedModels.values
     val modelPaths: Seq[String] = models.map(_.workspace().getModelPath).toSeq
     val closedModelsPaths       = (openModels.values.toSet &~ models.toSet).map(_.workspace().getModelPath)
