@@ -10,7 +10,7 @@
     - [Command and Reporting models](#command-and-reporting-models)
         - [ask](#lsask-model-id--list-string-of-commands)
         - [of](#reporter-string-lsof-model-id--list)
-        - [report](#lsreport (_model-id_ | _list_)  _reporter-string_)
+        - [report](#lsreport-model-id--list--reporter-string)
         - [ask-descendent](#lsask-descendent-list-string-of-commands)
         - [of-descendent](#-lsof-descendent-list)
     - [Logic & Control](#logic-control)
