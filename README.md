@@ -10,8 +10,9 @@
     - [Command and Reporting models](#command-and-reporting-models)
         - [ask](#lsask-model-id--list-string-of-commands)
         - [of](#reporter-string-lsof-model-id--list)
+        - [report](#lsreport (_model-id_ | _list_)  _reporter-string_)
         - [ask-descendent](#lsask-descendent-list-string-of-commands)
-        - [of-descendent](#reporter-string-lsof-descendent-list)
+        - [of-descendent](#-lsof-descendent-list)
     - [Logic & Control](#logic-control)
         - [models](#lsmodels)
         - [show](#lsshow-model-id)
@@ -97,6 +98,19 @@ Unfortunately, you can't give the reporter in `ls:of` arguments like you can wit
 ```
 let turtle-id 5
 (word "[ color ] of turtle " turtle-id) ls:of model-id
+```
+
+####`ls:report` (_model-id_ | _list_)  _reporter-string_
+
+Run the given reporter in the given model and report the result. This is an alternative to `ls:of` that takes arguments.
+
+`ls:report` is designed to work like NetLogo's inbuilt `runresult`: If you send `ls:report` a model-id and a reporter, it will report the value of the reporter from that model. If you send it a list of model-ids, it will report a list of values of the reporter string from all models.
+
+`ls:report` can take arguments if you wrap the whole expression in parantheses:
+
+```
+let turtle-id 5
+(ls:report model-id "[ color ] of turtle ? " turtle-id)
 ```
 
 
