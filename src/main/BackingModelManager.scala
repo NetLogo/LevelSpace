@@ -19,15 +19,17 @@ class BackingModelManager extends LSModelManager {
   var openModels    = Map.empty[String, ChildModel]
 
   override def updateChildModels(indexedModels: JMap[java.lang.Integer, ChildModel]): Unit = {
-    val models                  = indexedModels.values
-    val modelPaths: Seq[String] = models.map(_.workspace().getModelPath).toSeq
-    val closedModelsPaths       = (openModels.values.toSet &~ models.toSet).map(_.workspace().getModelPath)
-    val newlyOpenedPaths        = (models.toSet &~ openModels.values.toSet).map(_.workspace().getModelPath)
-    openModels                  = (modelPaths zip models).toMap
+    val models            = indexedModels.values
+
+    // toSeq.distinct preserves ordering, whereas toSet does not
+    val modelPaths        = models.map(_.workspace().getModelPath).toSeq.distinct
+
+    val closedModelsPaths = (openModels.values.toSet &~ models.toSet).map(_.workspace().getModelPath)
+    val newlyOpenedPaths  = (models.toSet &~ openModels.values.toSet).map(_.workspace().getModelPath)
+    openModels            = (modelPaths zip models).toMap
     (closedModelsPaths intersect openModelPaths).foreach(replaceTabAtPath)
     (newlyOpenedPaths  intersect openModelPaths).foreach(replaceTabAtPath)
-    guiComponent.addMenuItemsForOpenModels(
-      models.map(_.workspace().getModelPath).toSeq)
+    guiComponent.addMenuItemsForOpenModels(modelPaths)
   }
 
   private def replaceTabAtPath(filePath: String) =
