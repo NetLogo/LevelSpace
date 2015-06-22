@@ -119,6 +119,17 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
         return !"true".equals(System.getProperty("java.awt.headless"));
     }
 
+    public static boolean isMainModel() {
+        for (ClassManager cm : App.app().workspace().getExtensionManager().loadedExtensions()) {
+            if (cm.getClass() == LevelsSpace.class) {
+                return true;
+            }
+        }
+        // The contains check determines whether or not LS has finished loading. If it hasn't, we're
+        // almost certainly the main model.
+        return !App.app().workspace().getExtensionManager().getExtensionNames().contains("ls");
+    }
+
     public static ChildModel getModel(int id) throws ExtensionException {
         if (models.containsKey(id)) {
             return models.get(id);
@@ -138,7 +149,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void unload(ExtensionManager arg0) throws ExtensionException {
-        if (useGUI()) {
+        if (useGUI() && isMainModel()) {
             App.app().frame().getJMenuBar().remove(modelManager.guiComponent());
         }
         if (haltButton != null) {
@@ -674,7 +685,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
     public void runOnce(ExtensionManager arg0) throws ExtensionException {
         modelManager.updateChildModels(models);
 
-        if (useGUI()) {
+        if (useGUI() && isMainModel()) {
             final JMenuBar menuBar = App.app().frame().getJMenuBar();
             if (menuBar.getComponentIndex(modelManager.guiComponent()) == -1) {
                 menuBar.add(modelManager.guiComponent());
