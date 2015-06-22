@@ -7,7 +7,7 @@ import javax.swing._
 
 import org.nlogo.api.ModelSections.{BufSaveable, Saveable}
 import org.nlogo.api.{CompilerException, ExtensionException, ModelReader, ModelSections, Shape, Version}
-import org.nlogo.app.{ModelSaver, App, Tabs}
+import org.nlogo.app.{ProceduresTab, ModelSaver, App, Tabs}
 import org.nlogo.awt.UserCancelException
 import org.nlogo.shape.{VectorShape, LinkShape}
 import org.nlogo.swing.FileDialog
@@ -18,7 +18,7 @@ import scala.collection.JavaConversions._
 
 trait ModelManager {
   def removeTab(tab: ModelProceduresTab): Unit
-  def existingTab(filePath: String): Option[ModelProceduresTab]
+  def existingTab(filePath: String): Option[ProceduresTab]
   def registerTab(filePath: String)
                  (f: AbstractWorkspace => ModelProceduresTab): Option[ModelProceduresTab]
 }
@@ -71,13 +71,13 @@ object LevelSpaceMenu {
 
     def filePath: Option[String]
 
-    def actingTab: Option[ModelProceduresTab] =
+    def actingTab: Option[ProceduresTab] =
       filePath.flatMap(path => locateExistingTab(path) orElse createNewTab(path))
 
-    private def locateExistingTab(path: String): Option[ModelProceduresTab] =
+    private def locateExistingTab(path: String): Option[ProceduresTab] =
       modelManager.existingTab(path)
 
-    private def createNewTab(path: String): Option[ModelProceduresTab] = {
+    private def createNewTab(path: String): Option[ProceduresTab] = {
       modelManager.registerTab(path) { workspace =>
         val tab = new ModelProceduresTab(workspace, tabs, modelManager)
         tabs.addTab(tab.tabName, tab)
@@ -99,7 +99,7 @@ object LevelSpaceMenu {
 
     override def filePath: Option[String] = selectFile
 
-    override def actingTab: Option[ModelProceduresTab] =
+    override def actingTab: Option[ProceduresTab] =
       try {
         super.actingTab
       } catch {

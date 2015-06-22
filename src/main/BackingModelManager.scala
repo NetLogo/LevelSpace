@@ -2,7 +2,7 @@ import gui.{ModelProceduresTab, LevelSpaceMenu}
 
 import java.util.{ Map => JMap }
 
-import org.nlogo.app.App
+import org.nlogo.app.{ProceduresTab, App}
 import org.nlogo.workspace.AbstractWorkspace
 
 import scala.collection.JavaConversions._
@@ -37,8 +37,11 @@ class BackingModelManager extends LSModelManager {
 
   def openModelPaths = backingModels.seq.keySet
 
-  def existingTab(filePath: String): Option[ModelProceduresTab] =
-    backingModels.get(filePath).map(_._2)
+  def existingTab(filePath: String): Option[ProceduresTab] =
+    if (filePath == App.app.workspace.getModelPath)
+      Some(App.app.tabs.proceduresTab)
+    else
+      backingModels.get(filePath).map(_._2)
 
   def removeTab(tab: ModelProceduresTab): Unit = {
     if (! openModelPaths(tab.filePath))
