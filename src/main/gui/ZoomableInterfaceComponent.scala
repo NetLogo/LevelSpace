@@ -11,6 +11,8 @@ import org.nlogo.window._
 
 import scala.collection.mutable.{HashMap => MMap, MutableList => MList}
 
+import scala.language.implicitConversions
+
 trait ZoomableContainer
   extends ComponentListener
   with ContainerListener {
