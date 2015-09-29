@@ -32,7 +32,7 @@ import org.nlogo.window.ViewUpdatePanel;
 
 import gui.ModelManager;
 
-public class LevelsSpace implements org.nlogo.api.ClassManager {
+public class LevelSpace implements org.nlogo.api.ClassManager {
 
     private final static HashMap<Integer, ChildModel> models = new HashMap<Integer, ChildModel>();
 
@@ -121,7 +121,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
     public static boolean isMainModel() {
         for (ClassManager cm : App.app().workspace().getExtensionManager().loadedExtensions()) {
-            if (cm.getClass() == LevelsSpace.class) {
+            if (cm.getClass() == LevelSpace.class) {
                 return true;
             }
         }
@@ -647,7 +647,7 @@ public class LevelsSpace implements org.nlogo.api.ClassManager {
 
         @Override
         public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
-            return getModel(args[0].getIntValue()).usesLevelsSpace();
+            return getModel(args[0].getIntValue()).usesLevelSpace();
         }
     }
 

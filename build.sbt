@@ -1,12 +1,12 @@
 enablePlugins(org.nlogo.build.NetLogoExtension)
 
-name := "LevelsSpace"
+name := "LevelSpace"
 
 scalaVersion := "2.11.7"
 
 retrieveManaged := true
 
-netLogoClassManager := "LevelsSpace"
+netLogoClassManager := "LevelSpace"
 
 netLogoExtName      := "ls"
 

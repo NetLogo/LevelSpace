@@ -60,7 +60,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
       n match {
         case 0 =>
           try {
-            LevelsSpace.closeModel(levelsSpaceNumber)
+            LevelSpace.closeModel(levelsSpaceNumber)
           } catch {
             case e: ExtensionException => throw new RuntimeException(e)
             case e: HaltException =>

@@ -226,15 +226,15 @@ public abstract class ChildModel {
 
     Class<?> getLevelSpace() {
         for (Object cm : this.workspace().getExtensionManager().loadedExtensions()) {
-            if ("class LevelsSpace".equals(cm.getClass().toString())) {
+            if ("class LevelSpace".equals(cm.getClass().toString())) {
                 return cm.getClass();
             }
         }
         return null;
     }
 
-    public boolean usesLevelsSpace() {
-        if (getLevelSpace() == LevelsSpace.class) {
+    public boolean usesLevelSpace() {
+        if (getLevelSpace() == LevelSpace.class) {
             System.err.println("same ls");
         }
         return getLevelSpace() != null;
