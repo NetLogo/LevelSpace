@@ -1,2 +1,2 @@
-addSbtPlugin("org.nlogo" % "netlogo-extension-plugin" % "2.0_5.0.x" from
-  "http://ccl.northwestern.edu/devel/netlogo-extension-plugin-2.0_5.0.x.jar")
+addSbtPlugin("org.nlogo" % "netlogo-extension-plugin" % "2.2_5.3.x-M2" from
+  "https://github.com/NetLogo/NetLogo-Extension-Plugin/releases/download/v2.2_5.3-M2/netlogo-extension-plugin-2.2_5.3.x.jar")

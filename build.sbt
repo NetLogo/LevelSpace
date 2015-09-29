@@ -1,8 +1,14 @@
+enablePlugins(org.nlogo.build.NetLogoExtension)
+
 name := "LevelsSpace"
 
 scalaVersion := "2.11.7"
 
 retrieveManaged := true
+
+netLogoClassManager := "LevelsSpace"
+
+netLogoExtName      := "ls"
 
 javaSource  in Compile <<= baseDirectory(_ / "src" / "main")
 
@@ -15,18 +21,22 @@ scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warning
 
 libraryDependencies ++= Seq(
   "com.google.guava"  % "guava"         % "18.0",
-  "org.nlogo"         % "NetLogo"       % "5.3-LevelSpace"          from "http://ccl.northwestern.edu/devel/NetLogo-5.3-LevelSpace-3a6b9b4.jar",
-  "org.nlogo"         % "NetLogo-tests" % "5.3-LevelSpace" % "test" from "http://ccl.northwestern.edu/devel/NetLogo-tests-5.3-LevelSpace-3a6b9b4.jar",
   "org.scalatest"     %% "scalatest"    % "2.2.4" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
   "asm"               % "asm-all"       % "3.3.1" % "test"
 )
 
-artifactName := { (_, _, _) => "ls.jar" }
-
-netLogoClassManager := "LevelsSpace"
-
-netLogoExtName      := "ls"
+packageBin in Compile := {
+  val jar = (packageBin in Compile).value
+  val zip = baseDirectory.value / (netLogoExtName.value + ".zip")
+  if (zip.exists) {
+    IO.unzip(zip, baseDirectory.value)
+    for (jar <- (baseDirectory.value / netLogoExtName.value ** "*.jar").get)
+      IO.copyFile(jar, baseDirectory.value / jar.getName)
+    IO.delete(baseDirectory.value / netLogoExtName.value)
+  }
+  jar
+}
 
 netLogoZipSources   := false
 
@@ -38,4 +48,23 @@ test in Test := {
 cleanFiles <++= baseDirectory { base =>
   Seq(base / "extensions")
 }
+
+val netLogoJarsOrDependencies =
+  Option(System.getProperty("netlogo.jar.url"))
+    .orElse(Some("http://ccl.northwestern.edu/devel/NetLogo-5.3.levelspace-7f479a4.jar"))
+    .map { url =>
+      import java.io.File
+      import java.net.URI
+      val testsUrl = url.replaceFirst("NetLogo", "NetLogo-tests")
+      if (url.startsWith("file:"))
+        (Seq(new File(new URI(url)), new File(new URI(testsUrl))), Seq())
+      else
+        (Seq(), Seq(
+          "org.nlogo" % "NetLogo" % "5.3.levelspace" from url,
+          "org.nlogo" % "NetLogo-tests" % "5.3.levelspace" % "test" from testsUrl))
+    }.get
+
+unmanagedJars in Compile ++= netLogoJarsOrDependencies._1
+
+libraryDependencies ++= netLogoJarsOrDependencies._2
 
