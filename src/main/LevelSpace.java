@@ -174,6 +174,21 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
+    private static String getCodeString(Object codeObj) {
+        String code;
+        if (codeObj instanceof List<?>) {
+            List<Token> tokens = (List<Token>) codeObj;
+            StringBuilder builder = new StringBuilder();
+            for (Token t : tokens) {
+                builder.append(t.name()).append(" ");
+            }
+            code = builder.toString();
+        } else {
+            code = (String) codeObj;
+        }
+        return code;
+    }
+
     public static class LoadModel<T extends ChildModel> extends DefaultCommand {
         private Class<T> modelType;
 
@@ -263,12 +278,12 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
                     new int[]{Syntax.NumberType() | Syntax.ListType(),
-                            Syntax.CommandTaskType() | Syntax.StringType(),
+                            Syntax.StringType() | Syntax.CodeBlockType(),
                             Syntax.RepeatableType() | Syntax.WildcardType()},
                     2);
         }
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            String command = args[1].getString();
+            String command = getCodeString(args[1].get());
             Object[] actuals = getActuals(args, 2);
             for (ChildModel model : toModelList(args[0])) {
               model.ask(command, actuals);
@@ -280,7 +295,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         @Override
         public Syntax getSyntax() {
             return Syntax.reporterSyntax(
-                    Syntax.ReporterTaskType() | Syntax.StringType(), // Code
+                    Syntax.CodeBlockType() | Syntax.StringType(), // Code
                     new int[]{
                             Syntax.WildcardType() | Syntax.RepeatableType() // This covers both models (as a number or list) and args
                     },
@@ -291,7 +306,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
         public Object report(Argument args[], Context context) throws LogoException, ExtensionException {
             LogoListBuilder results = new LogoListBuilder();
-            String reporter = args[0].getString();
+            String reporter = getCodeString(args[0].get());
             Object[] actuals = getActuals(args, 2);
             for (ChildModel model : toModelList(args[1])){
                 results.add(model.of(reporter, actuals));
@@ -307,7 +322,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
             return Syntax.reporterSyntax(
                     new int[]{
                             Syntax.NumberType() | Syntax.ListType(),
-                            Syntax.ReporterTaskType() | Syntax.StringType(),
+                            Syntax.CodeBlockType() | Syntax.StringType(),
                             Syntax.WildcardType() | Syntax.RepeatableType()
                     },
                     Syntax.WildcardType(),
@@ -316,7 +331,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
         public Object report(Argument args[], Context context) throws LogoException, ExtensionException {
             LogoListBuilder results = new LogoListBuilder();
-            String reporter = args[1].getString();
+            String reporter = getCodeString(args[1].get());
             Object[] actuals = getActuals(args, 2);
             for (ChildModel model : toModelList(args[0])){
                 results.add(model.of(reporter, actuals));
@@ -355,7 +370,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         public void perform(Argument args[], Context context)
                 throws ExtensionException, LogoException {
             LogoList list = args[0].getList();
-            String cmd = args[1].getString();
+            String cmd = getCodeString(args[1].get());
             Object[] actuals = getActuals(args, 2);
             askDescendant(list, cmd, actuals);
         }
@@ -403,11 +418,10 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         @Override
         public Object report(Argument[] args, Context arg1)
                 throws ExtensionException, LogoException {
-            String reporter = args[0].getString();
+            String reporter = getCodeString(args[0].get());
             LogoList modelTreePath = args[1].getList();
             return ofDescendant(modelTreePath, reporter, new Object[0]);
         }
-
     }
 
     public static class ToOTPL extends DefaultReporter {
