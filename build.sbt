@@ -1,3 +1,5 @@
+import org.nlogo.build.NetLogoExtension
+
 enablePlugins(org.nlogo.build.NetLogoExtension)
 
 name := "LevelSpace"
@@ -25,18 +27,6 @@ libraryDependencies ++= Seq(
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
   "asm"               % "asm-all"       % "3.3.1" % "test"
 )
-
-packageBin in Compile := {
-  val jar = (packageBin in Compile).value
-  val zip = baseDirectory.value / (netLogoExtName.value + ".zip")
-  if (zip.exists) {
-    IO.unzip(zip, baseDirectory.value)
-    for (jar <- (baseDirectory.value / netLogoExtName.value ** "*.jar").get)
-      IO.copyFile(jar, baseDirectory.value / jar.getName)
-    IO.delete(baseDirectory.value / netLogoExtName.value)
-  }
-  jar
-}
 
 netLogoZipSources   := false
 
