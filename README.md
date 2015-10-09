@@ -21,6 +21,7 @@
         - [name-of](#lsname-of-model-id)
         - [model-exists?](#lsmodel-exists-model-id)
     - [Examples of use](#examples-of-use)
+- [How to Cite](#citing-levelspace-in-research)
 
 # General
 
@@ -197,6 +198,11 @@ to-report max-one-of-models [models reporter]
   report item the-max-position randomized-model-list
 end
 ```
+## Citing LevelSpace in Research
+If you use LevelSpace in research, we ask that you cite us,
+
+Hjorth, A.  Head, B. & Wilensky, U. (2015). “LevelSpace NetLogo extension”. http://ccl.northwestern.edu/levelspace/index.html Evanston, IL: Center for Connected Learning and Computer Based Modeling, Northwestern University.
+
 ## Terms of Use
 
 Copyright 1999-2014 by Uri Wilensky.
