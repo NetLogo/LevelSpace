@@ -58,3 +58,4 @@ unmanagedJars in Compile ++= netLogoJarsOrDependencies._1
 
 libraryDependencies ++= netLogoJarsOrDependencies._2
 
+netLogoTarget       := NetLogoExtension.directoryTarget(baseDirectory.value)
