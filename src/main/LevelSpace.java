@@ -1,3 +1,4 @@
+import scala.collection.JavaConverters;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -7,11 +8,16 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import com.google.common.collect.MapMaker;
 
 import org.nlogo.api.*;
 import org.nlogo.api.Argument;
@@ -59,6 +65,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
+        primitiveManager.addPrimitive("let", new LetPrim());
         primitiveManager.addPrimitive("ask", new Ask());
         primitiveManager.addPrimitive("of", new Of());
         primitiveManager.addPrimitive("report", new Report());
@@ -274,6 +281,42 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
+    /**
+     * In order to ensure no LS locals collide with regular locals in the
+     * parent, we prefix with "ls ". This guarantees no collisions because
+     * NetLogo locals are cannot contain space (and don't contain lower-case
+     * letters, but I don't think that should be relied upon).
+     * - BCH 10/11/2015
+     **/
+    private static final String LET_PREFIX = "ls ";
+    private static Map<Let, Object> letBindings(Context ctx) {
+        return JavaConverters.seqAsJavaListConverter(((ExtensionContext) ctx).nvmContext().allLets()).asJava()
+            .stream()
+            .filter(b -> b.let.varName().startsWith(LET_PREFIX))
+            .collect(Collectors.toMap( b ->
+                new Let(b.let.varName().substring(LET_PREFIX.length()), b.let.startPos(), b.let.endPos(), b.let.children())
+            , b -> b.value));
+    }
+
+    private static Map<String, Let> canonicalLets = new MapMaker()
+        .concurrencyLevel(1)
+        .weakValues()
+        .makeMap();
+
+    public static class LetPrim extends DefaultCommand {
+        public Syntax getSyntax() {
+            return Syntax.commandSyntax(new int[] { Syntax.SymbolType(), Syntax.ReadableType()});
+        }
+
+        public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
+            Token t = args[0].getSymbol();
+            Let l = Let.apply(LET_PREFIX + t.name(), -1, -1, Collections.<Let>emptyList());
+            canonicalLets.put(t.name(), l);
+            org.nlogo.nvm.Context nvmContext = ((ExtensionContext) context).nvmContext();
+            nvmContext.let(l, args[1].get());
+        }
+    }
+
     public static class Ask extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
@@ -283,10 +326,23 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                     2);
         }
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            String command = getCodeString(args[1].get());
             Object[] actuals = getActuals(args, 2);
+            Map<Let, Object> bindings = letBindings(context);
+            Object[] actualActuals = new Object[actuals.length + bindings.size()];
+            int i = 0;
+            for (Object a : actuals) {
+                actualActuals[i] = actuals[i];
+                i++;
+            }
+            StringBuilder builder = new StringBuilder();
+            for (Map.Entry<Let, Object> b : bindings.entrySet()) {
+                builder.append("let ").append(b.getKey().varName()).append(" ?").append(i + 1).append(" ");
+                actualActuals[i] = b.getValue();
+                i++;
+            }
+            String command = builder.toString() + " " + getCodeString(args[1].get());
             for (ChildModel model : toModelList(args[0])) {
-              model.ask(command, actuals);
+              model.ask(command, actualActuals);
             }
         }
     }
@@ -363,7 +419,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     public static class HierarchicalAsk extends DefaultCommand {
         public Syntax getSyntax() {
             return Syntax.commandSyntax(
-                    new int[]{Syntax.ListType(), Syntax.StringType(), Syntax.RepeatableType() | Syntax.WildcardType()},
+                    new int[]{Syntax.ListType(), Syntax.StringType() | Syntax.CodeBlockType(), Syntax.RepeatableType() | Syntax.WildcardType()},
                     2);
         }
 
@@ -406,7 +462,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     public static class HierarchicalOf extends DefaultReporter {
         public Syntax getSyntax(){
             return Syntax.reporterSyntax(
-                    Syntax.StringType(),
+                    Syntax.StringType() | Syntax.CodeBlockType(),
                     new int[]{ Syntax.ListType() },
                     Syntax.WildcardType(),
                     org.nlogo.api.Syntax.NormalPrecedence() + 1,
