@@ -1,0 +1,98 @@
+import scala.collection.breakOut
+import scala.collection.JavaConverters._
+import scala.collection.mutable.{Map => MMap}
+
+import org.nlogo.api.{Syntax, Let, Context, Argument, DefaultCommand, DefaultReporter, Token, LogoList}
+import org.nlogo.nvm.{Context => NvmContext, ExtensionContext}
+
+import com.google.common.collect.MapMaker
+
+
+object CtxConverter {
+  def nvm(ctx: Context): NvmContext = ctx.asInstanceOf[ExtensionContext].nvmContext
+}
+
+object LetPrim extends DefaultCommand {
+  /**
+   * In order to ensure no LS locals collide with regular locals in the
+   * parent, we prefix with "ls ". This guarantees no collisions because
+   * NetLogo locals are cannot contain space (and don't contain lower-case
+   * letters, but I don't think that should be relied upon).
+   * - BCH 10/11/2015
+   **/
+  val LetPrefix = "ls "
+
+  def letBindings(ctx: NvmContext): Seq[(Let, AnyRef)] =
+    ctx.allLets
+      .filter(_.let.varName.startsWith(LetPrefix))
+      .map { b =>
+          new Let(b.let.varName.substring(LetPrefix.length),
+                  b.let.startPos,
+                  b.let.endPos,
+                  b.let.children) -> b.value}
+
+  override def getSyntax = Syntax.commandSyntax(Array(Syntax.SymbolType, Syntax.ReadableType))
+
+  override def perform(args: Array[Argument], ctx: Context) = {
+    val token = args(0).getSymbol
+    val let = Let(LetPrefix + token.name, token.startPos, token.endPos, List.empty[Let].asJava)
+    CtxConverter.nvm(ctx).let(let, args(1).get)
+  }
+}
+
+trait RunPrim {
+  def run[T](ctx: Context, tokens: java.util.List[Token], args: Array[AnyRef], runFunc: (String, Array[AnyRef]) => T): T = {
+    val bindings = LetPrim.letBindings(CtxConverter.nvm(ctx))
+    val vars = bindings.zipWithIndex.map {
+      case ((l, v), i) => l.varName -> ("?" + (1 + args.length + i))
+    }(breakOut): Map[String, String]
+
+
+    val code = tokens.asScala.map { t => vars.getOrElse(t.name, t.name) }.mkString(" ")
+
+    runFunc(code, args ++ bindings.map(_._2))
+  }
+}
+
+object Ask extends DefaultCommand with RunPrim {
+  override def getSyntax =
+    Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType,
+                               Syntax.CodeBlockType,
+                               Syntax.RepeatableType | Syntax.ReadableType), 2)
+
+  override def perform(args: Array[Argument], ctx: Context) =
+    run(ctx, args(1).getCode, args.slice(2, args.size).map(_.get), (code, actuals) => {
+      LevelSpace.toModelList(args(0)).foreach(_.ask(code, actuals))
+    })
+}
+
+object Of extends DefaultReporter with RunPrim {
+  override def getSyntax =
+    Syntax.reporterSyntax(Syntax.CodeBlockType,
+                          Array(Syntax.NumberType | Syntax.ListType),
+                          Syntax.ReadableType,
+                          Syntax.NormalPrecedence + 1,
+                          true)
+
+  override def report(args: Array[Argument], ctx: Context): AnyRef =
+    run(ctx, args(0).getCode, Array.empty[AnyRef], (code, actuals) => {
+      val results = LevelSpace.toModelList(args(1)).map(_.of(code, actuals)).toVector
+      if (results.size == 1) results.head else LogoList.fromVector(results)
+    })
+}
+
+object Report extends DefaultReporter with RunPrim {
+  override def getSyntax =
+    Syntax.reporterSyntax(Array(Syntax.NumberType | Syntax.ListType,
+                                Syntax.CodeBlockType,
+                                Syntax.RepeatableType | Syntax.ReadableType),
+                          Syntax.ReadableType, 2)
+
+  override def report(args: Array[Argument], ctx: Context): AnyRef =
+    run(ctx, args(1).getCode, args.slice(2, args.size).map(_.get), (code, actuals) => {
+      val results = LevelSpace.toModelList(args(0)).map(_.of(code, actuals)).toVector
+      if (results.size == 1) results.head else LogoList.fromVector(results)
+    })
+}
+
+
