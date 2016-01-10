@@ -36,7 +36,10 @@ object LetPrim extends DefaultCommand {
   override def perform(args: Array[Argument], ctx: Context) = {
     val token = args(0).getSymbol
     val let = Let(LetPrefix + token.name, token.startPos, token.endPos, List.empty[Let].asJava)
-    CtxConverter.nvm(ctx).let(let, args(1).get)
+    CtxConverter.nvm(ctx).letBindings.find(_.let.varName equals let.varName) match {
+      case Some(lb) => lb.value = args(1).get
+      case None     => CtxConverter.nvm(ctx).let(let, args(1).get)
+    }
   }
 }
 
