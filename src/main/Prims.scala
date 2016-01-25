@@ -1,9 +1,9 @@
 import scala.collection.breakOut
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{Map => MMap}
+import scala.collection.mutable.{Map => MMap, WeakHashMap}
 
-import org.nlogo.api.{Syntax, Let, Context, Argument, DefaultCommand, DefaultReporter, Token, LogoList}
-import org.nlogo.nvm.{Context => NvmContext, ExtensionContext}
+import org.nlogo.api.{Syntax, Let, Context, Argument, DefaultCommand, DefaultReporter, Token, LogoList, ExtensionException}
+import org.nlogo.nvm.{Context => NvmContext, ExtensionContext, Activation}
 
 import com.google.common.collect.MapMaker
 
@@ -12,7 +12,12 @@ object CtxConverter {
   def nvm(ctx: Context): NvmContext = ctx.asInstanceOf[ExtensionContext].nvmContext
 }
 
+class ScopedVals(firstBinding: (Activation, AnyRef)) extends WeakHashMap[Activation, AnyRef] {
+  this(firstBinding._1) = firstBinding._2
+}
+
 object LetPrim extends DefaultCommand {
+
   /**
    * In order to ensure no LS locals collide with regular locals in the
    * parent, we prefix with "ls ". This guarantees no collisions because
@@ -29,17 +34,25 @@ object LetPrim extends DefaultCommand {
           new Let(b.let.varName.substring(LetPrefix.length),
                   b.let.startPos,
                   b.let.endPos,
-                  b.let.children) -> b.value}
+                  b.let.children) -> toScopedVals(b.value)(ctx.activation)}
 
   override def getSyntax = Syntax.commandSyntax(Array(Syntax.SymbolType, Syntax.ReadableType))
 
   override def perform(args: Array[Argument], ctx: Context) = {
     val token = args(0).getSymbol
     val let = Let(LetPrefix + token.name, token.startPos, token.endPos, List.empty[Let].asJava)
-    CtxConverter.nvm(ctx).letBindings.find(_.let.varName equals let.varName) match {
-      case Some(lb) => lb.value = args(1).get
-      case None     => CtxConverter.nvm(ctx).let(let, args(1).get)
+    val nvmCtx = CtxConverter.nvm(ctx)
+    nvmCtx.letBindings.find(_.let.varName equals let.varName) match {
+      // Note that we need to replace the value in the map is found since different scopes can have the same
+      // Activation. `ask` is the most common instance of this. -- BCH 1/23/2016
+      case Some(lb) => toScopedVals(lb.value)(nvmCtx.activation) = args(1).get
+      case None     => nvmCtx.let(let, new ScopedVals(nvmCtx.activation -> args(1).get))
     }
+  }
+
+  def toScopedVals(x: AnyRef): ScopedVals = x match {
+    case vba: ScopedVals => vba
+    case _ => throw new ExtensionException("Something besides an activation map was found in an LS variable. This is a bug. Please report.")
   }
 }
 
