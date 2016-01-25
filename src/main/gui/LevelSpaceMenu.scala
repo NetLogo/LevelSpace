@@ -7,7 +7,7 @@ import javax.swing._
 
 import org.nlogo.api.ModelSections.{BufSaveable, Saveable}
 import org.nlogo.api.{CompilerException, ExtensionException, ModelReader, ModelSections, Shape, Version}
-import org.nlogo.app.{ProceduresTab, ModelSaver, App, Tabs}
+import org.nlogo.app.{CodeTab, ModelSaver, App, Tabs}
 import org.nlogo.awt.UserCancelException
 import org.nlogo.shape.{VectorShape, LinkShape}
 import org.nlogo.swing.FileDialog
@@ -17,10 +17,10 @@ import org.nlogo.workspace.{AbstractWorkspace, ModelsLibrary}
 import scala.collection.JavaConversions._
 
 trait ModelManager {
-  def removeTab(tab: ModelProceduresTab): Unit
-  def existingTab(filePath: String): Option[ProceduresTab]
+  def removeTab(tab: ModelCodeTab): Unit
+  def existingTab(filePath: String): Option[CodeTab]
   def registerTab(filePath: String)
-                 (f: AbstractWorkspace => ModelProceduresTab): Option[ModelProceduresTab]
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab]
 }
 
 class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
@@ -45,7 +45,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
       openModels.setEnabled(true)
   }
 
-  def replaceTab(oldTab: ModelProceduresTab): Unit =
+  def replaceTab(oldTab: ModelCodeTab): Unit =
     newHeadlessBackedTab(oldTab.filePath).foreach {
       newTab => replaceSwingTab(oldTab, newTab)
     }
@@ -54,12 +54,12 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
     menu.add(new OpenModelAction(filePath, backingModelManager))
   }
 
-  private def newHeadlessBackedTab(filePath: String): Option[ModelProceduresTab] =
+  private def newHeadlessBackedTab(filePath: String): Option[ModelCodeTab] =
     backingModelManager.registerTab(filePath) { workspace =>
-      new ModelProceduresTab(workspace, tabs, backingModelManager)
+      new ModelCodeTab(workspace, tabs, backingModelManager)
     }
 
-  private def replaceSwingTab(oldTab: ModelProceduresTab, newTab: ModelProceduresTab): Unit = {
+  private def replaceSwingTab(oldTab: ModelCodeTab, newTab: ModelCodeTab): Unit = {
     val i = tabs.getIndexOfComponent(oldTab)
     tabs.setComponentAt(i, newTab)
   }
@@ -71,15 +71,15 @@ object LevelSpaceMenu {
 
     def filePath: Option[String]
 
-    def actingTab: Option[ProceduresTab] =
+    def actingTab: Option[CodeTab] =
       filePath.flatMap(path => locateExistingTab(path) orElse createNewTab(path))
 
-    private def locateExistingTab(path: String): Option[ProceduresTab] =
+    private def locateExistingTab(path: String): Option[CodeTab] =
       modelManager.existingTab(path)
 
-    private def createNewTab(path: String): Option[ProceduresTab] = {
+    private def createNewTab(path: String): Option[CodeTab] = {
       modelManager.registerTab(path) { workspace =>
-        val tab = new ModelProceduresTab(workspace, tabs, modelManager)
+        val tab = new ModelCodeTab(workspace, tabs, modelManager)
         tabs.addTab(tab.tabName, tab)
         tab
       }
@@ -99,7 +99,7 @@ object LevelSpaceMenu {
 
     override def filePath: Option[String] = selectFile
 
-    override def actingTab: Option[ProceduresTab] =
+    override def actingTab: Option[CodeTab] =
       try {
         super.actingTab
       } catch {

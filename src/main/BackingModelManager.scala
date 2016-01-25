@@ -1,8 +1,8 @@
-import gui.{ModelProceduresTab, LevelSpaceMenu}
+import gui.{ModelCodeTab, LevelSpaceMenu}
 
 import java.util.{ Map => JMap }
 
-import org.nlogo.app.{ProceduresTab, App}
+import org.nlogo.app.{CodeTab, App}
 import org.nlogo.workspace.AbstractWorkspace
 
 import scala.collection.JavaConversions._
@@ -15,7 +15,7 @@ trait LSModelManager extends gui.ModelManager {
 
 class BackingModelManager extends LSModelManager {
   override val guiComponent  = new LevelSpaceMenu(App.app.tabs, this)
-  val backingModels = ParHashMap.empty[String, (ChildModel, ModelProceduresTab)]
+  val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
   var openModels    = Map.empty[String, ChildModel]
 
   override def updateChildModels(indexedModels: JMap[java.lang.Integer, ChildModel]): Unit = {
@@ -37,20 +37,20 @@ class BackingModelManager extends LSModelManager {
 
   def openModelPaths = backingModels.seq.keySet
 
-  def existingTab(filePath: String): Option[ProceduresTab] =
+  def existingTab(filePath: String): Option[CodeTab] =
     if (filePath == App.app.workspace.getModelPath)
-      Some(App.app.tabs.proceduresTab)
+      Some(App.app.tabs.codeTab)
     else
       backingModels.get(filePath).map(_._2)
 
-  def removeTab(tab: ModelProceduresTab): Unit = {
+  def removeTab(tab: ModelCodeTab): Unit = {
     if (! openModelPaths(tab.filePath))
       backingModels.get(tab.filePath).foreach(_._1.kill())
     backingModels -= tab.filePath
   }
 
   def registerTab(filePath: String, model: ChildModel)
-                 (f: AbstractWorkspace => ModelProceduresTab): Option[ModelProceduresTab] = {
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab] = {
     if (backingModels.get(filePath).isDefined) {
       None
     } else {
@@ -61,7 +61,7 @@ class BackingModelManager extends LSModelManager {
   }
 
   def registerTab(filePath: String)
-                 (f: AbstractWorkspace => ModelProceduresTab): Option[ModelProceduresTab] = {
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab] = {
     if (backingModels.get(filePath).isDefined) {
       None
     } else {
@@ -74,8 +74,8 @@ class BackingModelManager extends LSModelManager {
 
 // this is an example of the
 class HeadlessBackingModelManager extends LSModelManager {
-  def removeTab(tab: ModelProceduresTab): Unit = {}
-  def existingTab(filePath: String): Option[ModelProceduresTab] = None
+  def removeTab(tab: ModelCodeTab): Unit = {}
+  def existingTab(filePath: String): Option[ModelCodeTab] = None
   def registerTab(filePath: String)
-                 (f: AbstractWorkspace => ModelProceduresTab): Option[ModelProceduresTab] = None
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab] = None
 }

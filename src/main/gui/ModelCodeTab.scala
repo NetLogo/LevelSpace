@@ -6,7 +6,7 @@ import javax.swing.JButton
 
 import org.nlogo.api.{I18N, ModelReader, ModelSection}
 import org.nlogo.app
-import org.nlogo.app.{ProceduresMenu, ProceduresTab, Tabs}
+import org.nlogo.app.{ProceduresMenu, CodeTab, Tabs}
 import org.nlogo.awt.UserCancelException
 import org.nlogo.swing.ToolBar
 import org.nlogo.swing.ToolBar.Separator
@@ -14,10 +14,10 @@ import org.nlogo.util.Utils
 import org.nlogo.window.Events.ModelSavedEvent
 import org.nlogo.workspace.AbstractWorkspace
 
-class ModelProceduresTab(workspace: AbstractWorkspace,
+class ModelCodeTab(workspace: AbstractWorkspace,
                          tabs: Tabs,
                          modelManager: ModelManager)
-  extends ProceduresTab(workspace)
+  extends CodeTab(workspace)
   with ModelSavedEvent.Handler {
 
   val tabName            = workspace.getModelFileName
@@ -45,7 +45,7 @@ class ModelProceduresTab(workspace: AbstractWorkspace,
         add(new Separator)
         add(new JButton(new FileCloseAction))
         add(new Separator)
-        add(new ProceduresMenu(ModelProceduresTab.this))
+        add(new ProceduresMenu(ModelCodeTab.this))
       }
     }
   }
