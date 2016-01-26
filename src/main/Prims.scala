@@ -91,10 +91,7 @@ object Of extends DefaultReporter with RunPrim {
                           true)
 
   override def report(args: Array[Argument], ctx: Context): AnyRef =
-    run(ctx, args(0).getCode, Array.empty[AnyRef], (code, actuals) => {
-      val results = LevelSpace.toModelList(args(1)).map(_.of(code, actuals)).toVector
-      if (results.size == 1) results.head else LogoList.fromVector(results)
-    })
+    Report.report(Array(args(1), args(0)), ctx)
 }
 
 object Report extends DefaultReporter with RunPrim {
@@ -107,7 +104,7 @@ object Report extends DefaultReporter with RunPrim {
   override def report(args: Array[Argument], ctx: Context): AnyRef =
     run(ctx, args(1).getCode, args.slice(2, args.size).map(_.get), (code, actuals) => {
       val results = LevelSpace.toModelList(args(0)).map(_.of(code, actuals)).toVector
-      if (results.size == 1) results.head else LogoList.fromVector(results)
+      if (args(0).get.isInstanceOf[Double]) results.head else LogoList.fromVector(results)
     })
 }
 
