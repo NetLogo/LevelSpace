@@ -177,6 +177,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     private static String getCodeString(Object codeObj) {
         String code;
         if (codeObj instanceof List<?>) {
+            @SuppressWarnings("unchecked")
             List<Token> tokens = (List<Token>) codeObj;
             StringBuilder builder = new StringBuilder();
             for (Token t : tokens) {
@@ -599,6 +600,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<String> additionalJars() {
         return null;
     }

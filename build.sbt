@@ -21,17 +21,30 @@ scalaSource in Test <<= baseDirectory(_ / "src" / "test")
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings",
                       "-encoding", "us-ascii")
 
+javacOptions ++= Seq("-g", "-deprecation", "-Xlint:all", "-Xlint:-serial", "-Xlint:-path",
+                      "-encoding", "us-ascii")
+
 libraryDependencies ++= Seq(
   "com.google.guava"  % "guava"         % "18.0",
   "org.scalatest"     %% "scalatest"    % "2.2.4" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
-  "asm"               % "asm-all"       % "3.3.1" % "test"
+  "org.ow2.asm"       % "asm-all"       % "5.0.3" % "test"
 )
 
 netLogoZipSources   := false
 
+val moveToLSDir = taskKey[Unit]("move relevant files to LS directory")
+
+moveToLSDir := {
+  IO.createDirectory(baseDirectory.value / "extensions" / "ls")
+  (baseDirectory.value * "*.jar").get.foreach { f =>
+    IO.copyFile(f, baseDirectory.value / "extensions" / "ls" / f.getName)
+  }
+}
+
 test in Test := {
-  val _ = (packageBin in Compile).value
+  (packageBin in Compile).value
+  moveToLSDir.value
   (test in Test).value
 }
 
@@ -41,21 +54,24 @@ cleanFiles <++= baseDirectory { base =>
 
 val netLogoJarsOrDependencies =
   Option(System.getProperty("netlogo.jar.url"))
-    .orElse(Some("http://ccl.northwestern.edu/devel/NetLogo-5.3.levelspace-7f479a4.jar"))
+    .orElse(Some("https://s3.amazonaws.com/ccl-artifacts/NetLogo-hexy-fd7cd755.jar"))
     .map { url =>
       import java.io.File
       import java.net.URI
-      val testsUrl = url.replaceFirst("NetLogo", "NetLogo-tests")
+      val urlSegments = url.split("/")
+      val lastTestSegment = urlSegments.last.replaceFirst("NetLogo", "NetLogo-tests")
+      val testsUrl = (urlSegments.dropRight(1) :+ lastTestSegment).mkString("/")
       if (url.startsWith("file:"))
-        (Seq(new File(new URI(url)), new File(new URI(testsUrl))), Seq())
+        Seq(
+          unmanagedJars in Compile += new File(new URI(url)),
+          unmanagedJars in Test += new File(new URI(testsUrl)))
       else
-        (Seq(), Seq(
-          "org.nlogo" % "NetLogo" % "5.3.levelspace" from url,
-          "org.nlogo" % "NetLogo-tests" % "5.3.levelspace" % "test" from testsUrl))
+        Seq(
+          libraryDependencies ++= Seq(
+            "org.nlogo" % "NetLogo" % "5.3.levelspace" from url,
+            "org.nlogo" % "NetLogo-tests" % "5.3.levelspace" % "test" from testsUrl))
     }.get
 
-unmanagedJars in Compile ++= netLogoJarsOrDependencies._1
+netLogoJarsOrDependencies
 
-libraryDependencies ++= netLogoJarsOrDependencies._2
-
-netLogoTarget       := NetLogoExtension.directoryTarget(baseDirectory.value)
+netLogoTarget         := NetLogoExtension.directoryTarget(baseDirectory.value)

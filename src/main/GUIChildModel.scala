@@ -2,14 +2,14 @@ import java.awt._
 import java.awt.event.{ WindowAdapter, WindowEvent }
 import java.util.concurrent.Callable
 import javax.swing.{ FocusManager, JFrame, JMenuBar, JOptionPane, WindowConstants }
-import gui.{ZoomableInterfaceComponent, GUIPanel}
+import gui.{ ZoomableInterfaceComponent, GUIPanel }
 import org.nlogo.api._
 import org.nlogo.app.App
 import org.nlogo.lite.{LiteWorkspace, InterfaceComponent}
 import org.nlogo.nvm.HaltException
+import org.nlogo.window.SpeedSliderPanel
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window.Widget.LoadHelper
-import org.nlogo.window._
 import org.nlogo.workspace.AbstractWorkspace
 
 class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (parentWorld: World, path: String, levelsSpaceNumber: Int)
