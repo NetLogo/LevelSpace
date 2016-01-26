@@ -12,8 +12,8 @@ object CtxConverter {
   def nvm(ctx: Context): NvmContext = ctx.asInstanceOf[ExtensionContext].nvmContext
 }
 
-class ScopedVals(firstBinding: (Activation, AnyRef)) extends WeakHashMap[Activation, AnyRef] {
-  this(firstBinding._1) = firstBinding._2
+class ScopedVals(elems: (Activation, AnyRef)*) extends WeakHashMap[Activation, AnyRef] {
+  elems foreach { case (k, v) => this(k) = v }
 }
 
 object LetPrim extends DefaultCommand {
