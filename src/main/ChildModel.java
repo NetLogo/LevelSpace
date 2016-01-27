@@ -37,7 +37,7 @@ public abstract class ChildModel {
                 try {
                     return compileTaskReporter(code);
                 } catch (CompilerException e) {
-                    throw ErrorUtils.handle(ChildModel.this, code, e);
+                    throw ErrorUtils.wrap(ChildModel.this, e);
                 }
             }
         });
@@ -89,7 +89,7 @@ public abstract class ChildModel {
             if (e.getCause() instanceof ExtensionException) {
                 throw (ExtensionException) e.getCause();
             } else {
-                throw ErrorUtils.handle(this, command, e);
+                throw ErrorUtils.wrap(this, e);
             }
         }
     }
@@ -101,7 +101,7 @@ public abstract class ChildModel {
             if (e.getCause() instanceof ExtensionException) {
                 throw (ExtensionException) e.getCause();
             } else {
-                throw ErrorUtils.handle(this, reporter, e);
+                throw ErrorUtils.wrap(this, e);
             }
         }
     }
@@ -160,6 +160,10 @@ public abstract class ChildModel {
 
     String getFrameTitle() {
         return name + " (LevelSpace model #" + modelID + ")";
+    }
+
+    public int getModelID() {
+        return modelID;
     }
 
     public String getName() {
@@ -243,7 +247,7 @@ public abstract class ChildModel {
         return getLevelSpace() != null;
     }
 
-    public void show() {
+    public void show() throws ExtensionException {
         frame().setVisible(true);
     }
 

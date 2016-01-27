@@ -21,7 +21,7 @@ public class HeadlessChildModel extends ChildModel {
         init();
     }
 
-    private void ensureImageFrame() {
+    private void ensureImageFrame() throws ExtensionException {
         if (frame == null) {
             try {
                 frame = runUISafely(new Callable<ImageFrame>() {
@@ -33,7 +33,7 @@ public class HeadlessChildModel extends ChildModel {
                 });
             } catch (Exception e) {
                 // Yes this is bad practice. I'm sorry. Deal with it.
-                throw new RuntimeException(e);
+                throw ErrorUtils.wrap(this, e);
             }
         }
     }
@@ -72,7 +72,7 @@ public class HeadlessChildModel extends ChildModel {
     }
 
     @Override
-    public void show() {
+    public void show() throws ExtensionException {
         ensureImageFrame();
         super.show();
         updateView();
