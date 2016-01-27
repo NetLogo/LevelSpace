@@ -62,3 +62,28 @@ ls-set-name
   O> ls:load-headless-model "Blank.nlogo"
   O> ls:set-name 0 "foo"
   ls:name-of 0 => "foo"
+
+ls-errors-propogate
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  O> ls:ask 0 [ error "hi" ] => ERROR Extension exception: hi
+  [ 1 / count turtles ] ls:of 0 => ERROR Extension exception: Division by zero.
+  ls:report 0 [ 1 / count turtles ] => ERROR Extension exception: Division by zero.
+
+ls-let-injects-variable
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  to-report test-of ls:let foo 5 report [ foo ] ls:of 0 end
+  test-of => 5
+  to-report test-report ls:let foo 6 report ls:report 0 [ foo ] end
+  test-report => 6
+  O> ls:let foo 7 ls:ask 0 [ crt foo ]
+  [ count turtles ] ls:of 0 => 7
+
+ls-let-does-not-accumulate-variables
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  O> ls:let foo 0 ls:let foo 1 ls:ask 0 [ show ?2 ] => ERROR Extension exception: task expected 2 inputs, but only got 1
+
+
+

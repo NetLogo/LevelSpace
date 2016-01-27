@@ -61,8 +61,9 @@ public abstract class ChildModel {
     public void command(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
         runNlogoSafely(new Callable<Object>() {
             @Override
-            public Object call() throws Exception {
+            public Object call() throws ExtensionException {
                 workspace().runCompiledCommands(owner, getCommandRunner(task, args));
+                ErrorUtils.checkForLogoException(ChildModel.this);
                 return null;
             }
         });
@@ -71,8 +72,10 @@ public abstract class ChildModel {
     public Object report(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
         Object result = runNlogoSafely(new Callable<Object>() {
             @Override
-            public Object call() throws Exception {
-                return workspace().runCompiledReporter(owner, getReporterRunner(task, args));
+            public Object call() throws ExtensionException {
+                Object result = workspace().runCompiledReporter(owner, getReporterRunner(task, args));
+                ErrorUtils.checkForLogoException(ChildModel.this);
+                return result;
             }
         });
         checkResult(result);
@@ -317,7 +320,11 @@ public abstract class ChildModel {
             Thread.currentThread().interrupt();
             throw new HaltException(false);
         } catch (ExecutionException e) {
-            throw new ExtensionException(e);
+            if (e.getCause() != null && e.getCause() instanceof ExtensionException) {
+                throw (ExtensionException) e.getCause();
+            } else {
+                throw new ExtensionException(e);
+            }
         }
 
     }
