@@ -54,7 +54,7 @@ cleanFiles <++= baseDirectory { base =>
 
 val netLogoJarsOrDependencies =
   Option(System.getProperty("netlogo.jar.url"))
-    .orElse(Some("https://s3.amazonaws.com/ccl-artifacts/NetLogo-hexy-fd7cd755.jar"))
+    .orElse(Some("https://s3.amazonaws.com/ccl-artifacts/NetLogo-6.0-constructionism-preview.jar"))
     .map { url =>
       import java.io.File
       import java.net.URI
@@ -68,8 +68,8 @@ val netLogoJarsOrDependencies =
       else
         Seq(
           libraryDependencies ++= Seq(
-            "org.nlogo" % "NetLogo" % "5.3.levelspace" from url,
-            "org.nlogo" % "NetLogo-tests" % "5.3.levelspace" % "test" from testsUrl))
+            "org.nlogo" % "NetLogo" % "6.0.constructionism" from url,
+            "org.nlogo" % "NetLogo-tests" % "6.0.constructionism" % "test" from testsUrl))
     }.get
 
 netLogoJarsOrDependencies
