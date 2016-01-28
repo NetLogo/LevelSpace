@@ -29,7 +29,7 @@ object LetPrim extends DefaultCommand {
 
   def letBindings(ctx: NvmContext): Seq[(String, AnyRef)] =
     ctx.allLets
-      .filter(_.let.varName.startsWith(LetPrefix))
+      .filter(b => b.let.varName != null && b.let.varName.startsWith(LetPrefix))
       .flatMap {
         case LetBinding(Let(name, _, _ ,_), m) =>
           toScopedVals(m).get(ctx.activation).map(name.substring(LetPrefix.length) -> _)

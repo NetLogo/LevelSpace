@@ -97,4 +97,7 @@ ls-let-respects-procedure-scope
   to proc ls:let foo 0 end
   O> proc ls:ask 0 [ show foo ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Nothing named FOO has been defined.
 
-
+ls-?-doesnt-confuse-us
+  extensions [ ls ]
+  O> ls:load-headless-model "Blank.nlogo"
+  map [ [ count turtles ] ls:of ? ] ls:models => [0]
