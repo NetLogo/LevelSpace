@@ -3,7 +3,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.{Map => MMap, WeakHashMap}
 
 import org.nlogo.api.{Syntax, Let, Context, Argument, DefaultCommand, DefaultReporter, Token, LogoList, ExtensionException}
-import org.nlogo.nvm.{Context => NvmContext, ExtensionContext, Activation}
+import org.nlogo.nvm.{Context => NvmContext, ExtensionContext, Activation, LetBinding}
 
 import com.google.common.collect.MapMaker
 
@@ -27,14 +27,13 @@ object LetPrim extends DefaultCommand {
    **/
   val LetPrefix = "ls "
 
-  def letBindings(ctx: NvmContext): Seq[(Let, AnyRef)] =
+  def letBindings(ctx: NvmContext): Seq[(String, AnyRef)] =
     ctx.allLets
       .filter(_.let.varName.startsWith(LetPrefix))
-      .map { b =>
-          new Let(b.let.varName.substring(LetPrefix.length),
-                  b.let.startPos,
-                  b.let.endPos,
-                  b.let.children) -> toScopedVals(b.value)(ctx.activation)}
+      .flatMap {
+        case LetBinding(Let(name, _, _ ,_), m) =>
+          toScopedVals(m).get(ctx.activation).map(name.substring(LetPrefix.length) -> _)
+      }
 
   override def getSyntax = Syntax.commandSyntax(Array(Syntax.SymbolType, Syntax.ReadableType))
 
@@ -60,7 +59,7 @@ trait RunPrim {
   def run[T](ctx: Context, tokens: java.util.List[Token], args: Array[AnyRef], runFunc: (String, Array[AnyRef]) => T): T = {
     val bindings = LetPrim.letBindings(CtxConverter.nvm(ctx))
     val vars = bindings.zipWithIndex.map {
-      case ((l, v), i) => l.varName -> ("?" + (1 + args.length + i))
+      case ((name, v), i) => name -> ("?" + (1 + args.length + i))
     }(breakOut): Map[String, String]
 
 
