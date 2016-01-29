@@ -29,7 +29,7 @@ LevelSpace is an extension for NetLogo that allows you to run several models con
 
 LevelSpace must be loaded in a model using the ```extensions [ls]``` command. Once this is done, a model will be able to load up other models using the LevelSpace primitives, run commands and reporters in them, and close them down when they are no longer needed.
 
-Asking and reporting in LevelSpace is conceptually pretty straight forward: You pass strings to child models, and the child models respond as if you had typed that string into their Command Center. LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets. Further, it is not possible to push data from a child to its parent - parents must ask their children to report.
+Asking and reporting in LevelSpace is conceptually pretty straight forward: You pass blocks of code to child models, and the child models respond as if you had typed that string into their Command Center. LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets. Further, it is not possible to push data from a child to its parent - parents must ask their children to report.
 
 LevelSpace has two different child model types, headless models and GUI models. They each have their strengths and weaknesses: Headless models are slightly faster than GUI models (about 10-15%). GUI models allow you full access to a model's view, its interface + widgets, and its Command Center. Typically you will want to use Headless models when you are running a large number of models, or if you simply want to run them faster - GUI models are good if you run a small amount of models, or if you are writing a LevelSpace model and need to be able to debug.
 
@@ -68,14 +68,14 @@ Close down all child models (and, recursively, their child models). You'll often
 
 ### Command and Reporting models
 
-####`ls:ask` (_model-id_ | _list_) _string-of-commands_
+####`ls:ask` (_model-id_ | _list_) _command-block_
 
-####(`ls:ask` (_model-id_ | _list_) _string-of-commands_ _arguments_ ...)
+####(`ls:ask` (_model-id_ | _list_) _command-block_ _arguments_ ...)
 
 Tell the given child model or list of child models to run the given command. This is the main way you get child models to actually do things. For example:
 
 ```
-ls:ask model-id "create-turtles 5"
+ls:ask model-id [ create-turtles 5 ]
 ```
 
 You may also supply the command with arguments, just like you would with tasks:
@@ -83,22 +83,29 @@ You may also supply the command with arguments, just like you would with tasks:
 ```
 let turtle-id 0
 let speed 5
-(ls:ask model-id "ask turtle ?1 [ fd ?2 ]" turtle-id speed)
+(ls:ask model-id [ ask turtle ?1 [ fd ?2 ] ] turtle-id speed)
 ```
 
-####_reporter-string_ `ls:of` (_model-id_ | _list_)
+####_reporter-block_ `ls:of` (_model-id_ | _list_)
 
 Run the given reporter in the given model and report the result.
 
-`ls:of` is designed to work like NetLogo's inbuilt `of`: If you send `ls:of` a model-id, it will report the value of the reporter from that model. If you send it a list of model-ids, it will report a list of values of the reporter string from all models.
-
-Unfortunately, you can't give the reporter in `ls:of` arguments like you can with `ls:ask`. We're trying to figure out a workaround, but for now, you can include arguments with `word`:
+`ls:of` is designed to work like NetLogo's inbuilt `of`: If you send `ls:of` a model-id, it will report the value of the reporter from that model. If you send it a list of model-ids, it will report a list of values of the reporter string from all models. You cannot pass arguments to `ls:of`, but you can use `ls:let`.
 
 ```
-let turtle-id 5
-(word "[ color ] of turtle " turtle-id) ls:of model-id
+[ count turtles ] ls:of model-id
 ```
 
+####`ls:report` (_model-id_ | _list_) _reporter-block_
+
+####(`ls:report` (_model-id_ | _list_) _reporter-block_ _arguments_ ...)
+
+Run the given reporter in the given model and report the result. This form exists to allow you to pass arguments to the reporter.
+
+```
+let turtle-id 0
+(ls:report model-id [ [ color ] of turtle ? ] turtle-id)
+```
 
 ####`ls:ask-descendent` _list_ _string-of-commands_
 
@@ -112,6 +119,28 @@ For the hierarchical primitives, the list is read from left to right, and the re
 
 ```
 ls:ask-descendent [0 1 9] "setup"
+```
+
+####`ls:let` _variable-name_ _data_
+
+Creates a variable containing the given data that can be accessed by the child models in this context.
+
+```
+ls:let num-turtles count turtles
+ask turtles [
+  ls:ask brain-model [
+    create-turtles num-turtles
+  ]
+]
+```
+
+`ls:let` works quite similar to `let` in that the variable is only locally accessible:
+
+```
+ask turtles [
+  ls:let my-color color
+]
+;; my-color is innaccessible here
 ```
 
 ### Logic & Control
@@ -150,7 +179,7 @@ to setup
   ca
   ls:reset
   repeat 30 [ ls:load-headless-model "Wolf Sheep Predation.nlogo" ]
-  ls:ask ls:models "set grass? true setup"
+  ls:ask ls:models [ set grass? true setup ]
   reset-ticks
 end
 ```
@@ -158,31 +187,87 @@ We then want to run all our child models, and then find out what the mean number
 ```
 to go
     ls:ask ls:models "go"
-    show mean "count sheep" ls:of ls:models
+    show mean [ count sheep ] ls:of ls:models
 end
 ```
-
 
 ### 'with' in LevelSpace.
-The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we only want the models that satisfy a set of particular criteria. We could write a procedure that gives us only those models:
+The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we only want the models that satisfy a set of particular criteria. For example:
 
 ```
-to-report models-with [models reporter] ; models is a list of model-ids, reporter is a string
-    report (filter [reporter ls:of ?] models)
-end
+ls:ask (filter [[ count turtles > 5 ] ls:of ?]) [
+  ask turtles [ fd 1 ]
+]
 ```
 
-### 'max-', 'min', etc. in LevelSpace
-Let's say that we want to find the model that has the highest number of sheep. Again we need to use NetLogo's built in list primitives. Notice that we randomize the list of models first, since `position` will always return the _first_ match, and we don't want to bias the model that we report in case two or more models have the same number of sheep.
+### Caveats for `ls:let`
+
+`ls:let` is very similar to `let`, except in a few cases.
+
+#### `ls:let` will overwrite previous values in the variable
+
+If you do
 
 ```
-to-report max-one-of-models [models reporter]
-  let randomized-model-list shuffle models
-  let the-value reporter ls:of randomized-model-list
-  let the-max-position position (max the-value) the-value
-  report item the-max-position randomized-model-list
-end
+ls:let my-var 5
+ls:let my-var 6
 ```
+
+`my-var` will be set equal to `6`. There is no `ls:set`.
+
+#### `ls:let` supports variable shadowing
+
+If you do
+
+```
+ls:let my-var 5
+ask turtles [
+  ls:let my-var 6
+  ls:ask child-model [ show my-var ]
+]
+ls:ask child-model [ show my-var ]
+```
+
+`child-model` will show `6` and then `5`. This is known as [variable shadowing](https://en.wikipedia.org/wiki/Variable_shadowing).
+
+#### The parent model cannot directly read the value of an ls variable
+
+For example, this does *not* work.
+
+```
+ls:let my-var 5
+show my-var
+```
+
+This is intentional. ls variables are meant to be used for sharing data with child models. The parent model already has access to the data.
+
+Furthermore, changing the value of an ls let variable in a child model will not affect it in any other model. For example:
+
+```
+ls:let my-var 0
+ls:ask ls:models [
+  set my-var my-var + 1
+  show my-var
+]
+```
+
+All models will print `1`.
+
+#### `ls:let` does not respect the scope of `if`, `when`, and `repeat`
+
+This behavior should be considered a bug and not relied upon. It is an unfortunate consequence of the way the NetLogo engine works. Hopefully, we'll be able to correct this in a future version of NetLogo.
+
+For example, this is allowable:
+
+```
+if true [
+  ls:let my-var 5
+]
+ls:ask child-model [ create-turtles my-var ]
+```
+
+The scope of `ask` is respected, however.
+
 ## Terms of Use
 
 Copyright 1999-2014 by Uri Wilensky.
