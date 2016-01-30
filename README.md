@@ -253,6 +253,44 @@ ls:ask ls:models [
 
 All models will print `1`.
 
+#### You cannot access ls variables from inside tasks
+
+This behavior should be considered a bug and not relied upon.
+
+For example, this gives an error:
+
+```
+ls:let my-var 5
+ls:ask model-id [
+  run task [
+    show my-var
+  ]
+]
+```
+
+The following won't error, but will give unexpected results:
+
+```
+ls:let my-var 5
+ls:ask model-id [
+  (run task [ show foo + ? ] 7)
+]
+```
+
+The child model will show 14 instead of 12.
+
+Fortunately, there is an easy workaround in the case of `ls:ask`:
+
+```
+ls:let my-var 5
+ls:ask model-id [
+  let var my-var
+  run task [
+    show var
+  ]
+]
+```
+
 #### `ls:let` does not respect the scope of `if`, `when`, and `repeat`
 
 This behavior should be considered a bug and not relied upon. It is an unfortunate consequence of the way the NetLogo engine works. Hopefully, we'll be able to correct this in a future version of NetLogo.
