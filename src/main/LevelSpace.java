@@ -73,14 +73,14 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
         primitiveManager.addPrimitive("name-of", new ModelName());
         primitiveManager.addPrimitive("set-name", new SetName());
-        primitiveManager.addPrimitive("close", new CloseModel());
+        primitiveManager.addPrimitive("close", Close$.MODULE$);
         primitiveManager.addPrimitive("models", new AllModels());
         primitiveManager.addPrimitive("model-exists?", new ModelExists());
         primitiveManager.addPrimitive("reset", new Reset());
         primitiveManager.addPrimitive("path-of", new ModelPath());
-        primitiveManager.addPrimitive("display", new UpdateView());
-        primitiveManager.addPrimitive("show", new Show());
-        primitiveManager.addPrimitive("hide", new Hide());
+        primitiveManager.addPrimitive("display", UpdateView$.MODULE$);
+        primitiveManager.addPrimitive("show", Show$.MODULE$);
+        primitiveManager.addPrimitive("hide", Hide$.MODULE$);
         primitiveManager.addPrimitive("_list-breeds", new ListBreeds());
         primitiveManager.addPrimitive("_globals", new Globals());
         primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
@@ -378,73 +378,11 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     }
 
-
-    public static class CloseModel extends DefaultCommand {
-        public Syntax getSyntax() {
-            return Syntax.commandSyntax(
-                    new int[] { Syntax.NumberType() });
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            closeModel((int) args[0].getDoubleValue());
-        }
-    }
-
-    public static void closeModel(int modelNumber) throws ExtensionException, HaltException {
-        getModel(modelNumber).kill();
-        models.remove(modelNumber);
+    public static void closeModel(ChildModel model) throws ExtensionException, HaltException {
+        model.kill();
+        models.remove(model.getModelID());
         updateModelMenu();
     }
-
-    public static class UpdateView extends DefaultCommand {
-        public Syntax getSyntax() {
-            return Syntax.commandSyntax(
-                    new int[]{Syntax.NumberType()});
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-            // find the model. if it exists, update graphics
-            if (getModel(modelNumber) instanceof HeadlessChildModel){
-                HeadlessChildModel aModel = (HeadlessChildModel) getModel(modelNumber);
-                aModel.updateView();
-            }
-        }
-    }
-
-    public static class Show extends DefaultCommand {
-        public Syntax getSyntax() {
-            return Syntax.commandSyntax(
-                    new int[] { Syntax.NumberType() });
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-            // find the model. if it exists, run the command
-            getModel(modelNumber).show();
-        }
-    }
-
-    public static class Hide extends DefaultCommand {
-        public Syntax getSyntax() {
-            return Syntax.commandSyntax(
-                    new int[]{Syntax.NumberType()});
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-            // find the model. if it exists, run the command
-            getModel(modelNumber).hide();
-        }
-    }
-
 
     // this returns the path of the model
     public static class ModelName extends DefaultReporter{

@@ -12,8 +12,8 @@ import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window.Widget.LoadHelper
 import org.nlogo.workspace.AbstractWorkspace
 
-class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (parentWorld: World, path: String, levelsSpaceNumber: Int)
-  extends ChildModel(parentWorld, levelsSpaceNumber) {
+class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (parentWorld: World, path: String, modelID: Int)
+  extends ChildModel(parentWorld, modelID) {
 
   final val frame: JFrame = new JFrame
 
@@ -60,7 +60,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
       n match {
         case 0 =>
           try {
-            LevelSpace.closeModel(levelsSpaceNumber)
+            LevelSpace.closeModel(GUIChildModel.this)
           } catch {
             case e: ExtensionException => throw new RuntimeException(e)
             case e: HaltException =>

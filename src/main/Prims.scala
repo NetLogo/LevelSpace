@@ -107,4 +107,15 @@ object Report extends DefaultReporter with RunPrim {
     })
 }
 
+class ModelCommand(cmd: ChildModel => Unit) extends DefaultCommand {
+  override def getSyntax = Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType))
+  override def perform(args: Array[Argument], ctx: Context): Unit = LevelSpace.toModelList(args(0)).foreach(cmd)
+}
 
+object Show extends ModelCommand(_.show)
+object Hide extends ModelCommand(_.hide)
+object Close extends ModelCommand(LevelSpace.closeModel _)
+object UpdateView extends ModelCommand(_ match {
+  case hm: HeadlessChildModel => hm.updateView
+  case _ =>
+})
