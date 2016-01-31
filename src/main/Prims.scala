@@ -2,7 +2,7 @@ import scala.collection.breakOut
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{Map => MMap, WeakHashMap}
 
-import org.nlogo.api.{Syntax, Let, Context, Argument, DefaultCommand, DefaultReporter, Token, LogoList, ExtensionException}
+import org.nlogo.api.{Syntax, Let, Context, Argument, DefaultCommand, DefaultReporter, Token, LogoList, ExtensionException, Dump, I18N}
 import org.nlogo.nvm.{Context => NvmContext, ExtensionContext, Activation, LetBinding}
 
 import com.google.common.collect.MapMaker
@@ -106,6 +106,25 @@ object Report extends DefaultReporter with RunPrim {
       if (args(0).get.isInstanceOf[Double]) results.head else LogoList.fromVector(results)
     })
 }
+
+object With extends DefaultReporter with RunPrim {
+  override def getSyntax =
+    Syntax.reporterSyntax(Syntax.ListType,
+                          Array(Syntax.CodeBlockType),
+                          Syntax.ListType,
+                          Syntax.NormalPrecedence + 2,
+                          isRightAssociative = false)
+
+  override def report(args: Array[Argument], ctx: Context): AnyRef =
+    run(ctx, args(1).getCode, Array(), (code, actuals) => {
+      LogoList.fromIterator(LevelSpace.toModelList(args(0)).filter(m => m.of(code, actuals) match {
+        case b: java.lang.Boolean => b
+        case x => throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
+                                                                   "ls:with", m.getName, Dump.logoObject(x)))
+      }).map(_.getModelID: java.lang.Double).iterator)
+    })
+}
+
 
 class ModelCommand(cmd: ChildModel => Unit) extends DefaultCommand {
   override def getSyntax = Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType))

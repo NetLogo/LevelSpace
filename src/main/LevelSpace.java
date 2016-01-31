@@ -69,6 +69,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("ask", Ask$.MODULE$);
         primitiveManager.addPrimitive("of", Of$.MODULE$);
         primitiveManager.addPrimitive("report", Report$.MODULE$);
+        primitiveManager.addPrimitive("with", With$.MODULE$);
         primitiveManager.addPrimitive("load-headless-model", new LoadModel<HeadlessChildModel>(HeadlessChildModel.class));
         primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
         primitiveManager.addPrimitive("name-of", new ModelName());
