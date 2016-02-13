@@ -26,6 +26,7 @@ public abstract class ChildModel {
     private LoadingCache<String, Reporter> tasks;
     private String name;
     private int modelID;
+    private Job lastJob;
 
     public ChildModel(World parentWorld, int modelID) throws ExtensionException {
         this.parentWorld = parentWorld;
@@ -58,11 +59,24 @@ public abstract class ChildModel {
         owner = new SimpleJobOwner(getName(), workspace().world.mainRNG, Observer.class);
     }
 
+    private void waitForLastJob() {
+        try {
+            while (lastJob != null && (lastJob.state != Job.REMOVED && lastJob.state != Job.DONE)) {
+                synchronized(lastJob) {
+                    lastJob.wait(50);
+                }
+            }
+        } catch (InterruptedException e) {}
+    }
+
     public void command(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
         runNlogoSafely(new Callable<Object>() {
             @Override
             public Object call() throws ExtensionException {
-                workspace().runCompiledCommands(owner, getCommandRunner(task, args));
+                //workspace().runCompiledCommands(owner, getCommandRunner(task, args));
+                waitForLastJob();
+                lastJob = workspace().jobManager.makeConcurrentJob(owner, workspace().world.observers(), getCommandRunner(task, args));
+                workspace().jobManager.addJob(lastJob, false);
                 ErrorUtils.checkForLogoException(ChildModel.this);
                 return null;
             }
