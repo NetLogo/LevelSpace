@@ -4,7 +4,8 @@ import java.awt.event.ActionEvent
 import java.io.{FileReader, FileWriter}
 import javax.swing.JButton
 
-import org.nlogo.api.{I18N, ModelReader, ModelSection}
+import org.nlogo.api.{ModelReader, ModelSection}
+import org.nlogo.core.{I18N}
 import org.nlogo.app
 import org.nlogo.app.{ProceduresMenu, CodeTab, Tabs}
 import org.nlogo.awt.UserCancelException

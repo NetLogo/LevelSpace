@@ -2,7 +2,8 @@ import scala.collection.breakOut
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{Map => MMap, WeakHashMap}
 
-import org.nlogo.api.{Syntax, Let, Context, Argument, DefaultCommand, DefaultReporter, Token, LogoList, ExtensionException, Dump, I18N}
+import org.nlogo.api.{Syntax, Context, Argument, Command, Reporter, ExtensionException, Dump}
+import org.nlogo.core.{LogoList, Let, Token, I18N}
 import org.nlogo.nvm.{Context => NvmContext, ExtensionContext, Activation, LetBinding}
 
 import com.google.common.collect.MapMaker
@@ -16,7 +17,7 @@ class ScopedVals(elems: (Activation, AnyRef)*) extends WeakHashMap[Activation, A
   elems foreach { case (k, v) => this(k) = v }
 }
 
-object LetPrim extends DefaultCommand {
+object LetPrim extends Command {
 
   /**
    * In order to ensure no LS locals collide with regular locals in the
@@ -29,9 +30,9 @@ object LetPrim extends DefaultCommand {
 
   def letBindings(ctx: NvmContext): Seq[(String, AnyRef)] =
     ctx.allLets
-      .filter(b => b.let.varName != null && b.let.varName.startsWith(LetPrefix))
+      .filter(b => b.let.name != null && b.let.name.startsWith(LetPrefix))
       .flatMap {
-        case LetBinding(Let(name, _, _ ,_), m) =>
+        case LetBinding(Let(name), m) =>
           toScopedVals(m).get(ctx.activation).map(name.substring(LetPrefix.length) -> _)
       }
 
@@ -39,9 +40,9 @@ object LetPrim extends DefaultCommand {
 
   override def perform(args: Array[Argument], ctx: Context) = {
     val token = args(0).getSymbol
-    val let = Let(LetPrefix + token.name, token.startPos, token.endPos, List.empty[Let].asJava)
+    val let = Let(LetPrefix + token.text)
     val nvmCtx = CtxConverter.nvm(ctx)
-    nvmCtx.letBindings.find(_.let.varName equals let.varName) match {
+    nvmCtx.letBindings.find(_.let.name equals let.name) match {
       // Note that we need to replace the value in the map is found since different scopes can have the same
       // Activation. `ask` is the most common instance of this. -- BCH 1/23/2016
       case Some(lb) => toScopedVals(lb.value)(nvmCtx.activation) = args(1).get
@@ -63,13 +64,13 @@ trait RunPrim {
     }(breakOut): Map[String, String]
 
 
-    val code = tokens.asScala.map { t => vars.getOrElse(t.name, t.name) }.mkString(" ")
+    val code = tokens.asScala.map { t => vars.getOrElse(t.text, t.text) }.mkString(" ")
 
     runFunc(code, args ++ bindings.map(_._2))
   }
 }
 
-object Ask extends DefaultCommand with RunPrim {
+object Ask extends Command with RunPrim {
   override def getSyntax =
     Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType,
                                Syntax.CodeBlockType,
@@ -81,7 +82,7 @@ object Ask extends DefaultCommand with RunPrim {
     })
 }
 
-object Of extends DefaultReporter with RunPrim {
+object Of extends Reporter with RunPrim {
   override def getSyntax =
     Syntax.reporterSyntax(Syntax.CodeBlockType,
                           Array(Syntax.NumberType | Syntax.ListType),
@@ -93,7 +94,7 @@ object Of extends DefaultReporter with RunPrim {
     Report.report(Array(args(1), args(0)), ctx)
 }
 
-object Report extends DefaultReporter with RunPrim {
+object Report extends Reporter with RunPrim {
   override def getSyntax =
     Syntax.reporterSyntax(Array(Syntax.NumberType | Syntax.ListType,
                                 Syntax.CodeBlockType,
@@ -107,7 +108,7 @@ object Report extends DefaultReporter with RunPrim {
     })
 }
 
-object With extends DefaultReporter with RunPrim {
+object With extends Reporter with RunPrim {
   override def getSyntax =
     Syntax.reporterSyntax(Syntax.ListType,
                           Array(Syntax.CodeBlockType),
@@ -120,13 +121,13 @@ object With extends DefaultReporter with RunPrim {
       LogoList.fromIterator(LevelSpace.toModelList(args(0)).filter(m => m.of(code, actuals) match {
         case b: java.lang.Boolean => b
         case x => throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
-                                                                   "ls:with", m.getName, Dump.logoObject(x)))
+                                                                   "ls:with", m.name, Dump.logoObject(x)))
       }).map(_.getModelID: java.lang.Double).iterator)
     })
 }
 
 
-class ModelCommand(cmd: ChildModel => Unit) extends DefaultCommand {
+class ModelCommand(cmd: ChildModel => Unit) extends Command {
   override def getSyntax = Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType))
   override def perform(args: Array[Argument], ctx: Context): Unit = LevelSpace.toModelList(args(0)).foreach(cmd)
 }

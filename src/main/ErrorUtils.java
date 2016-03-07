@@ -1,11 +1,11 @@
-import org.nlogo.api.CompilerException;
+import org.nlogo.core.CompilerException;
 import org.nlogo.api.ExtensionException;
 import org.nlogo.api.LogoException;
 
 public class ErrorUtils {
     public static ExtensionException wrap(ChildModel model, Exception e) {
         String fmt = "Model %d (%s) encountered an error: %s";
-        return new ExtensionException(String.format(fmt, model.getModelID(), model.getName(), e.getMessage()), e);
+        return new ExtensionException(String.format(fmt, model.getModelID(), model.name(), e.getMessage()), e);
     }
 
     public static void checkForLogoException(ChildModel model) throws ExtensionException {

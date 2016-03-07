@@ -10,7 +10,7 @@ import org.nlogo.nvm.HaltException
 import org.nlogo.window.SpeedSliderPanel
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window.Widget.LoadHelper
-import org.nlogo.workspace.AbstractWorkspace
+import org.nlogo.workspace.AbstractWorkspaceScala
 
 class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (parentWorld: World, path: String, modelID: Int)
   extends ChildModel(parentWorld, modelID) {
@@ -80,5 +80,5 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     }
   }
 
-  def workspace: AbstractWorkspace = component.workspace
+  def workspace: AbstractWorkspaceScala = component.workspace
 }

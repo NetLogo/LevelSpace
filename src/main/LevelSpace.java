@@ -19,20 +19,16 @@ import javax.swing.event.ChangeListener;
 
 import com.google.common.collect.MapMaker;
 
+import org.nlogo.nvm.HaltException;
+import org.nlogo.nvm.ExtensionContext;
+
 import org.nlogo.api.*;
-import org.nlogo.api.Argument;
-import org.nlogo.api.Context;
 import org.nlogo.app.*;
-import org.nlogo.api.ExtensionObject;
-import org.nlogo.api.ImportErrorHandler;
-import org.nlogo.api.LogoException;
-import org.nlogo.api.LogoList;
-import org.nlogo.api.LogoListBuilder;
-import org.nlogo.api.PrimitiveManager;
-import org.nlogo.api.Syntax;
+import org.nlogo.core.ExtensionObject;
+import org.nlogo.core.LogoList;
+import org.nlogo.core.CompilerException;
+import org.nlogo.core.Token;
 import org.nlogo.awt.EventQueue$;
-import org.nlogo.nvm.*;
-import org.nlogo.nvm.ReporterTask;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
@@ -82,13 +78,9 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("display", UpdateView$.MODULE$);
         primitiveManager.addPrimitive("show", Show$.MODULE$);
         primitiveManager.addPrimitive("hide", Hide$.MODULE$);
-        primitiveManager.addPrimitive("_list-breeds", new ListBreeds());
-        primitiveManager.addPrimitive("_globals", new Globals());
         primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
         primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
-        primitiveManager.addPrimitive("_model-procedures", new ModelProcedures());
-        primitiveManager.addPrimitive("to-OTPL", new ToOTPL());
 
 
         if (useGUI()) {
@@ -175,6 +167,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
+    // TODO Move the hierarchical methods in Prims.scala and ditch this
     private static String getCodeString(Object codeObj) {
         String code;
         if (codeObj instanceof List<?>) {
@@ -182,7 +175,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
             List<Token> tokens = (List<Token>) codeObj;
             StringBuilder builder = new StringBuilder();
             for (Token t : tokens) {
-                builder.append(t.name()).append(" ");
+                builder.append(t.text()).append(" ");
             }
             code = builder.toString();
         } else {
@@ -191,7 +184,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         return code;
     }
 
-    public static class LoadModel<T extends ChildModel> extends DefaultCommand {
+    public static class LoadModel<T extends ChildModel> implements Command {
         private Class<T> modelType;
 
         private LoadModel(Class<T> modelType) {
@@ -199,7 +192,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
 
         @Override
-        public Syntax getSyntax() {
+        public org.nlogo.core.Syntax getSyntax() {
             return Syntax.commandSyntax(
                     new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
         }
@@ -251,7 +244,10 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         models.clear();
     }
 
-    public static class Reset extends DefaultCommand {
+    public static class Reset implements Command {
+        public org.nlogo.core.Syntax getSyntax() {
+            return Syntax.commandSyntax();
+        }
         public void perform(Argument args[], Context context)
                 throws org.nlogo.api.LogoException, ExtensionException {
             reset();
@@ -266,7 +262,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
             LogoList idList = arg.getList();
             ChildModel[] models = new ChildModel[idList.size()];
             int i = 0;
-            for (Object modelIdObj : arg.getList()) {
+            for (Object modelIdObj : arg.getList().javaIterable()) {
                 models[i] = getModel(castToId(modelIdObj));
                 i++;
             }
@@ -295,8 +291,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static class HierarchicalAsk extends DefaultCommand {
-        public Syntax getSyntax() {
+    public static class HierarchicalAsk implements Command {
+        public org.nlogo.core.Syntax getSyntax() {
             return Syntax.commandSyntax(
                     new int[]{Syntax.ListType(), Syntax.StringType() | Syntax.CodeBlockType(), Syntax.RepeatableType() | Syntax.WildcardType()},
                     2);
@@ -338,8 +334,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
 
-    public static class HierarchicalOf extends DefaultReporter {
-        public Syntax getSyntax(){
+    public static class HierarchicalOf implements Reporter {
+        public org.nlogo.core.Syntax getSyntax(){
             return Syntax.reporterSyntax(
                     Syntax.StringType() | Syntax.CodeBlockType(),
                     new int[]{ Syntax.ListType() },
@@ -359,26 +355,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static class ToOTPL extends DefaultReporter {
-            public Syntax getSyntax(){
-                return Syntax.reporterSyntax(new int[] {Syntax.CommandTaskType() | Syntax.ReporterTaskType() },
-                        Syntax.StringType());
-            }
-        @Override
-        public Object report(Argument[] args, Context arg1)
-                throws ExtensionException, LogoException {
-            Object task = args[0].get();
-            if (task instanceof ReporterTask) {
-                ReporterTask rTask = (ReporterTask) task;
-                return rTask.body().agentClassString;
-            } else {
-                org.nlogo.nvm.CommandTask cTask = (org.nlogo.nvm.CommandTask) task;
-                return cTask.procedure().syntax().agentClassString();
-            }
-        }
-
-    }
-
     public static void closeModel(ChildModel model) throws ExtensionException, HaltException {
         model.kill();
         models.remove(model.getModelID());
@@ -386,33 +362,21 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
     // this returns the path of the model
-    public static class ModelName extends DefaultReporter{
-        public Syntax getSyntax(){
+    public static class ModelName implements Reporter{
+        public org.nlogo.core.Syntax getSyntax(){
             return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
                     Syntax.StringType());
         }
         public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
             int modelNumber = args[0].getIntValue();
-            return getModel(modelNumber).getName();
+            return getModel(modelNumber).name();
         }
     }
 
-    // this returns the path of the model
-    public static class ModelProcedures extends DefaultReporter{
-        public Syntax getSyntax(){
-            return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
-                    Syntax.ListType());
-        }
-        public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
-            int modelNumber = args[0].getIntValue();
-            return getModel(modelNumber).getProcedures();
-        }
-    }
-
-    public static class SetName extends DefaultCommand {
+    public static class SetName implements Command {
 
         @Override
-        public Syntax getSyntax() {
+        public org.nlogo.core.Syntax getSyntax() {
             return Syntax.commandSyntax(new int[] {Syntax.NumberType(), Syntax.StringType()});
         }
         @Override
@@ -422,8 +386,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
     // this returns the path of the model
-    public static class ModelPath extends DefaultReporter{
-        public Syntax getSyntax(){
+    public static class ModelPath implements Reporter{
+        public org.nlogo.core.Syntax getSyntax(){
             return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
                     Syntax.StringType());
 
@@ -435,8 +399,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     }
 
-    public static class ModelExists extends DefaultReporter {
-        public Syntax getSyntax() {
+    public static class ModelExists implements Reporter {
+        public org.nlogo.core.Syntax getSyntax() {
             return Syntax.reporterSyntax(
                     // we take in int[] {modelNumber, varName}
                     new int[] { Syntax.NumberType() },
@@ -455,61 +419,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static class ListBreeds extends DefaultReporter {
-        public Syntax getSyntax() {
-            return Syntax.reporterSyntax(
-                    // we take in int[] {modelNumber, varName}
-                    new int[] { Syntax.NumberType() },
-                    // and return a number
-                    Syntax.ListType());
-        }
-
-        public Object report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-            // find the model. if it exists, update graphics
-            if(models.containsKey(modelNumber))
-            {
-                ChildModel theModel = models.get(modelNumber);
-                return theModel.listBreedsOwns();
-            }
-            else{
-                return false;
-            }
-
-        }
-    }
-
-    public static class Globals extends DefaultReporter {
-        public Syntax getSyntax() {
-            return Syntax.reporterSyntax(
-                    // we take in int[] {modelNumber, varName}
-                    new int[] { Syntax.NumberType() },
-                    // and return a number
-                    Syntax.ListType());
-        }
-
-        public Object report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-            // find the model. if it exists, update graphics
-            if(models.containsKey(modelNumber))
-            {
-                ChildModel theModel = models.get(modelNumber);
-                return theModel.listGlobals();
-            }
-            else{
-                throw new ExtensionException("There is no model with ID " + modelNumber);
-
-            }
-
-        }
-    }
-
-    public static class AllModels extends DefaultReporter {
-        public Syntax getSyntax() {
+    public static class AllModels implements Reporter {
+        public org.nlogo.core.Syntax getSyntax() {
             return Syntax.reporterSyntax(
                     new int[] {},
                     Syntax.ListType());
@@ -526,9 +437,9 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static class UsesLevelSpace extends DefaultReporter {
+    public static class UsesLevelSpace implements Reporter {
         @Override
-        public Syntax getSyntax() {
+        public org.nlogo.core.Syntax getSyntax() {
             return Syntax.reporterSyntax(new int[] {Syntax.NumberType()}, Syntax.BooleanType());
         }
 

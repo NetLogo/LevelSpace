@@ -13,10 +13,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.nlogo.api.*;
+import org.nlogo.core.*;
 import org.nlogo.nvm.*;
 import org.nlogo.nvm.Reporter;
 import org.nlogo.prim.*;
-import org.nlogo.workspace.AbstractWorkspace;
+import org.nlogo.workspace.AbstractWorkspaceScala;
 
 public abstract class ChildModel {
     private final World parentWorld;
@@ -56,7 +57,7 @@ public abstract class ChildModel {
         } catch (CompilerException e) {
             throw new ExtensionException("There is a bug in LevelSpace! Please report! ", e);
         }
-        owner = new SimpleJobOwner(getName(), workspace().world.mainRNG, Observer.class);
+        owner = new SimpleJobOwner(name(), workspace().world.mainRNG(), AgentKindJ.Observer());
     }
 
     private void waitForLastJob() {
@@ -125,7 +126,7 @@ public abstract class ChildModel {
             throw new ExtensionException("You cannot report agents or agentsets from LevelSpace models.");
         } else if (reporterResult instanceof LogoList) {
             LogoList resultList = (LogoList)reporterResult;
-            for(Object elem : resultList) {
+            for(Object elem : resultList.javaIterable()) {
                 checkResult(elem);
             }
         }
@@ -180,7 +181,7 @@ public abstract class ChildModel {
         return modelID;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
@@ -192,57 +193,7 @@ public abstract class ChildModel {
     }
 
     abstract public void setSpeed(double d);
-    abstract public AbstractWorkspace workspace();
-
-    public LogoList listBreeds() {
-        LogoListBuilder llb = new LogoListBuilder();
-        for (String entry : workspace().world().getBreeds().keySet())
-        {
-            llb.add(entry);
-        }
-        return llb.toLogoList();
-    }
-
-    public LogoList listBreedsOwns() {
-        LogoListBuilder llb = new LogoListBuilder();
-        // add turtle vars as a separate tuple
-        LogoListBuilder tuple  = new LogoListBuilder();
-        LogoListBuilder vars = new LogoListBuilder();
-        vars.addAll(workspace().world().program().turtlesOwn());
-        tuple.add("TURTLES");
-        tuple.add(vars.toLogoList());
-        llb.add(tuple.toLogoList());
-
-        for (Map.Entry<String, List<String>> entry : workspace().world().program().breedsOwn().entrySet())
-        {
-            tuple = new LogoListBuilder();
-            vars  = new LogoListBuilder();
-            vars.addAll(entry.getValue());
-            tuple.add(entry.getKey());
-            tuple.add(vars.toLogoList());
-            llb.add(tuple.toLogoList());
-        }
-        return llb.toLogoList();
-
-    }
-
-    public LogoList listObserverProcedures(){
-        return null;
-    }
-
-    public LogoList listTurtleProcedures(){
-        return null;
-    }
-
-    public LogoList listGlobals() {
-        LogoListBuilder llb = new LogoListBuilder();
-
-        for (int i = 0; i < workspace().world().observer().getVariableCount(); i++){
-            llb.add(workspace().world().observer().variableName(i));
-        }
-        return llb.toLogoList();
-    }
-
+    abstract public AbstractWorkspaceScala workspace();
     abstract JFrame frame();
 
     Class<?> getLevelSpace() {
@@ -355,7 +306,7 @@ public abstract class ChildModel {
      * @throws CompilerException
      */
     private Reporter compileTaskReporter (String code) throws CompilerException {
-        return workspace().compileReporter("task [ " + code + " ]").code[0].args[0].args[0];
+        return workspace().compileReporter("task [ " + code + " ]").code()[0].args[0];
     }
 
     private Reporter makeConstantReporter(Object value) {
@@ -383,33 +334,12 @@ public abstract class ChildModel {
     }
 
     private Procedure getReporterRunner(Reporter task, Object[] taskArgs) {
-        reporterRunner.code[0].args[0].args = makeArgumentArray(task, taskArgs);
+        reporterRunner.code()[0].args[0].args = makeArgumentArray(task, taskArgs);
         return reporterRunner;
     }
 
     private Procedure getCommandRunner(Reporter task, Object[] taskArgs) {
-        commandRunner.code[0].args = makeArgumentArray(task, taskArgs);
+        commandRunner.code()[0].args = makeArgumentArray(task, taskArgs);
         return commandRunner;
-    }
-
-    public LogoList getProcedures() {
-        LogoListBuilder outerLLB = new LogoListBuilder();
-        for (String pName : workspace().getProcedures().keySet()){
-            LogoListBuilder pList = new LogoListBuilder();
-            Procedure p = workspace().getProcedures().get(pName);
-            pList.add(pName);
-            pList.add(p.tyype.toString());
-            pList.add(p.usableBy);
-            LogoListBuilder argLLB = new LogoListBuilder();
-            // args contains dummies (temp 'lets') so we don't include them.
-            // localsCount contains number of lets so we just subtract that
-            for (int i = 0; i < p.args.size() - p.localsCount;i++){
-                String theString = p.args.get(i);
-                argLLB.add(theString);
-            }
-            pList.add(argLLB.toLogoList());
-            outerLLB.add(pList.toLogoList());
-        }
-        return outerLLB.toLogoList();
     }
 }

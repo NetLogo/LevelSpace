@@ -6,10 +6,10 @@ import java.io.{File, FileWriter, IOException}
 import javax.swing._
 
 import org.nlogo.api.ModelSections.{BufSaveable, Saveable}
-import org.nlogo.api.{CompilerException, ExtensionException, ModelReader, ModelSections, Shape, Version}
+import org.nlogo.api.{ExtensionException, ModelReader, ModelSections, Version}
+import org.nlogo.core.{CompilerException, Shape, ShapeParser}
 import org.nlogo.app.{CodeTab, ModelSaver, App, Tabs}
 import org.nlogo.awt.UserCancelException
-import org.nlogo.shape.{VectorShape, LinkShape}
 import org.nlogo.swing.FileDialog
 import org.nlogo.util.Exceptions
 import org.nlogo.workspace.{AbstractWorkspace, ModelsLibrary}
@@ -183,10 +183,10 @@ object LevelSpaceMenu {
       override def snapOn: Boolean = false
       override def previewCommands: String = ""
       override def linkShapes: Seq[Shape] =
-        LinkShape.parseShapes(ModelReader.defaultLinkShapes, Version.version)
+        ShapeParser.parseLinkShapes(ModelReader.defaultLinkShapes)
       override def hubnetManager: BufSaveable = EmptySaveable
       override def turtleShapes: Seq[Shape] =
-        VectorShape.parseShapes(ModelReader.defaultShapes, Version.version)
+        ShapeParser.parseVectorShapes(ModelReader.defaultShapes)
       override def labManager: Saveable = EmptySaveable
       override def info: String = ""
       override def widgets: Seq[Saveable] = Seq()

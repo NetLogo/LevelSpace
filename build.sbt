@@ -1,77 +1,68 @@
-import org.nlogo.build.NetLogoExtension
-
 enablePlugins(org.nlogo.build.NetLogoExtension)
-
-name := "LevelSpace"
 
 scalaVersion := "2.11.7"
 
+scalaSource in Compile := baseDirectory.value / "src" / "main"
+
+scalaSource in Test := baseDirectory.value / "src" / "test"
+
+javaSource in Compile := baseDirectory.value / "src" / "main"
+
+javaSource in Test := baseDirectory.value / "src" / "test"
+
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings",
+                      "-encoding", "us-ascii")
+
 retrieveManaged := true
+
+netLogoExtName := "ls"
 
 netLogoClassManager := "LevelSpace"
 
-netLogoExtName      := "ls"
+netLogoTarget :=
+  org.nlogo.build.NetLogoExtension.directoryTarget(baseDirectory.value)
 
-javaSource  in Compile <<= baseDirectory(_ / "src" / "main")
+val netLogoJarURL =
+  Option(System.getProperty("netlogo.jar.url")).getOrElse("https://s3.amazonaws.com/ccl-artifacts/NetLogo-c210708.jar")
 
-scalaSource in Compile <<= baseDirectory(_ / "src" / "main")
-
-scalaSource in Test <<= baseDirectory(_ / "src" / "test")
-
-scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked", "-Xfatal-warnings",
-                      "-encoding", "us-ascii")
-
-javacOptions ++= Seq("-g", "-deprecation", "-Xlint:all", "-Xlint:-serial", "-Xlint:-path",
-                      "-encoding", "us-ascii")
-
-libraryDependencies ++= Seq(
-  "com.google.guava"  % "guava"         % "18.0",
-  "org.scalatest"     %% "scalatest"    % "2.2.4" % "test",
-  "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
-  "org.ow2.asm"       % "asm-all"       % "5.0.3" % "test"
-)
-
-netLogoZipSources   := false
-
-val moveToLSDir = taskKey[Unit]("move relevant files to LS directory")
-
-moveToLSDir := {
-  IO.createDirectory(baseDirectory.value / "extensions" / "ls")
-  (baseDirectory.value * "*.jar").get.foreach { f =>
-    IO.copyFile(f, baseDirectory.value / "extensions" / "ls" / f.getName)
-  }
+val netLogoJarsOrDependencies = {
+  import java.io.File
+  import java.net.URI
+  val urlSegments = netLogoJarURL.split("/")
+  val lastSegment = urlSegments.last.replaceFirst("NetLogo", "NetLogo-tests")
+  val testsUrl = (urlSegments.dropRight(1) :+ lastSegment).mkString("/")
+  if (netLogoJarURL.startsWith("file:"))
+    Seq(unmanagedJars in Compile ++= Seq(
+      new File(new URI(netLogoJarURL)), new File(new URI(testsUrl))))
+  else
+    Seq(libraryDependencies ++= Seq(
+      "org.nlogo" % "NetLogo" % "6.0-M1-SNAPSHOT" from netLogoJarURL,
+      "org.nlogo" % "NetLogo-tests" % "6.0-M1-SNAPSHOT" % "test" from testsUrl))
 }
-
-test in Test := {
-  (packageBin in Compile).value
-  moveToLSDir.value
-  (test in Test).value
-}
-
-cleanFiles <++= baseDirectory { base =>
-  Seq(base / "extensions")
-}
-
-val netLogoJarsOrDependencies =
-  Option(System.getProperty("netlogo.jar.url"))
-    .orElse(Some("https://s3.amazonaws.com/ccl-artifacts/NetLogo-6.0-constructionism-preview.jar"))
-    .map { url =>
-      import java.io.File
-      import java.net.URI
-      val urlSegments = url.split("/")
-      val lastTestSegment = urlSegments.last.replaceFirst("NetLogo", "NetLogo-tests")
-      val testsUrl = (urlSegments.dropRight(1) :+ lastTestSegment).mkString("/")
-      if (url.startsWith("file:"))
-        Seq(
-          unmanagedJars in Compile += new File(new URI(url)),
-          unmanagedJars in Test += new File(new URI(testsUrl)))
-      else
-        Seq(
-          libraryDependencies ++= Seq(
-            "org.nlogo" % "NetLogo" % "6.0.constructionism" from url,
-            "org.nlogo" % "NetLogo-tests" % "6.0.constructionism" % "test" from testsUrl))
-    }.get
 
 netLogoJarsOrDependencies
 
-netLogoTarget         := NetLogoExtension.directoryTarget(baseDirectory.value)
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
+  "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
+  "org.ow2.asm" % "asm-all" % "5.0.3" % "test",
+  "com.google.guava"  % "guava"         % "18.0"
+)
+
+packageBin in Compile := {
+  val jar = (packageBin in Compile).value
+  val base = baseDirectory.value
+  IO.copyFile(jar, base / "ls.jar")
+  jar
+}
+
+test in Test := {
+  val _ = (packageBin in Compile).value
+  (test in Test).value
+}
+
+cleanFiles ++= {
+  val base = baseDirectory.value
+  val lsDir = base / "extensions" / "ls"
+  Seq(base / "ls.jar")
+}

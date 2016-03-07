@@ -5,9 +5,10 @@ import java.util.concurrent.Callable;
 import javax.swing.JFrame;
 
 import org.nlogo.api.*;
+import org.nlogo.core.*;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.HaltException;
-import org.nlogo.workspace.AbstractWorkspace;
+import org.nlogo.workspace.AbstractWorkspaceScala;
 
 public class HeadlessChildModel extends ChildModel {
 
@@ -62,7 +63,7 @@ public class HeadlessChildModel extends ChildModel {
     }
 
     @Override
-    public AbstractWorkspace workspace() {
+    public AbstractWorkspaceScala workspace() {
         return myWS;
     }
 
