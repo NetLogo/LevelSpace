@@ -36,8 +36,8 @@ val netLogoJarsOrDependencies = {
       new File(new URI(netLogoJarURL)), new File(new URI(testsUrl))))
   else
     Seq(libraryDependencies ++= Seq(
-      "org.nlogo" % "NetLogo" % "6.0-M1-SNAPSHOT" from netLogoJarURL,
-      "org.nlogo" % "NetLogo-tests" % "6.0-M1-SNAPSHOT" % "test" from testsUrl))
+      "org.nlogo" % "NetLogo" % "6.0-M4-SNAPSHOT" from netLogoJarURL,
+      "org.nlogo" % "NetLogo-tests" % "6.0-M4-SNAPSHOT" % "test" from testsUrl))
 }
 
 netLogoJarsOrDependencies

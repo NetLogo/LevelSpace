@@ -57,7 +57,7 @@ public abstract class ChildModel {
         } catch (CompilerException e) {
             throw new ExtensionException("There is a bug in LevelSpace! Please report! ", e);
         }
-        owner = new SimpleJobOwner(name(), workspace().world.mainRNG(), AgentKindJ.Observer());
+        owner = new SimpleJobOwner(name(), workspace().world().mainRNG(), AgentKindJ.Observer());
     }
 
     private void waitForLastJob() {
@@ -76,7 +76,7 @@ public abstract class ChildModel {
             public Object call() throws ExtensionException {
                 //workspace().runCompiledCommands(owner, getCommandRunner(task, args));
                 waitForLastJob();
-                lastJob = workspace().jobManager.makeConcurrentJob(owner, workspace().world.observers(), getCommandRunner(task, args));
+                lastJob = workspace().jobManager.makeConcurrentJob(owner, workspace().world().observers(), getCommandRunner(task, args));
                 workspace().jobManager.addJob(lastJob, false);
                 ErrorUtils.checkForLogoException(ChildModel.this);
                 return null;
