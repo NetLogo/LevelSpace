@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Collections;
@@ -36,7 +36,8 @@ import gui.ModelManager;
 
 public class LevelSpace implements org.nlogo.api.ClassManager {
 
-    private final static HashMap<Integer, ChildModel> models = new HashMap<Integer, ChildModel>();
+    // This can be accessed by both the JobThread and EDT (when halting)
+    private final static Map<Integer, ChildModel> models = new ConcurrentHashMap<Integer, ChildModel>();
 
     // counter for keeping track of new models
     private static int modelCounter = 0;
@@ -78,8 +79,9 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("display", UpdateView$.MODULE$);
         primitiveManager.addPrimitive("show", Show$.MODULE$);
         primitiveManager.addPrimitive("hide", Hide$.MODULE$);
-        primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
-        primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
+        // TODO: Add these back in
+        //primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
+        //primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
 
 
@@ -272,89 +274,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static void askDescendant(LogoList modelTreePath, String command, Object[] args) throws ExtensionException, HaltException {
-        ChildModel child = getModel(castToId(modelTreePath.first()));
-        if (modelTreePath.size() == 1) {
-            child.ask(command, args);
-        } else {
-            try {
-                child.getLevelSpace()
-                        .getMethod("askDescendant", LogoList.class, String.class, Object[].class)
-                        .invoke(null, modelTreePath.butFirst(), command, args);
-            } catch (NoSuchMethodException e) {
-                throw ErrorUtils.bugDetected(e);
-            } catch (InvocationTargetException e) {
-                throw ErrorUtils.bugDetected(e);
-            } catch (IllegalAccessException e) {
-                throw ErrorUtils.bugDetected(e);
-            }
-        }
-    }
-
-    public static class HierarchicalAsk implements Command {
-        public org.nlogo.core.Syntax getSyntax() {
-            return Syntax.commandSyntax(
-                    new int[]{Syntax.ListType(), Syntax.StringType() | Syntax.CodeBlockType(), Syntax.RepeatableType() | Syntax.WildcardType()},
-                    2);
-        }
-
-        public void perform(Argument args[], Context context)
-                throws ExtensionException, LogoException {
-            LogoList list = args[0].getList();
-            String cmd = getCodeString(args[1].get());
-            Object[] actuals = getActuals(args, 2);
-            askDescendant(list, cmd, actuals);
-        }
-
-    }
-
-    public static Object ofDescendant(LogoList modelTreePath, String command, Object[] args) throws ExtensionException, HaltException {
-        ChildModel child = getModel(castToId(modelTreePath.first()));
-        if (modelTreePath.size() == 1) {
-            return child.of(command, args);
-        } else {
-            try {
-                return child.getLevelSpace()
-                        .getMethod("ofDescendant", LogoList.class, String.class, Object[].class)
-                        .invoke(null, modelTreePath.butFirst(), command, args);
-            } catch (NoSuchMethodException e) {
-                throw ErrorUtils.bugDetected(e);
-            } catch (InvocationTargetException e) {
-                if (e.getCause() instanceof ExtensionException) {
-                    throw (ExtensionException) e.getCause();
-                } else if (e.getCause() instanceof HaltException) {
-                    throw (HaltException) e.getCause();
-                } else {
-                    throw ErrorUtils.bugDetected(e);
-                }
-            } catch (IllegalAccessException e) {
-                throw ErrorUtils.bugDetected(e);
-            }
-        }
-    }
-
-
-    public static class HierarchicalOf implements Reporter {
-        public org.nlogo.core.Syntax getSyntax(){
-            return Syntax.reporterSyntax(
-                    Syntax.StringType() | Syntax.CodeBlockType(),
-                    new int[]{ Syntax.ListType() },
-                    Syntax.WildcardType(),
-                    org.nlogo.api.Syntax.NormalPrecedence() + 1,
-                    true
-            );
-
-        }
-
-        @Override
-        public Object report(Argument[] args, Context arg1)
-                throws ExtensionException, LogoException {
-            String reporter = getCodeString(args[0].get());
-            LogoList modelTreePath = args[1].getList();
-            return ofDescendant(modelTreePath, reporter, new Object[0]);
-        }
-    }
-
     public static void closeModel(ChildModel model) throws ExtensionException, HaltException {
         model.kill();
         models.remove(model.getModelID());
@@ -507,14 +426,10 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    private static void haltChildModels( HashMap<Integer, ChildModel> models){
-        // Iterate through child models
-        // First stop the child model, then get its (potential) child models and
-        // send them here too
+    private static void haltChildModels(Map<Integer, ChildModel> models){
         for (ChildModel aModel : models.values()){
             aModel.halt();
         }
-
     }
 
     public static Object[] getActuals(Argument[] args, int startIndex) throws LogoException, ExtensionException {

@@ -33,8 +33,7 @@ public class HeadlessChildModel extends ChildModel {
                     }
                 });
             } catch (Exception e) {
-                // Yes this is bad practice. I'm sorry. Deal with it.
-                throw ErrorUtils.wrap(this, e);
+                ErrorUtils.wrap(this, e);
             }
         }
     }
@@ -47,19 +46,6 @@ public class HeadlessChildModel extends ChildModel {
 
             frame.updateImage(bi);
         }
-    }
-
-    @Override
-    public void ask(String command, Object[] actuals) throws ExtensionException, HaltException {
-        super.ask(command, actuals);
-        updateView();
-    }
-
-    @Override
-    public Object of(String reporter, Object[] actuals) throws ExtensionException, HaltException {
-        Object result = super.of(reporter, actuals);
-        updateView();
-        return result;
     }
 
     @Override

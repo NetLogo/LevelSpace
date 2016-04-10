@@ -56,33 +56,23 @@ object LetPrim extends Command {
   }
 }
 
-trait RunPrim {
-  def run[T](ctx: Context, tokens: java.util.List[Token], args: Array[AnyRef], runFunc: (String, Array[AnyRef]) => T): T = {
-    val bindings = LetPrim.letBindings(CtxConverter.nvm(ctx))
-    val vars = bindings.zipWithIndex.map {
-      case ((name, v), i) => name -> ("?" + (1 + args.length + i))
-    }(breakOut): Map[String, String]
-
-
-    val code = tokens.asScala.map { t => vars.getOrElse(t.text, t.text) }.mkString(" ")
-
-    runFunc(code, args ++ bindings.map(_._2))
-  }
-}
-
-object Ask extends Command with RunPrim {
+object Ask extends Command {
   override def getSyntax =
     Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType,
                                Syntax.CodeBlockType,
                                Syntax.RepeatableType | Syntax.ReadableType), 2)
 
-  override def perform(args: Array[Argument], ctx: Context) =
-    run(ctx, args(1).getCode, args.slice(2, args.size).map(_.get), (code, actuals) => {
-      LevelSpace.toModelList(args(0)).foreach(_.ask(code, actuals))
-    })
+  override def perform(args: Array[Argument], ctx: Context) = {
+    val code = args(1).getCode.asScala.map(_.text).mkString(" ")
+    val cmdArgs = args.slice(2, args.size).map(_.get)
+    val lets = LetPrim.letBindings(CtxConverter.nvm(ctx))
+    LevelSpace.toModelList(args(0)).map {
+      _.ask(code, lets, cmdArgs)
+    }.foreach(_(ctx.world))
+  }
 }
 
-object Of extends Reporter with RunPrim {
+object Of extends Reporter {
   override def getSyntax =
     Syntax.reporterSyntax(Syntax.CodeBlockType,
                           Array(Syntax.NumberType | Syntax.ListType),
@@ -94,21 +84,25 @@ object Of extends Reporter with RunPrim {
     Report.report(Array(args(1), args(0)), ctx)
 }
 
-object Report extends Reporter with RunPrim {
+object Report extends Reporter {
   override def getSyntax =
     Syntax.reporterSyntax(Array(Syntax.NumberType | Syntax.ListType,
                                 Syntax.CodeBlockType,
                                 Syntax.RepeatableType | Syntax.ReadableType),
                           Syntax.ReadableType, 2)
 
-  override def report(args: Array[Argument], ctx: Context): AnyRef =
-    run(ctx, args(1).getCode, args.slice(2, args.size).map(_.get), (code, actuals) => {
-      val results = LevelSpace.toModelList(args(0)).map(_.of(code, actuals)).toVector
-      if (args(0).get.isInstanceOf[Double]) results.head else LogoList.fromVector(results)
-    })
+  override def report(args: Array[Argument], ctx: Context): AnyRef = {
+    val code = args(1).getCode.asScala.map(_.text).mkString(" ")
+    val cmdArgs = args.slice(2, args.size).map(_.get)
+    val lets = LetPrim.letBindings(CtxConverter.nvm(ctx))
+    val results = LevelSpace.toModelList(args(0)).map{
+      _.of(code, lets, cmdArgs)
+    }.map(_(ctx.world))
+    if (args(0).get.isInstanceOf[Double]) results.head else LogoList.fromVector(results.toVector)
+  }
 }
 
-object With extends Reporter with RunPrim {
+object With extends Reporter {
   override def getSyntax =
     Syntax.reporterSyntax(Syntax.ListType,
                           Array(Syntax.CodeBlockType),
@@ -116,14 +110,23 @@ object With extends Reporter with RunPrim {
                           Syntax.NormalPrecedence + 2,
                           isRightAssociative = false)
 
-  override def report(args: Array[Argument], ctx: Context): AnyRef =
-    run(ctx, args(1).getCode, Array(), (code, actuals) => {
-      LogoList.fromIterator(LevelSpace.toModelList(args(0)).filter(m => m.of(code, actuals) match {
-        case b: java.lang.Boolean => b
-        case x => throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
-                                                                   "ls:with", m.name, Dump.logoObject(x)))
-      }).map(_.getModelID: java.lang.Double).iterator)
-    })
+  override def report(args: Array[Argument], ctx: Context): AnyRef = {
+    val code = args(1).getCode.asScala.map(_.text).mkString(" ")
+    val cmdArgs = args.slice(2, args.size).map(_.get)
+    val lets = LetPrim.letBindings(CtxConverter.nvm(ctx))
+    val matchingModels = LevelSpace.toModelList(args(0))
+      .map(m => m -> m.of(code, lets, cmdArgs))
+      .map(p => p._1 -> p._2(ctx.world))
+      .filter {
+        case (_, b: java.lang.Boolean) => b
+        case (m: ChildModel, x: AnyRef) =>
+          throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
+                                                         "ls:with", m.name, Dump.logoObject(x)))
+      }
+      .map(_._1.getModelID: java.lang.Double)
+      .toVector
+    LogoList.fromVector(matchingModels)
+  }
 }
 
 

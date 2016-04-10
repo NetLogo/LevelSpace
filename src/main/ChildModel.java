@@ -17,7 +17,14 @@ import org.nlogo.core.*;
 import org.nlogo.nvm.*;
 import org.nlogo.nvm.Reporter;
 import org.nlogo.prim.*;
+import org.nlogo.api.Workspace;
 import org.nlogo.workspace.AbstractWorkspaceScala;
+
+import scala.Function1;
+import scala.collection.Seq;
+import scala.Tuple2;
+import scala.runtime.BoxedUnit;
+import scala.runtime.AbstractFunction1;
 
 public abstract class ChildModel {
     private final World parentWorld;
@@ -27,7 +34,9 @@ public abstract class ChildModel {
     private LoadingCache<String, Reporter> tasks;
     private String name;
     private int modelID;
-    private Job lastJob;
+    private NotifyingJob lastJob;
+
+    private Evaluator evaluator;
 
     public ChildModel(World parentWorld, int modelID) throws ExtensionException {
         this.parentWorld = parentWorld;
@@ -39,7 +48,8 @@ public abstract class ChildModel {
                 try {
                     return compileTaskReporter(code);
                 } catch (CompilerException e) {
-                    throw ErrorUtils.wrap(ChildModel.this, e);
+                    ErrorUtils.wrap(ChildModel.this, e);
+                    return null;
                 }
             }
         });
@@ -58,109 +68,55 @@ public abstract class ChildModel {
             throw new ExtensionException("There is a bug in LevelSpace! Please report! ", e);
         }
         owner = new SimpleJobOwner(name(), workspace().world().mainRNG(), AgentKindJ.Observer());
+        evaluator = new Evaluator(name(), workspace());
     }
 
-    private void waitForLastJob() {
+    public Evaluator evaluator() {
+        return evaluator;
+    }
+
+    public Function1<World, BoxedUnit> ask(String code, Seq<Tuple2<String, Object>> lets, Seq<Object> args) throws ExtensionException {
         try {
-            while (lastJob != null && (lastJob.state != Job.REMOVED && lastJob.state != Job.DONE)) {
-                synchronized(lastJob) {
-                    lastJob.wait(50);
-                }
-            }
-        } catch (InterruptedException e) {}
-    }
-
-    public void command(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
-        runNlogoSafely(new Callable<Object>() {
-            @Override
-            public Object call() throws ExtensionException {
-                //workspace().runCompiledCommands(owner, getCommandRunner(task, args));
-                waitForLastJob();
-                lastJob = workspace().jobManager.makeConcurrentJob(owner, workspace().world().observers(), getCommandRunner(task, args));
-                workspace().jobManager.addJob(lastJob, false);
-                ErrorUtils.checkForLogoException(ChildModel.this);
-                return null;
-            }
-        });
-    }
-
-    public Object report(final Reporter task, final Object[] args) throws ExtensionException, HaltException {
-        Object result = runNlogoSafely(new Callable<Object>() {
-            @Override
-            public Object call() throws ExtensionException {
-                Object result = workspace().runCompiledReporter(owner, getReporterRunner(task, args));
-                ErrorUtils.checkForLogoException(ChildModel.this);
-                return result;
-            }
-        });
-        checkResult(result);
-        return result;
-    }
-
-    public void ask(String command, Object[] actuals) throws ExtensionException, HaltException {
-        try {
-            command(tasks.get(command), actuals);
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof ExtensionException) {
-                throw (ExtensionException) e.getCause();
-            } else {
-                throw ErrorUtils.wrap(this, e);
-            }
+            final Function1<World, BoxedUnit> future = evaluator().command(code, lets, args);
+            return ErrorUtils.handle(this, future);
+        } catch (Exception e) {
+            ErrorUtils.wrap(this, e);
+            return null;
         }
     }
 
-    public Object of(String reporter, Object[] actuals) throws ExtensionException, HaltException {
+    public Function1<World, Object> of(String code, Seq<Tuple2<String, Object>> lets, Seq<Object> args) throws ExtensionException {
         try {
-            return report(tasks.get(reporter), actuals);
-        } catch (ExecutionException e) {
-            if (e.getCause() instanceof ExtensionException) {
-                throw (ExtensionException) e.getCause();
-            } else {
-                throw ErrorUtils.wrap(this, e);
-            }
-        }
-    }
-
-    void checkResult(Object reporterResult) throws ExtensionException {
-        if (reporterResult instanceof org.nlogo.agent.Agent || reporterResult instanceof AgentSet) {
-            throw new ExtensionException("You cannot report agents or agentsets from LevelSpace models.");
-        } else if (reporterResult instanceof LogoList) {
-            LogoList resultList = (LogoList)reporterResult;
-            for(Object elem : resultList.javaIterable()) {
-                checkResult(elem);
-            }
+            final Function1<World, Object> future = evaluator().report(code, lets, args);
+            return ErrorUtils.handle(this, future);
+        } catch (Exception e) {
+            ErrorUtils.wrap(this, e);
+            return null;
         }
     }
 
     final public void kill() throws ExtensionException, HaltException {
         // We can't run this synchronously at all. I kept getting freezes when closing/quitting/opening new models
         // through the GUI. It looks like the EDT can't wait for the job thread to die. BCH 1/15/2015
-        runLater(new Callable<Object>() {
-            @Override
-            public Object call() throws Exception {
-                try {
-                    try {
-                        workspace().dispose();
-                    } catch (UnsupportedOperationException e) {
-                        // In 5.1, you can't do dispose with GUIWorkspace
-                        workspace().jobManager.die();
-                        workspace().getExtensionManager().reset();
-                        // This leaves LifeGuard up, but we're leaking permgen anyway, so whatever
-                    }
-                } catch (InterruptedException e) {
-                    // ok
-                }
-                return null;
-            }
-        });
 
-        runUISafely(new Callable<Object>() {
+        // workspace.dispose() calls jobManager.die()
+        new Thread(new Runnable() {
             @Override
-            public Object call() {
+            public void run() {
+                try {
+                    workspace().dispose();
+                } catch (InterruptedException e) {
+                    // fine
+                }
+            }
+        }).start();
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
                 if (frame() != null) {
                     frame().dispose();
                 }
-                return null;
             }
         });
     }
@@ -220,21 +176,6 @@ public abstract class ChildModel {
         frame().setVisible(false);
     }
 
-    // Probably only want a single job to run at a time.
-    private static Executor safeExecutor = Executors.newSingleThreadExecutor();
-    /**
-     * Runs the given callable such that it doesn't create a deadlock between
-     * the AWT event thread and the JobThread. It does this using a similar
-     * technique as ThreadUtils.waitForResponse().
-     * @param callable What to run.
-     * @return
-     */
-    public <T> T runNlogoSafely(final Callable<T> callable) throws HaltException, ExtensionException {
-        FutureTask<T> task = makeTask(callable);
-        safeExecutor.execute(task);
-        return waitFor(task);
-    }
-
     public <T> T runUISafely(final Callable<T> callable) throws ExtensionException, HaltException {
         // waitFor is unsafe on the event queue, so if we're on the event queue, just run directly.
         if (SwingUtilities.isEventDispatchThread()) {
@@ -252,10 +193,6 @@ public abstract class ChildModel {
             SwingUtilities.invokeLater(task);
             return waitFor(task);
         }
-    }
-
-    public void runLater(final Callable<?> callable) throws ExtensionException, HaltException {
-        safeExecutor.execute(makeTask(callable));
     }
 
     private <T> FutureTask<T> makeTask(final Callable<T> callable) {

@@ -66,7 +66,7 @@ class BackingModelManager extends LSModelManager {
       None
     } else {
       val newModel =
-        openModels.getOrElse(filePath, new HeadlessChildModel(App.app.workspace.world(), filePath, -1))
+        openModels.getOrElse(filePath, new HeadlessChildModel(App.app.workspace.world, filePath, -1))
       registerTab(filePath, newModel)(f)
     }
   }
