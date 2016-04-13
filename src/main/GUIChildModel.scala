@@ -1,3 +1,5 @@
+package org.nlogo.ls
+
 import java.awt._
 import java.awt.event.{ WindowAdapter, WindowEvent }
 import java.util.concurrent.Callable

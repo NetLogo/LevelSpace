@@ -1,3 +1,5 @@
+package org.nlogo.ls;
+
 import scala.collection.JavaConverters;
 
 import java.awt.Component;
@@ -32,7 +34,7 @@ import org.nlogo.awt.EventQueue$;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 
-import gui.ModelManager;
+import org.nlogo.ls.gui.ModelManager;
 
 public class LevelSpace implements org.nlogo.api.ClassManager {
 

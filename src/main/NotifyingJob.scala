@@ -1,3 +1,5 @@
+package org.nlogo.ls
+
 import org.nlogo.nvm.{ConcurrentJob, Procedure, Job}
 import org.nlogo.agent.AgentSet
 import org.nlogo.api.{JobOwner, Workspace}

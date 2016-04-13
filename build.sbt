@@ -6,7 +6,7 @@ scalaVersion := "2.11.7"
 
 name := "ls"
 
-netLogoClassManager := "LevelSpace"
+netLogoClassManager := "org.nlogo.ls.LevelSpace"
 
 netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 

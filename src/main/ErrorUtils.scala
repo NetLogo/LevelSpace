@@ -1,3 +1,5 @@
+package org.nlogo.ls
+
 import org.nlogo.api.ExtensionException
 import org.nlogo.nvm.HaltException
 

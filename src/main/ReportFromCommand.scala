@@ -1,3 +1,5 @@
+package org.nlogo.ls
+
 import org.nlogo.nvm.{CommandTask, Context, Task, Reporter}
 import org.nlogo.api.Syntax
 

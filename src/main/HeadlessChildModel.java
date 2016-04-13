@@ -1,3 +1,5 @@
+package org.nlogo.ls;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.concurrent.Callable;

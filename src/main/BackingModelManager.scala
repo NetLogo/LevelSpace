@@ -1,4 +1,6 @@
-import gui.{ModelCodeTab, LevelSpaceMenu}
+package org.nlogo.ls
+
+import org.nlogo.ls.gui.{ModelCodeTab, LevelSpaceMenu, ModelManager}
 
 import java.util.{ Map => JMap }
 
@@ -8,7 +10,7 @@ import org.nlogo.workspace.AbstractWorkspace
 import scala.collection.JavaConversions._
 import scala.collection.parallel.mutable.ParHashMap
 
-trait LSModelManager extends gui.ModelManager {
+trait LSModelManager extends ModelManager {
   def updateChildModels(map: JMap[java.lang.Integer, ChildModel]): Unit = {}
   def guiComponent: LevelSpaceMenu = null
 }

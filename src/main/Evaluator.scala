@@ -1,3 +1,5 @@
+package org.nlogo.ls
+
 import org.nlogo.workspace.AbstractWorkspaceScala
 import org.nlogo.api.{World, SimpleJobOwner, ExtensionException}
 import org.nlogo.core.{LogoList, Nobody, AgentKind, CompilerException}

@@ -1,3 +1,5 @@
+package org.nlogo.ls
+
 import org.nlogo.api.Workspace
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

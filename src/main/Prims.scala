@@ -1,3 +1,5 @@
+package org.nlogo.ls
+
 import scala.collection.breakOut
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{Map => MMap, WeakHashMap}

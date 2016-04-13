@@ -1,4 +1,4 @@
-package gui
+package org.nlogo.ls.gui
 
 import java.awt.FileDialog.{LOAD => LOADFILE, SAVE => SAVEFILE}
 import java.awt.event.ActionEvent
