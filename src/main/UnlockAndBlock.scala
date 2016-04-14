@@ -15,21 +15,14 @@ object UnlockAndBlock {
    **/
   def apply[R](unlock: AnyRef)(fn: => R): R = {
     val future = Future {
-      try {
-        fn
-      } finally {
-        unlock.synchronized {
-          unlock.notifyAll
-        }
-      }
+      try fn finally unlock.synchronized { unlock.notifyAll }
     }
     try {
       while (!future.isCompleted) {
         unlock.synchronized {
           unlock.wait(50)
         }
-        if (Thread.currentThread.isInterrupted)
-          throw new InterruptedException()
+        if (Thread.currentThread.isInterrupted) throw new InterruptedException()
       }
       future.value.map {
         case Success(v) => v

@@ -1,12 +1,10 @@
-import org.nlogo.build.NetLogoExtension
-
 enablePlugins(org.nlogo.build.NetLogoExtension)
 
-scalaVersion := "2.11.7"
-
-name := "ls"
+netLogoExtName := "ls"
 
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
+
+scalaVersion := "2.11.7"
 
 netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
@@ -20,8 +18,7 @@ javaSource in Compile := baseDirectory.value / "src" / "main"
 
 javaSource in Test := baseDirectory.value / "src" / "test"
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings",
-                      "-feature", "-encoding", "us-ascii")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii")
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
@@ -53,4 +50,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.0.0-M4"
+netLogoVersion := "6.0.0-M5"

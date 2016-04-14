@@ -6,6 +6,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 public class ImageFrame extends JFrame {
     /**
@@ -13,7 +14,7 @@ public class ImageFrame extends JFrame {
      */
     private static final long serialVersionUID = 1L;
     BufferedImage image;
-    JPanel panel;
+    final JPanel panel;
 
 
     public ImageFrame(final BufferedImage image, final String title) {

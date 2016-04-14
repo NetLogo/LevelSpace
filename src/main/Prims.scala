@@ -127,7 +127,7 @@ object With extends Reporter {
           throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
                                                          "ls:with", m.name, Dump.logoObject(x)))
       }
-      .map(_._1.getModelID: java.lang.Double)
+      .map(_._1.modelID: java.lang.Double)
       .toVector
     LogoList.fromVector(matchingModels)
   }

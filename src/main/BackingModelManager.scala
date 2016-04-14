@@ -24,10 +24,10 @@ class BackingModelManager extends LSModelManager {
     val models            = indexedModels.values
 
     // toSeq.distinct preserves ordering, whereas toSet does not
-    val modelPaths        = models.map(_.workspace().getModelPath).toSeq.distinct
+    val modelPaths        = models.map(_.workspace.getModelPath).toSeq.distinct
 
-    val closedModelsPaths = (openModels.values.toSet &~ models.toSet).map(_.workspace().getModelPath)
-    val newlyOpenedPaths  = (models.toSet &~ openModels.values.toSet).map(_.workspace().getModelPath)
+    val closedModelsPaths = (openModels.values.toSet &~ models.toSet).map(_.workspace.getModelPath)
+    val newlyOpenedPaths  = (models.toSet &~ openModels.values.toSet).map(_.workspace.getModelPath)
     openModels            = (modelPaths zip models).toMap
     (closedModelsPaths intersect openModelPaths).foreach(replaceTabAtPath)
     (newlyOpenedPaths  intersect openModelPaths).foreach(replaceTabAtPath)
@@ -47,7 +47,7 @@ class BackingModelManager extends LSModelManager {
 
   def removeTab(tab: ModelCodeTab): Unit = {
     if (! openModelPaths(tab.filePath))
-      backingModels.get(tab.filePath).foreach(_._1.kill())
+      backingModels.get(tab.filePath).foreach(_._1.kill)
     backingModels -= tab.filePath
   }
 
@@ -56,7 +56,7 @@ class BackingModelManager extends LSModelManager {
     if (backingModels.get(filePath).isDefined) {
       None
     } else {
-      val tab = f(model.workspace())
+      val tab = f(model.workspace)
       backingModels += filePath ->(model, tab)
       Some(tab)
     }
@@ -68,7 +68,7 @@ class BackingModelManager extends LSModelManager {
       None
     } else {
       val newModel =
-        openModels.getOrElse(filePath, new HeadlessChildModel(App.app.workspace.world, filePath, -1))
+        openModels.getOrElse(filePath, new HeadlessChildModel(App.app.workspace, filePath, -1))
       registerTab(filePath, newModel)(f)
     }
   }

@@ -7,9 +7,7 @@ import org.nlogo.nvm.{Job, Reporter, Procedure}
 import org.nlogo.prim.{ _constboolean, _constdouble, _constlist, _conststring, _nobody }
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 
-
 class Evaluator(name: String, ws: AbstractWorkspaceScala) {
-  type FutureJob[R] = Function1[World, R]
 
   val owner = new SimpleJobOwner(name, ws.world.mainRNG, AgentKind.Observer);
 

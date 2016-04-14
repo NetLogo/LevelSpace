@@ -35,6 +35,7 @@ import org.nlogo.core.SyntaxJ;
 import org.nlogo.awt.EventQueue$;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
+import org.nlogo.workspace.AbstractWorkspaceScala;
 
 import org.nlogo.ls.gui.ModelManager;
 
@@ -209,9 +210,9 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
             try {
                 T model;
                 if (modelType == HeadlessChildModel.class) {
-                    model = modelType.cast(new HeadlessChildModel(ctx.getAgent().world(), modelPath, modelCounter));
+                    model = modelType.cast(new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter));
                 } else {
-                    model = modelType.cast(new GUIChildModel(ctx.getAgent().world(), modelPath, modelCounter));
+                    model = modelType.cast(new GUIChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter));
                     updateChildModelSpeed(model);
                 }
                 models.put(modelCounter, model);
@@ -280,7 +281,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     public static void closeModel(ChildModel model) throws ExtensionException, HaltException {
         model.kill();
-        models.remove(model.getModelID());
+        models.remove(model.modelID());
         updateModelMenu();
     }
 
@@ -304,7 +305,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
         @Override
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            getModel(args[0].getIntValue()).setName(args[1].getString());
+            getModel(args[0].getIntValue()).name_$eq(args[1].getString());
         }
     }
 
@@ -316,7 +317,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
         }
         public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
-            return getModel(args[0].getIntValue()).getPath();
+            return getModel(args[0].getIntValue()).path();
 
         }
 
