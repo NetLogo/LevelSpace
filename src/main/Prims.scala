@@ -4,8 +4,8 @@ import scala.collection.breakOut
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{Map => MMap, WeakHashMap}
 
-import org.nlogo.api.{Syntax, Context, Argument, Command, Reporter, ExtensionException, Dump}
-import org.nlogo.core.{LogoList, Let, Token, I18N}
+import org.nlogo.api.{Context, Argument, Command, Reporter, ExtensionException, Dump}
+import org.nlogo.core.{Syntax, LogoList, Let, Token, I18N}
 import org.nlogo.nvm.{Context => NvmContext, ExtensionContext, Activation, LetBinding}
 
 import com.google.common.collect.MapMaker
@@ -60,9 +60,10 @@ object LetPrim extends Command {
 
 object Ask extends Command {
   override def getSyntax =
-    Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType,
-                               Syntax.CodeBlockType,
-                               Syntax.RepeatableType | Syntax.ReadableType), 2)
+    Syntax.commandSyntax(right = List(Syntax.NumberType | Syntax.ListType,
+                                      Syntax.CodeBlockType,
+                                      Syntax.RepeatableType | Syntax.ReadableType),
+                         defaultOption = Some(2))
 
   override def perform(args: Array[Argument], ctx: Context) = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
@@ -76,11 +77,11 @@ object Ask extends Command {
 
 object Of extends Reporter {
   override def getSyntax =
-    Syntax.reporterSyntax(Syntax.CodeBlockType,
-                          Array(Syntax.NumberType | Syntax.ListType),
-                          Syntax.ReadableType,
-                          Syntax.NormalPrecedence + 1,
-                          true)
+    Syntax.reporterSyntax(left = Syntax.CodeBlockType,
+                          right = List(Syntax.NumberType | Syntax.ListType),
+                          ret = Syntax.ReadableType,
+                          precedence = Syntax.NormalPrecedence + 1,
+                          isRightAssociative = true)
 
   override def report(args: Array[Argument], ctx: Context): AnyRef =
     Report.report(Array(args(1), args(0)), ctx)
@@ -88,10 +89,11 @@ object Of extends Reporter {
 
 object Report extends Reporter {
   override def getSyntax =
-    Syntax.reporterSyntax(Array(Syntax.NumberType | Syntax.ListType,
-                                Syntax.CodeBlockType,
-                                Syntax.RepeatableType | Syntax.ReadableType),
-                          Syntax.ReadableType, 2)
+    Syntax.reporterSyntax(right = List(Syntax.NumberType | Syntax.ListType,
+                                       Syntax.CodeBlockType,
+                                       Syntax.RepeatableType | Syntax.ReadableType),
+                          ret = Syntax.ReadableType,
+                          defaultOption = Some(2))
 
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
@@ -106,10 +108,10 @@ object Report extends Reporter {
 
 object With extends Reporter {
   override def getSyntax =
-    Syntax.reporterSyntax(Syntax.ListType,
-                          Array(Syntax.CodeBlockType),
-                          Syntax.ListType,
-                          Syntax.NormalPrecedence + 2,
+    Syntax.reporterSyntax(left = Syntax.ListType,
+                          right = List(Syntax.CodeBlockType),
+                          ret = Syntax.ListType,
+                          precedence = Syntax.NormalPrecedence + 2,
                           isRightAssociative = false)
 
   override def report(args: Array[Argument], ctx: Context): AnyRef = {

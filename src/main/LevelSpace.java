@@ -30,6 +30,8 @@ import org.nlogo.core.ExtensionObject;
 import org.nlogo.core.LogoList;
 import org.nlogo.core.CompilerException;
 import org.nlogo.core.Token;
+import org.nlogo.core.Syntax;
+import org.nlogo.core.SyntaxJ;
 import org.nlogo.awt.EventQueue$;
 import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
@@ -196,8 +198,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
 
         @Override
-        public org.nlogo.core.Syntax getSyntax() {
-            return Syntax.commandSyntax(
+        public Syntax getSyntax() {
+            return SyntaxJ.commandSyntax(
                     new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
         }
 
@@ -249,8 +251,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
     public static class Reset implements Command {
-        public org.nlogo.core.Syntax getSyntax() {
-            return Syntax.commandSyntax();
+        public Syntax getSyntax() {
+            return SyntaxJ.commandSyntax();
         }
         public void perform(Argument args[], Context context)
                 throws org.nlogo.api.LogoException, ExtensionException {
@@ -284,8 +286,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     // this returns the path of the model
     public static class ModelName implements Reporter{
-        public org.nlogo.core.Syntax getSyntax(){
-            return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
+        public Syntax getSyntax(){
+            return SyntaxJ.reporterSyntax(new int[] {Syntax.NumberType()},
                     Syntax.StringType());
         }
         public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
@@ -297,8 +299,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     public static class SetName implements Command {
 
         @Override
-        public org.nlogo.core.Syntax getSyntax() {
-            return Syntax.commandSyntax(new int[] {Syntax.NumberType(), Syntax.StringType()});
+        public Syntax getSyntax() {
+            return SyntaxJ.commandSyntax(new int[] {Syntax.NumberType(), Syntax.StringType()});
         }
         @Override
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
@@ -308,8 +310,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     // this returns the path of the model
     public static class ModelPath implements Reporter{
-        public org.nlogo.core.Syntax getSyntax(){
-            return Syntax.reporterSyntax(new int[] {Syntax.NumberType()},
+        public Syntax getSyntax(){
+            return SyntaxJ.reporterSyntax(new int[] {Syntax.NumberType()},
                     Syntax.StringType());
 
         }
@@ -321,8 +323,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
     public static class ModelExists implements Reporter {
-        public org.nlogo.core.Syntax getSyntax() {
-            return Syntax.reporterSyntax(
+        public Syntax getSyntax() {
+            return SyntaxJ.reporterSyntax(
                     // we take in int[] {modelNumber, varName}
                     new int[] { Syntax.NumberType() },
                     // and return a number
@@ -341,8 +343,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
     public static class AllModels implements Reporter {
-        public org.nlogo.core.Syntax getSyntax() {
-            return Syntax.reporterSyntax(
+        public Syntax getSyntax() {
+            return SyntaxJ.reporterSyntax(
                     new int[] {},
                     Syntax.ListType());
         }
@@ -360,8 +362,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     public static class UsesLevelSpace implements Reporter {
         @Override
-        public org.nlogo.core.Syntax getSyntax() {
-            return Syntax.reporterSyntax(new int[] {Syntax.NumberType()}, Syntax.BooleanType());
+        public Syntax getSyntax() {
+            return SyntaxJ.reporterSyntax(new int[] {Syntax.NumberType()}, Syntax.BooleanType());
         }
 
         @Override

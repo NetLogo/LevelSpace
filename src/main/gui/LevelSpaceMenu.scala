@@ -6,12 +6,11 @@ import java.io.{File, FileWriter, IOException}
 import javax.swing._
 
 import org.nlogo.api.ModelSections.{BufSaveable, Saveable}
-import org.nlogo.api.{ExtensionException, ModelReader, ModelSections, Version}
+import org.nlogo.api.{ExtensionException, ModelReader, ModelSections, Version, Exceptions}
 import org.nlogo.core.{CompilerException, Shape, ShapeParser}
 import org.nlogo.app.{CodeTab, ModelSaver, App, Tabs}
 import org.nlogo.awt.UserCancelException
 import org.nlogo.swing.FileDialog
-import org.nlogo.util.Exceptions
 import org.nlogo.workspace.{AbstractWorkspace, ModelsLibrary}
 
 import scala.collection.JavaConversions._
