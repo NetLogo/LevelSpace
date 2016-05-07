@@ -27,7 +27,7 @@ LevelSpace is an extension for NetLogo that allows you to run several models con
 
 ## LevelSpace fundamentals
 
-LevelSpace must be loaded in a model using the ```extensions [ls]``` command. Once this is done, a model will be able to load up other models using the LevelSpace primitives, run commands and reporters in them, and close them down when they are no longer needed.
+LevelSpace must be loaded in a model using ```extensions [ls]``` at the top of your model. Once this is done, a model will be able to load up other models using the LevelSpace primitives, run commands and reporters in them, and close them down when they are no longer needed.
 
 Asking and reporting in LevelSpace is conceptually pretty straight forward: You pass blocks of code to child models, and the child models respond as if you had typed that string into their Command Center. LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets. Further, it is not possible to push data from a child to its parent - parents must ask their children to report.
 
@@ -107,18 +107,12 @@ let turtle-id 0
 (ls:report model-id [ [ color ] of turtle ? ] turtle-id)
 ```
 
-####`ls:ask-descendent` _list_ _string-of-commands_
+#### _list_ `ls:with` _reporter-block_
 
-####(`ls:ask-descendent` _list_ _string-of-commands_ _arguments_ ...)
-
-####_reporter-string_ `ls:of-descendent` _list_
-
-Like `ls:ask` and `ls:of`, but the list specifies a model at an arbitray place down the tree of models. This is useful when you child models that have child models that have child models and so forth.
-
-For the hierarchical primitives, the list is read from left to right, and the reporter or command is passed down through the hierarchy. For instance, if we want to ask model 0's child model 1 to ask its child model 9 to call its `setup`, we would write
+Reports a new list of models containing only those models that report true when they run the reporter block.
 
 ```
-ls:ask-descendent [0 1 9] "setup"
+ls:models ls:with [ count turtles > 100 ]
 ```
 
 ####`ls:let` _variable-name_ _data_
@@ -191,15 +185,6 @@ to go
 end
 ```
 
-### 'with' in LevelSpace.
-The best way to do the equivalent of `with` in LevelSpace is to combine `filter` with `ls:of`. Let's for instance say that we only want the models that satisfy a set of particular criteria. For example:
-
-```
-ls:ask (filter [[ count turtles > 5 ] ls:of ?]) [
-  ask turtles [ fd 1 ]
-]
-```
-
 ### Caveats for `ls:let`
 
 `ls:let` is very similar to `let`, except in a few cases.
@@ -252,44 +237,6 @@ ls:ask ls:models [
 ```
 
 All models will print `1`.
-
-#### You cannot access ls variables from inside tasks
-
-This behavior should be considered a bug and not relied upon.
-
-For example, this gives an error:
-
-```
-ls:let my-var 5
-ls:ask model-id [
-  run task [
-    show my-var
-  ]
-]
-```
-
-The following won't error, but will give unexpected results:
-
-```
-ls:let my-var 5
-ls:ask model-id [
-  (run task [ show foo + ? ] 7)
-]
-```
-
-The child model will show 14 instead of 12.
-
-Fortunately, there is an easy workaround in the case of `ls:ask`:
-
-```
-ls:let my-var 5
-ls:ask model-id [
-  let var my-var
-  run task [
-    show var
-  ]
-]
-```
 
 #### `ls:let` does not respect the scope of `if`, `when`, and `repeat`
 
