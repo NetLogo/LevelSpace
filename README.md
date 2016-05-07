@@ -8,10 +8,11 @@
         - [close](#lsclose-model-id)
         - [reset](#lsreset)
     - [Command and Reporting models](#command-and-reporting-models)
-        - [ask](#lsask-model-id--list-string-of-commands)
-        - [of](#reporter-string-lsof-model-id--list)
-        - [ask-descendent](#lsask-descendent-list-string-of-commands)
-        - [of-descendent](#reporter-string-lsof-descendent-list)
+        - [ask](#lsask-model-id--list-command-block)
+        - [of](#reporter-block-lsof-model-id--list)
+        - [report](#lsreport-model-id--list-reporter-block)
+        - [with](#list-lswith-reporter-block)
+        - [let](#lslet-variable-name-data)
     - [Logic & Control](#logic-control)
         - [models](#lsmodels)
         - [show](#lsshow-model-id)
@@ -20,6 +21,7 @@
         - [name-of](#lsname-of-model-id)
         - [model-exists?](#lsmodel-exists-model-id)
     - [Examples of use](#examples-of-use)
+    - [Caveats for `ls:let`](#caveats-for-lslet)
 
 # General
 
