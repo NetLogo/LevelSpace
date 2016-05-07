@@ -3,6 +3,8 @@ package org.nlogo.ls
 import org.nlogo.api.{CommandRunnable, Workspace}
 import org.nlogo.workspace.AbstractWorkspaceScala
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import javax.swing.{JFrame, SwingUtilities}
 
 abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
@@ -24,13 +26,14 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   }
 
   def kill = {
-    UnlockAndBlock(parentWorkspace.world) {
+    Future {
       workspace.dispose
     }
-    parentWorkspace waitFor new CommandRunnable {
-      def run() = {
-        frame.foreach(_.dispose)
-      }
+    val disposeRunnable = new CommandRunnable { def run() = frame.foreach(_.dispose) }
+    if (java.awt.EventQueue.isDispatchThread()) {
+      disposeRunnable.run
+    } else {
+      parentWorkspace.waitFor(disposeRunnable)
     }
   }
 
