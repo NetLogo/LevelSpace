@@ -38,13 +38,14 @@ object LetPrim extends Command {
           toScopedVals(m).get(ctx.activation).map(name.substring(LetPrefix.length) -> _)
       }
 
-  override def getSyntax = Syntax.commandSyntax(Array(Syntax.SymbolType, Syntax.ReadableType))
+  override def getSyntax = Syntax.commandSyntax(List(Syntax.SymbolType, Syntax.ReadableType))
 
   override def perform(args: Array[Argument], ctx: Context) = {
     val token = args(0).getSymbol
     val let = Let(LetPrefix + token.text)
     val nvmCtx = CtxConverter.nvm(ctx)
-    nvmCtx.letBindings.find(_.let.name equals let.name) match {
+
+    nvmCtx.letBindings.find(let.name equals _.let.name) match {
       // Note that we need to replace the value in the map is found since different scopes can have the same
       // Activation. `ask` is the most common instance of this. -- BCH 1/23/2016
       case Some(lb) => toScopedVals(lb.value)(nvmCtx.activation) = args(1).get
@@ -135,7 +136,7 @@ object With extends Reporter {
 
 
 class ModelCommand(cmd: ChildModel => Unit) extends Command {
-  override def getSyntax = Syntax.commandSyntax(Array(Syntax.NumberType | Syntax.ListType))
+  override def getSyntax = Syntax.commandSyntax(List(Syntax.NumberType | Syntax.ListType))
   override def perform(args: Array[Argument], ctx: Context): Unit = LevelSpace.toModelList(args(0)).foreach(cmd)
 }
 
