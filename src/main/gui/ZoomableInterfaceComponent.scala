@@ -1,15 +1,18 @@
-package gui
+package org.nlogo.ls.gui
 
 import java.awt._
 import java.awt.event.{ComponentEvent, ComponentListener, ContainerEvent, ContainerListener}
-import javax.swing.JFrame
+import javax.swing.{ JFrame, JLayeredPane }
 
+import org.nlogo.core.{ Widget => CoreWidget }
 import org.nlogo.api.{CompilerServices, RandomServices}
 import org.nlogo.lite.{InterfaceComponent, LiteWorkspace}
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window._
 
 import scala.collection.mutable.{HashMap => MMap, MutableList => MList}
+
+import scala.language.implicitConversions
 
 trait ZoomableContainer
   extends ComponentListener
@@ -160,8 +163,15 @@ class ZoomableInterfacePanel(viewWidget: ViewWidgetInterface,
 
   registerZoomableComponent(viewWidget.asInstanceOf[Widget])
 
-  override def loadWidget(strings: Array[String], modelVersion: String): Widget = {
-    val widget = super.loadWidget(strings, modelVersion)
+  override def loadWidget(coreWidget: CoreWidget): Widget = {
+    val widget = super.loadWidget(coreWidget)
+    // these shenanigans shouldn't be necessary, but are made so by defects in InterfacePanelLite
+    // This can be removed once https://github.com/NetLogo/NetLogo/issues/1051 has been resolved
+    if (widget.isInstanceOf[ViewWidgetInterface]) {
+      moveToFront(widget)
+      widget.validate()
+      add(widget, JLayeredPane.DEFAULT_LAYER)
+    }
     registerZoomableComponent(widget)
     widget
   }

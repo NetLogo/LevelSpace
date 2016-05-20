@@ -1,4 +1,4 @@
-package gui
+package org.nlogo.ls.gui
 
 import java.awt._
 import java.awt.event.ActionEvent

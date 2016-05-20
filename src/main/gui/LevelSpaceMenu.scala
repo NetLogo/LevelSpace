@@ -1,26 +1,27 @@
-package gui
+package org.nlogo.ls.gui
 
 import java.awt.FileDialog.{LOAD => LOADFILE, SAVE => SAVEFILE}
 import java.awt.event.ActionEvent
+import java.nio.file.{ Paths, Files }
 import java.io.{File, FileWriter, IOException}
 import javax.swing._
 
-import org.nlogo.api.ModelSections.{BufSaveable, Saveable}
-import org.nlogo.api.{CompilerException, ExtensionException, ModelReader, ModelSections, Shape, Version}
-import org.nlogo.app.{ProceduresTab, ModelSaver, App, Tabs}
+import org.nlogo.api.ModelSections.ModelSaveable
+import org.nlogo.api.{ExtensionException, ModelSections, Version, Exceptions}
+import org.nlogo.core.{CompilerException, Shape, ShapeParser}
+import org.nlogo.app.{CodeTab, ModelSaver, App, Tabs}
 import org.nlogo.awt.UserCancelException
-import org.nlogo.shape.{VectorShape, LinkShape}
+import org.nlogo.fileformat
 import org.nlogo.swing.FileDialog
-import org.nlogo.util.Exceptions
-import org.nlogo.workspace.{AbstractWorkspace, ModelsLibrary}
+import org.nlogo.workspace.{AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel}
 
 import scala.collection.JavaConversions._
 
 trait ModelManager {
-  def removeTab(tab: ModelProceduresTab): Unit
-  def existingTab(filePath: String): Option[ProceduresTab]
+  def removeTab(tab: ModelCodeTab): Unit
+  def existingTab(filePath: String): Option[CodeTab]
   def registerTab(filePath: String)
-                 (f: AbstractWorkspace => ModelProceduresTab): Option[ModelProceduresTab]
+                 (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab]
 }
 
 class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
@@ -45,7 +46,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
       openModels.setEnabled(true)
   }
 
-  def replaceTab(oldTab: ModelProceduresTab): Unit =
+  def replaceTab(oldTab: ModelCodeTab): Unit =
     newHeadlessBackedTab(oldTab.filePath).foreach {
       newTab => replaceSwingTab(oldTab, newTab)
     }
@@ -54,143 +55,125 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
     menu.add(new OpenModelAction(filePath, backingModelManager))
   }
 
-  private def newHeadlessBackedTab(filePath: String): Option[ModelProceduresTab] =
+  private def newHeadlessBackedTab(filePath: String): Option[ModelCodeTab] =
     backingModelManager.registerTab(filePath) { workspace =>
-      new ModelProceduresTab(workspace, tabs, backingModelManager)
+      new ModelCodeTab(workspace, tabs, backingModelManager)
     }
 
-  private def replaceSwingTab(oldTab: ModelProceduresTab, newTab: ModelProceduresTab): Unit = {
+  private def replaceSwingTab(oldTab: ModelCodeTab, newTab: ModelCodeTab): Unit = {
     val i = tabs.getIndexOfComponent(oldTab)
     tabs.setComponentAt(i, newTab)
   }
 }
 
-object LevelSpaceMenu {
-  abstract class NewTabAction(name: String, modelManager: ModelManager) extends AbstractAction(name) {
-    val tabs = App.app.tabs
+  object LevelSpaceMenu {
+    abstract class NewTabAction(name: String, modelManager: ModelManager) extends AbstractAction(name) {
+      val tabs = App.app.tabs
 
-    def filePath: Option[String]
+      def filePath: Option[String]
 
-    def actingTab: Option[ProceduresTab] =
-      filePath.flatMap(path => locateExistingTab(path) orElse createNewTab(path))
+      def actingTab: Option[CodeTab] =
+        filePath.flatMap(path => locateExistingTab(path) orElse createNewTab(path))
 
-    private def locateExistingTab(path: String): Option[ProceduresTab] =
-      modelManager.existingTab(path)
+      private def locateExistingTab(path: String): Option[CodeTab] =
+        modelManager.existingTab(path)
 
-    private def createNewTab(path: String): Option[ProceduresTab] = {
-      modelManager.registerTab(path) { workspace =>
-        val tab = new ModelProceduresTab(workspace, tabs, modelManager)
-        tabs.addTab(tab.tabName, tab)
-        tab
-      }
-    }
-
-    override def actionPerformed(actionEvent: ActionEvent): Unit =
-      actingTab.foreach(tabs.setSelectedComponent)
-  }
-
-  class OpenModelAction(fileName: String, modelManager: ModelManager)
-    extends NewTabAction(fileName, modelManager) {
-    override def filePath: Option[String] = Some(fileName)
-  }
-
-  class SelectModelAction(name: String, modelManager: ModelManager)
-    extends NewTabAction(name, modelManager) {
-
-    override def filePath: Option[String] = selectFile
-
-    override def actingTab: Option[ProceduresTab] =
-      try {
-        super.actingTab
-      } catch {
-        case e: CompilerException =>
-          // we shouldn't have to raise an exception here, we should just be able to open it, but
-          // in order to do that, we'll need to change child models not to compile in their constructors
-          throw new ExtensionException(filePath + " did not compile properly. There is probably something wrong " +
-            "with its code. Exception said" + e.getMessage);
-        case e: IOException =>
-          throw new ExtensionException("There was no .nlogo file at the path: \"" + filePath + "\"")
-      }
-
-
-    private def selectFile: Option[String] =
-      showLoadSelection.flatMap(path =>
-        if (ModelsLibrary.getModelPaths.contains(path)) {
-          showLibraryModelErrorMessage()
-          None
-        } else
-          Some(path))
-
-    private def showLoadSelection: Option[String] =
-      try {
-        Some(FileDialog.show(App.app.frame, "Load a LevelSpace Model...", LOADFILE))
-      } catch {
-        case e: UserCancelException =>
-          Exceptions.ignore(e)
-          None
-      }
-
-    private def showLibraryModelErrorMessage(): Unit =
-      JOptionPane.showMessageDialog(
-        App.app.frame,
-        """|The model you selected is a library model, which cannot be opened in a LevelSpace code tab.
-           |Please save the model elsewhere and try re-opening""".stripMargin)
-  }
-
-  class NewModelAction(name: String, modelManager: ModelManager)
-    extends NewTabAction(name, modelManager) {
-
-    override def filePath: Option[String] =
-      try {
-        FileDialog.setDirectory(App.app.workspace.getModelDir)
-        val userEntry = FileDialog.show(App.app.frame, "Select a path for new Model...", SAVEFILE)
-        // we basically need to write an empty NetLogo model in before we read...
-        val fileName =
-          if (userEntry.endsWith(".nlogo")) userEntry else userEntry + ".nlogo"
-        if (new File(fileName).exists) {
-          val fileAlreadyExists = "The file " + fileName + " already exists. Please choose a different name"
-          throw new ExtensionException(fileAlreadyExists)
+      private def createNewTab(path: String): Option[CodeTab] = {
+        modelManager.registerTab(path) { workspace =>
+          val tab = new ModelCodeTab(workspace, tabs, modelManager)
+          tabs.addTab(tab.tabName, tab)
+          tab
         }
-        writeEmptyNetLogoFile(fileName)
-      } catch {
-        case e: UserCancelException =>
-          Exceptions.ignore(e)
-          None
       }
 
-    private def writeEmptyNetLogoFile(fileName: String): Option[String] = {
-      val modelString = new ModelSaver(EmptyNetLogoFile).save
-      val fw = new FileWriter(fileName)
-      try {
-        fw.write(modelString)
-        Some(fileName)
-      } catch {
-        case i: IOException => None
-      } finally {
-        fw.flush()
-        fw.close()
-      }
+      override def actionPerformed(actionEvent: ActionEvent): Unit =
+        actingTab.foreach(tabs.setSelectedComponent)
     }
 
-    object EmptyNetLogoFile extends ModelSections {
-      object EmptySaveable extends Saveable with BufSaveable {
-        override def save: String = ""
-        override def save(buf: StringBuilder): Unit = ()
-      }
+    class OpenModelAction(fileName: String, modelManager: ModelManager)
+    extends NewTabAction(fileName, modelManager) {
+      override def filePath: Option[String] = Some(fileName)
+    }
 
-      override def procedureSource: String = ""
-      override def aggregateManager: Saveable = EmptySaveable
-      override def snapOn: Boolean = false
-      override def previewCommands: String = ""
-      override def linkShapes: Seq[Shape] =
-        LinkShape.parseShapes(ModelReader.defaultLinkShapes, Version.version)
-      override def hubnetManager: BufSaveable = EmptySaveable
-      override def turtleShapes: Seq[Shape] =
-        VectorShape.parseShapes(ModelReader.defaultShapes, Version.version)
-      override def labManager: Saveable = EmptySaveable
-      override def info: String = ""
-      override def widgets: Seq[Saveable] = Seq()
-      override def version: String = Version.version
+    class SelectModelAction(name: String, modelManager: ModelManager)
+    extends NewTabAction(name, modelManager) {
+
+      override def filePath: Option[String] = selectFile
+
+      override def actingTab: Option[CodeTab] =
+        try {
+          super.actingTab
+        } catch {
+          case e: CompilerException =>
+            // we shouldn't have to raise an exception here, we should just be able to open it, but
+            // in order to do that, we'll need to change child models not to compile in their constructors
+            throw new ExtensionException(filePath + " did not compile properly. There is probably something wrong " +
+              "with its code. Exception said" + e.getMessage);
+            case e: IOException =>
+              throw new ExtensionException("There was no .nlogo file at the path: \"" + filePath + "\"")
+        }
+
+
+        private def selectFile: Option[String] =
+          showLoadSelection.flatMap(path =>
+              if (ModelsLibrary.getModelPaths.contains(path)) {
+                showLibraryModelErrorMessage()
+                None
+              } else
+                Some(path))
+
+        private def showLoadSelection: Option[String] =
+          try {
+            Some(FileDialog.show(App.app.frame, "Load a LevelSpace Model...", LOADFILE))
+          } catch {
+            case e: UserCancelException =>
+              Exceptions.ignore(e)
+              None
+          }
+
+          private def showLibraryModelErrorMessage(): Unit =
+            JOptionPane.showMessageDialog(
+              App.app.frame,
+              """|The model you selected is a library model, which cannot be opened in a LevelSpace code tab.
+              |Please save the model elsewhere and try re-opening""".stripMargin)
+    }
+
+    class NewModelAction(name: String, modelManager: ModelManager)
+    extends NewTabAction(name, modelManager) {
+
+      override def filePath: Option[String] = {
+        FileDialog.setDirectory(App.app.workspace.getModelDir)
+
+        val loader = fileformat.standardLoader(App.app.workspace.compiler.compilerUtilities, App.app.workspace.autoConvert _)
+        val controller = new SaveModel.Controller {
+          def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
+            try {
+              val userEntry = FileDialog.show(App.app.frame, "Select a path for new Model...", SAVEFILE)
+              // we basically need to write an empty NetLogo model in before we read...
+              val fileName =
+                if (userEntry.endsWith(".nlogo")) userEntry else userEntry + ".nlogo"
+              val path = Paths.get(fileName)
+              if (Files.exists(path)) {
+                val fileAlreadyExists = s"The file $fileName already exists. Please choose a different name"
+                throw new ExtensionException(fileAlreadyExists)
+              }
+              Some(path.toUri)
+            } catch {
+              case e: UserCancelException =>
+                Exceptions.ignore(e)
+                None
+            }
+          }
+          def shouldSaveModelOfDifferingVersion(version: String): Boolean = true
+          def warnInvalidFileFormat(format: String): Unit = {
+            // we force users to save in NetLogo, so this doesn't happen
+          }
+        }
+        val modelTracker = new ModelTracker {
+          def compiler = App.app.workspace.compiler
+          def getExtensionManager() = App.app.workspace.getExtensionManager
+        }
+        SaveModel(org.nlogo.core.Model(), loader, controller, modelTracker, Version).flatMap(_.apply().toOption.map(uri => Paths.get(uri).toString))
+      }
     }
   }
-}

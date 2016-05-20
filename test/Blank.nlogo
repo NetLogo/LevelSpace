@@ -1,156 +1,8 @@
-extensions [ls]
-
-breed [models model]
-
-turtles-own [
-  path
-  id
-]
-
-
-to ecology-setup
-  ls:reset
-  ca
-  ls:load-gui-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Earth Science/Climate Change.nlogo"
-  ls:load-gui-model "/Users/hah661/Documents/Northwestern/NetlogoModels/ideology/InterpretingCongestionCharge_dummy.nlogo"
-  ls:load-gui-model "/Applications/NetLogo 5.1-RC1/models/Sample Models/Biology/Wolf Sheep Predation.nlogo"
-  network
-end
-
-
-to setup
-  ls:reset
-  ca
-  ;; this creates three models as children of the main model
-  ls:load-headless-model "Wolf Sheep Predation Special.nlogo"
-  ls:load-headless-model "Wolf Sheep Predation Special.nlogo"
-  ls:load-headless-model "Wolf Sheep Predation Special.nlogo"
-  ;; additionally the model with id 0 has two kids
-  ls:ask 0 "ls:load-headless-model \"Wolf Sheep Predation Special.nlogo\""
-  ls:ask 0 "ls:load-headless-model \"Wolf Sheep Predation Special.nlogo\""
-  ;; and so does the model with id 0, 0 (i.e. model 0's first kid)
-  ls:_ask-hi [0 0] "ls:load-headless-model \"Wolf Sheep Predation Special.nlogo\""
-  ;; then we build a network out of it
-  network
-  ;; now call setup on the models
-  ask models [
-    ask-me "setup"
-  ]  
-  
-end
-
-to network
-  let the-main-turtle nobody
-  ask turtles [die]
-  crt  1 [set id [] 
-    set the-main-turtle self
-  ]
-  let the-network mh
-  foreach the-network [
-    build-network ? the-main-turtle 
-  ]   
-  
-  repeat 500 [layout]
-end
-
-to build-network [model-list parent]
-  
-  let last-turtle nobody
-  create-models 1 [
-    set shape "circle"
-    create-link-with parent
-    let the-parent-id [id] of parent
-    set id lput (item 0 model-list) the-parent-id 
-    set path item 1 model-list
-    set last-turtle self
-  ]
-  if length model-list > 0 [
-    let child-models item 2 model-list
-    if length child-models > 0 [
-      foreach child-models [
-        build-network ? last-turtle
-      ]
-    ]
-  ]
-end
-
-to _ask [cmd]
-  show who
-end
-
-to-report mh
-  report run-result ls:_model-hierarchy
-end
-
-;; model ask procedure - this allows you to interact directly with turtles 
-;; as if they were models 
-to ask-me [command]
-  ifelse length id >= 2 
-  [  ls:_ask-hi id command]
-  [ls:ask (item 0 id) command]
-  
-end
-
-;; model report procedure - this allows you to interact directly with turtles 
-;; as if they were models 
-to-report i-report [command]
-  let the-value 0
-  ifelse length id >= 2 
-  [set the-value ls:_report-hi id command]
-  [set the-value ls:report (item 0 id) command]
-  report the-value
-end
-
-
-
-;;;;;;;;;;;;;;
-;;; Layout ;;;
-;;;;;;;;;;;;;;
-
-;; resize-nodes, change back and forth from size based on degree to a size of 1
-to resize-nodes
-  ifelse all? turtles [size <= 1]
-  [
-    ;; a node is a circle with diameter determined by
-    ;; the SIZE variable; using SQRT makes the circle's
-    ;; area proportional to its degree
-    ask turtles [ set size sqrt count link-neighbors ]
-  ]
-  [
-    ask turtles [ set size 1 ]
-  ]
-end
-
-to layout
-  ;; the number 3 here is arbitrary; more repetitions slows down the
-  ;; model, but too few gives poor layouts
-  repeat 3 [
-    ;; the more turtles we have to fit into the same amount of space,
-    ;; the smaller the inputs to layout-spring we'll need to use
-    let factor sqrt count turtles
-    ;; numbers here are arbitrarily chosen for pleasing appearance
-    layout-spring turtles links (1 / factor) (7 / factor) (1 / factor)
-    display  ;; for smooth animation
-  ]
-  ;; don't bump the edges of the world
-  let x-offset max [xcor] of turtles + min [xcor] of turtles
-  let y-offset max [ycor] of turtles + min [ycor] of turtles
-  ;; big jumps look funny, so only adjust a little each time
-  set x-offset limit-magnitude x-offset 0.1
-  set y-offset limit-magnitude y-offset 0.1
-  ask turtles [ setxy (xcor - x-offset / 2) (ycor - y-offset / 2) ]
-end
-
-to-report limit-magnitude [number limit]
-  if number > limit [ report limit ]
-  if number < (- limit) [ report (- limit) ]
-  report number
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-198
+210
 10
-637
+649
 470
 16
 16
@@ -173,40 +25,6 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
-
-BUTTON
-4
-10
-138
-43
-setup
-ecology-setup
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-BUTTON
-4
-44
-137
-77
-go
-ask models [\nask-me \"go\"\nset size i-report \"count turtles\" / 100\n]
-T
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -551,7 +369,7 @@ Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 
 @#$#@#$#@
-NetLogo 5.1-RC1
+NetLogo 6.0-M4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

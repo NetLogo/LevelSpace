@@ -1,59 +1,54 @@
-name := "LevelsSpace"
+enablePlugins(org.nlogo.build.NetLogoExtension)
 
-scalaVersion := "2.9.2"
+netLogoExtName := "ls"
 
-retrieveManaged := true
+netLogoClassManager := "org.nlogo.ls.LevelSpace"
 
-javaSource  in Compile <<= baseDirectory(_ / "src" / "main")
+scalaVersion := "2.11.7"
 
-scalaSource in Compile <<= baseDirectory(_ / "src" / "main")
+netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
-scalaSource in Test <<= baseDirectory(_ / "src" / "test")
+netLogoZipSources := false
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings",
-                      "-encoding", "us-ascii")
+scalaSource in Compile := baseDirectory.value / "src" / "main"
+
+scalaSource in Test := baseDirectory.value / "src" / "test"
+
+javaSource in Compile := baseDirectory.value / "src" / "main"
+
+javaSource in Test := baseDirectory.value / "src" / "test"
+
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii")
 
 libraryDependencies ++= Seq(
-  "com.google.guava" % "guava" % "18.0",
-  "org.nlogo" % "NetLogo" % "5.2.0-LS1" from "http://ccl.northwestern.edu/devel/5.2.0-LS1/NetLogo.jar",
-  "org.nlogo" % "NetLogo-tests" % "5.2.0-LS1" % "test" from "http://ccl.northwestern.edu/devel/5.2.0-LS1/NetLogo-tests.jar",
-  "org.scalatest" %% "scalatest" % "1.8" % "test",
+  "org.parboiled" %% "parboiled-scala" % "1.1.7",
+  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
-  "asm" % "asm-all" % "3.3.1" % "test"
+  "org.ow2.asm" % "asm-all" % "5.0.3" % "test",
+  "com.google.guava"  % "guava"         % "18.0",
+  "com.google.code.findbugs" % "jsr305" % "3.0.0"
 )
 
-artifactName := { (_, _, _) => "ls.jar" }
+val moveToLsDir = taskKey[Unit]("add all resources to LS directory")
 
-packageOptions := Seq(
-  Package.ManifestAttributes(
-    ("Extension-Name", "ls"),
-    ("Class-Manager", "LevelsSpace"),
-    ("NetLogo-Extension-API-Version", "5.0")))
+val lsDirectory = settingKey[File]("directory that extension is moved to for testing")
 
-packageBin in Compile := {
-  val jar = (packageBin in Compile).value
-  val target = baseDirectory.value / "extensions" / "ls"
-  val s = streams.value
-  IO.createDirectory(target)
-  IO.copyFile(jar, target / "ls.jar")
-  val classpath = (dependencyClasspath in Runtime).value
-  val libraryJarPaths =
-    classpath.files.filter{path =>
-      path.getName.endsWith(".jar") &&
-      !path.getName.startsWith("scala-library") &&
-      !path.getName.startsWith("NetLogo")}
-  for(path <- libraryJarPaths) {
-    IO.copyFile(path, target /  path.getName)
-  }
-  jar
+lsDirectory := baseDirectory.value / "extensions" / "ls"
+
+moveToLsDir := {
+  (packageBin in Compile).value
+  val testTarget = NetLogoExtension.directoryTarget(lsDirectory.value)
+  testTarget.create(NetLogoExtension.netLogoPackagedFiles.value)
+  val testResources = (baseDirectory.value / "test" ***).filter(_.isFile)
+  for (file <- testResources.get)
+    IO.copyFile(file, lsDirectory.value / "test" / IO.relativize(baseDirectory.value / "test", file).get)
 }
 
 test in Test := {
-  val _ = (packageBin in Compile).value
+  IO.createDirectory(lsDirectory.value)
+  moveToLsDir.value
   (test in Test).value
+  IO.delete(lsDirectory.value)
 }
 
-cleanFiles <++= baseDirectory { base =>
-  Seq(base / "extensions")
-}
-
+netLogoVersion := "6.0.0-M7"
