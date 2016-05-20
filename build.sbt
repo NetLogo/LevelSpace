@@ -21,6 +21,7 @@ javaSource in Test := baseDirectory.value / "src" / "test"
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii")
 
 libraryDependencies ++= Seq(
+  "org.parboiled" %% "parboiled-scala" % "1.1.7",
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
   "org.ow2.asm" % "asm-all" % "5.0.3" % "test",
@@ -50,4 +51,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.0.0-M6"
+netLogoVersion := "6.0.0-M7"
