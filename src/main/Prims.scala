@@ -134,10 +134,18 @@ object With extends Reporter {
   }
 }
 
-
 class ModelCommand(cmd: ChildModel => Unit) extends Command {
   override def getSyntax = Syntax.commandSyntax(List(Syntax.NumberType | Syntax.ListType))
   override def perform(args: Array[Argument], ctx: Context): Unit = LevelSpace.toModelList(args(0)).foreach(cmd)
+}
+
+class ModelReporter(ret: Int, reporter: ChildModel => AnyRef) extends Reporter {
+  override def getSyntax = Syntax.reporterSyntax(right = List(Syntax.NumberType | Syntax.ListType), ret = ret)
+  override def report(args: Array[Argument], ctx: Context): AnyRef = {
+    val names = LevelSpace.toModelList(args(0)).map(reporter)
+    if (args(0).get.isInstanceOf[Double]) names.head
+    else LogoList.fromVector(names.toVector)
+  }
 }
 
 object Show extends ModelCommand(_.show)
@@ -147,3 +155,5 @@ object UpdateView extends ModelCommand(_ match {
   case hm: HeadlessChildModel => hm.updateView
   case _ =>
 })
+object Name extends ModelReporter(Syntax.StringType, _.name)
+object Path extends ModelReporter(Syntax.StringType, _.path)

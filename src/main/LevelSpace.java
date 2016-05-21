@@ -74,13 +74,13 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("with", With$.MODULE$);
         primitiveManager.addPrimitive("load-headless-model", new LoadModel<HeadlessChildModel>(HeadlessChildModel.class));
         primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
-        primitiveManager.addPrimitive("name-of", new ModelName());
+        primitiveManager.addPrimitive("name-of", Name$.MODULE$);
         primitiveManager.addPrimitive("set-name", new SetName());
         primitiveManager.addPrimitive("close", Close$.MODULE$);
         primitiveManager.addPrimitive("models", new AllModels());
         primitiveManager.addPrimitive("model-exists?", new ModelExists());
         primitiveManager.addPrimitive("reset", new Reset());
-        primitiveManager.addPrimitive("path-of", new ModelPath());
+        primitiveManager.addPrimitive("path-of", Path$.MODULE$);
         primitiveManager.addPrimitive("display", UpdateView$.MODULE$);
         primitiveManager.addPrimitive("show", Show$.MODULE$);
         primitiveManager.addPrimitive("hide", Hide$.MODULE$);
@@ -285,18 +285,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         updateModelMenu();
     }
 
-    // this returns the path of the model
-    public static class ModelName implements Reporter{
-        public Syntax getSyntax(){
-            return SyntaxJ.reporterSyntax(new int[] {Syntax.NumberType()},
-                    Syntax.StringType());
-        }
-        public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
-            int modelNumber = args[0].getIntValue();
-            return getModel(modelNumber).name();
-        }
-    }
-
     public static class SetName implements Command {
 
         @Override
@@ -307,20 +295,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
             getModel(args[0].getIntValue()).name_$eq(args[1].getString());
         }
-    }
-
-    // this returns the path of the model
-    public static class ModelPath implements Reporter{
-        public Syntax getSyntax(){
-            return SyntaxJ.reporterSyntax(new int[] {Syntax.NumberType()},
-                    Syntax.StringType());
-
-        }
-        public Object report(Argument[] args, Context context) throws ExtensionException, LogoException {
-            return getModel(args[0].getIntValue()).path();
-
-        }
-
     }
 
     public static class ModelExists implements Reporter {

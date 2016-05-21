@@ -70,6 +70,14 @@ ls-set-name
   O> ls:load-headless-model "test/Blank.nlogo"
   O> ls:set-name 0 "foo"
   ls:name-of 0 => "foo"
+  ls:name-of [0] => ["foo"]
+
+ls-path-of
+  extensions [ ls ]
+  O> ls:load-headless-model "test/Blank.nlogo"
+  member? "test/Blank.nlogo" ls:path-of 0 => true
+  member? "test/Blank.nlogo" first ls:path-of [0] => true
+
 
 ls-errors-propogate
   extensions [ ls ]
