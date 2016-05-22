@@ -1,19 +1,24 @@
-name := "LevelsSpace"
+enablePlugins(org.nlogo.build.NetLogoExtension)
+
+netLogoExtName := "ls"
+
+netLogoClassManager := "org.nlogo.ls.LevelSpace"
 
 scalaVersion := "2.11.7"
 
-enablePlugins(NetLogoExtension)
+netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
-netLogoExtName  := "ls"
+netLogoZipSources := false
 
-netLogoClassManager := "LevelsSpace"
+scalaSource in Compile := baseDirectory.value / "src" / "main"
 
-javaSource in Compile <<= baseDirectory(_ / "src" / "main")
+scalaSource in Test := baseDirectory.value / "src" / "test"
 
-scalaSource in Test <<= baseDirectory(_ / "src" / "test")
+javaSource in Compile := baseDirectory.value / "src" / "main"
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings",
-                      "-encoding", "us-ascii")
+javaSource in Test := baseDirectory.value / "src" / "test"
+
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii")
 
 val netLogoJarURL =
   Option(System.getProperty("netlogo.jar.url")).getOrElse("https://s3.amazonaws.com/ccl-artifacts/NetLogo-hexy-fd7cd755.jar")
@@ -36,18 +41,34 @@ val netLogoJarsOrDependencies = {
 netLogoJarsOrDependencies
 
 libraryDependencies ++= Seq(
-  "com.google.guava" % "guava" % "18.0",
-  "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+  "org.parboiled" %% "parboiled-scala" % "1.1.7",
+  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
-  "org.ow2.asm" % "asm-all" % "5.0.3" % "test"
+  "org.ow2.asm" % "asm-all" % "5.0.3" % "test",
+  "com.google.guava"  % "guava"         % "18.0",
+  "com.google.code.findbugs" % "jsr305" % "3.0.0"
 )
 
+val moveToLsDir = taskKey[Unit]("add all resources to LS directory")
+
+val lsDirectory = settingKey[File]("directory that extension is moved to for testing")
+
+lsDirectory := baseDirectory.value / "extensions" / "ls"
+
+moveToLsDir := {
+  (packageBin in Compile).value
+  val testTarget = NetLogoExtension.directoryTarget(lsDirectory.value)
+  testTarget.create(NetLogoExtension.netLogoPackagedFiles.value)
+  val testResources = (baseDirectory.value / "test" ***).filter(_.isFile)
+  for (file <- testResources.get)
+    IO.copyFile(file, lsDirectory.value / "test" / IO.relativize(baseDirectory.value / "test", file).get)
+}
+
 test in Test := {
-  val _ = (packageBin in Compile).value
+  IO.createDirectory(lsDirectory.value)
+  moveToLsDir.value
   (test in Test).value
+  IO.delete(lsDirectory.value)
 }
 
-cleanFiles <++= baseDirectory { base =>
-  Seq(base / "extensions")
-}
-
+netLogoVersion := "6.0.0-M7"
