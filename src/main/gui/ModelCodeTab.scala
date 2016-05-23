@@ -5,7 +5,7 @@ import java.io.{FileReader, FileWriter}
 import javax.swing.JButton
 
 import org.nlogo.api.{ExtensionException, ModelReader, ModelSection, Version}
-import org.nlogo.core.{I18N}
+import org.nlogo.core.{I18N, Model}
 import org.nlogo.app
 import org.nlogo.app.{ProceduresMenu, CodeTab, Tabs}
 import org.nlogo.awt.UserCancelException
@@ -28,6 +28,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
   val tabName            = workspace.getModelFileName
   val filePath           = workspace.getModelPath
   var modelSource        = ""
+  var currentModel       = Option.empty[Model]
 
   setIndenter(true)
 
@@ -49,6 +50,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
       def shouldOpenModelOfUnknownVersion(version: String): Boolean = true
     }
     OpenModel(Paths.get(filePath).toUri, controller, loader, Version).foreach { model =>
+      currentModel = Some(model)
       innerSource = model.code
     }
   }
@@ -123,14 +125,15 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
         throw new ExtensionException("Internal LevelSpace error: invalid file format: " + format)
       }
     }
-    SaveModel(org.nlogo.core.Model(code = innerSource),
-      loader, controller, workspace, Version).foreach {
+    currentModel = currentModel.map(_.copy(code = innerSource)) orElse Some(Model(code = innerSource))
+    currentModel.foreach { model =>
+      SaveModel(model, loader, controller, workspace, Version).foreach {
         _.apply().foreach { _ =>
-          println("file saved")
           changedSourceWarning()
           isDirty = false
         }
       }
+    }
   }
 
   def changedSourceWarning(): Unit =
