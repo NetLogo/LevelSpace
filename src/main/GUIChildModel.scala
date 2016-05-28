@@ -4,15 +4,15 @@ import java.awt._
 import java.awt.event.{ WindowAdapter, WindowEvent }
 import java.util.concurrent.Callable
 import javax.swing.{ FocusManager, JFrame, JMenuBar, JOptionPane, WindowConstants }
-import gui.{ ZoomableInterfaceComponent, GUIPanel }
+import gui.{ ZoomableInterfaceComponent, GUIPanel, InterfaceComponent }
 import org.nlogo.api._
 import org.nlogo.app.App
-import org.nlogo.lite.{LiteWorkspace, InterfaceComponent}
 import org.nlogo.nvm.HaltException
 import org.nlogo.window.{SpeedSliderPanel, RuntimeErrorDialog}
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window.Widget.LoadHelper
 import org.nlogo.workspace.AbstractWorkspaceScala
+
 
 class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (parentWorkspace: Workspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
@@ -25,7 +25,6 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   object RunGUIChildModel extends ReporterRunnable[InterfaceComponent] {
     @throws(classOf[Exception])
     def run: InterfaceComponent = {
-      RuntimeErrorDialog.deactivate
       val f = new JFrame
       frame = Some(f)
       val component: InterfaceComponent = new ZoomableInterfaceComponent(f)

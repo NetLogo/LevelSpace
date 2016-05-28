@@ -6,7 +6,6 @@ import javax.swing.{ JFrame, JLayeredPane }
 
 import org.nlogo.core.{ Widget => CoreWidget }
 import org.nlogo.api.{CompilerServices, RandomServices}
-import org.nlogo.lite.{InterfaceComponent, LiteWorkspace}
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window._
 
@@ -186,7 +185,7 @@ class ZoomableInterfacePanel(viewWidget: ViewWidgetInterface,
 }
 
 class ZoomableInterfaceComponent(frame: JFrame) extends InterfaceComponent(frame) {
-  override protected def createInterfacePanel(workspace: LiteWorkspace) = {
+  override protected def createInterfacePanel(workspace: GUIWorkspace) = {
     new ZoomableInterfacePanel(workspace.viewWidget, workspace, workspace,
       workspace.plotManager, liteEditorFactory)
   }

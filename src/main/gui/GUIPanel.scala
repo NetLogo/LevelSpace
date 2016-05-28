@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent
 import javax.swing._
 
 import org.nlogo.app.CommandCenter
-import org.nlogo.lite.InterfaceComponent
 import org.nlogo.window.Events
 
 class GUIPanel(ws: InterfaceComponent) extends JPanel with Events.OutputEvent.Handler {
