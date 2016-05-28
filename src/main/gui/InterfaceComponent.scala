@@ -57,9 +57,8 @@ with LinkRoot {
   addLinkComponent(viewManager)
 
   val procedures = new ProceduresLite(workspace, workspace)
-  val interfacePanel = createInterfacePanel(workspace)
-
   val liteEditorFactory = new LiteEditorFactory(workspace)
+  val interfacePanel = createInterfacePanel(workspace)
 
   addLinkComponent(workspace.aggregateManager)
   addLinkComponent(workspace)
