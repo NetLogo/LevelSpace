@@ -1,6 +1,6 @@
 package org.nlogo.ls.gui
 
-import org.nlogo.app.App
+import org.nlogo.app.AgentMonitorManager
 import org.nlogo.lite.{ProceduresLite, LiteEditorFactory}
 import org.nlogo.window.{Event, NetLogoListenerManager, CompilerManager, LinkRoot, InterfacePanelLite, UpdateManager, GUIWorkspace, FileController, ReconfigureWorkspaceUI}
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
@@ -17,7 +17,7 @@ import org.nlogo.fileformat
 import java.nio.file.Paths
 
 
-abstract class InterfaceComponent(frame: java.awt.Frame) extends javax.swing.JPanel
+abstract class InterfaceComponent(frame: javax.swing.JFrame) extends javax.swing.JPanel
 with Event.LinkParent
 with LinkRoot {
   val listenerManager = new NetLogoListenerManager
@@ -35,9 +35,6 @@ with LinkRoot {
 
     val aggregateManager = Femto.get[AggregateManagerInterface]("org.nlogo.sdm.AggregateManagerLite")
 
-    // Note that App.app is safe to use here because this workspace is only used if we're
-    // in the GUI -- BCH 5/28/2016
-    private val monitorManager = App.app.monitorManager
 
     override def inspectAgent(agent: api.Agent, radius: Double) = {
       val a = agent.asInstanceOf[Agent]
@@ -52,7 +49,12 @@ with LinkRoot {
     override def updateModel(m: Model): Model = m
   }
 
-  //val viewManager = Femto.get[GLViewManagerInterface]("org.nlogo.gl.view.ViewManager")
+  val monitorManager = new AgentMonitorManager(workspace)
+  addLinkComponent(monitorManager)
+
+  val viewManager = new org.nlogo.gl.view.ViewManager(workspace, frame, new java.awt.event.KeyAdapter{})
+  workspace.init(viewManager)
+  addLinkComponent(viewManager)
 
   val procedures = new ProceduresLite(workspace, workspace)
   val interfacePanel = createInterfacePanel(workspace)
