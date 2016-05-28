@@ -58,7 +58,7 @@ argument. This allows you to easily store model ids in a variable or list when l
 intialization. For example, to store the model id in a variable, you can do:
 
     let model-id 0
-    (ls:load-gui-model "My-Model.nlogo" [ set model-id ? ]
+    (ls:load-gui-model "My-Model.nlogo" [ set model-id ? ])
 
 ####`ls:close` _model-id_
 
