@@ -7,7 +7,7 @@ import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
 import org.nlogo.api
 import org.nlogo.api.{Version, NetLogoThreeDDialect, NetLogoLegacyDialect, AggregateManagerInterface, RendererInterface, ModelType}
 import org.nlogo.agent.{World, World3D, Agent}
-import org.nlogo.core.{Femto, AgentKind, Model}
+import org.nlogo.core.{AgentKind, Model}
 import org.nlogo.nvm
 import org.nlogo.nvm.{CompilerInterface}
 import org.nlogo.awt.EventQueue
@@ -25,7 +25,7 @@ with LinkRoot {
 
   // KioskLevel.NONE - We want a 3d button
   val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, null, listenerManager) {
-    val compiler = Femto.get[CompilerInterface]("org.nlogo.compiler.Compiler", if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
+    val compiler = new org.nlogo.compiler.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
       override def defaultFrameRate = workspace.frameRate
@@ -33,7 +33,7 @@ with LinkRoot {
       override def updateMode = workspace.updateMode
     }
 
-    val aggregateManager = Femto.get[AggregateManagerInterface]("org.nlogo.sdm.AggregateManagerLite")
+    val aggregateManager = new org.nlogo.sdm.AggregateManagerLite
 
 
     override def inspectAgent(agent: api.Agent, radius: Double) = {
@@ -45,7 +45,7 @@ with LinkRoot {
     override def stopInspectingAgent(agent: Agent): Unit = monitorManager.stopInspecting(agent)
     override def stopInspectingDeadAgents(): Unit = monitorManager.stopInspectingDeadAgents()
     override def closeAgentMonitors() = monitorManager.closeAll()
-    override def newRenderer = Femto.get[RendererInterface]("org.nlogo.render.Renderer", world)
+    override def newRenderer = new org.nlogo.render.Renderer(world)
     override def updateModel(m: Model): Model = m
   }
 
