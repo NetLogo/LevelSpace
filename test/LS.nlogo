@@ -44,6 +44,40 @@ NIL
 NIL
 1
 
+BUTTON
+18
+114
+200
+147
+NIL
+ls:ask ls:models [ setup ]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+24
+154
+188
+187
+NIL
+ls:ask ls:models [ go ]
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 @#$#@#$#@
 ## WHAT IS IT?
 

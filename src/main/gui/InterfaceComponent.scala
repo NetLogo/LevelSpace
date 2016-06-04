@@ -67,7 +67,7 @@ with LinkRoot {
   addLinkComponent(new CompiledEvent.Handler {
     override def handle(e: CompiledEvent) {
       if (e.error != null)
-        e.error.printStackTrace()
+        throw e.error
   }})
   addLinkComponent(new LoadModelEvent.Handler {
     override def handle(e: LoadModelEvent) {

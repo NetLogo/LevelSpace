@@ -1,119 +1,9 @@
 extensions [ ls ]
-
-to test [ n ]
-  foreach n-values n [ ? + 1 ] [
-    test-headless-performance ?
-  ]
-  foreach n-values n [ ? + 1 ] [
-    test-gui-performance ?
-  ]
-  ls:reset
-end
-
-to test-load-headless [ path n ]
-  ls:reset
-  reset-timer
-  repeat n [
-    ls:load-headless-model path
-  ]
-  print (word "load " n " headless models: " timer)
-end
-
-to test-load-gui [ path n ]
-  ls:reset
-  reset-timer
-  repeat n [
-    ls:load-gui-model path
-  ]
-  print (word "load " n " headless models: " timer)
-end
-
-
-to test-headless-performance [ n ]
-  ls:reset
-  repeat n [
-    ls:load-headless-model "Blank.nlogo"
-  ]
-  ls:ask ls:models [ crt 300 ]
-  reset-timer
-  test-models
-  print (word "parallel " parallel? ", " n " headless models: " timer)
-end
-
-to test-gui-performance [ n ]
-  ls:reset
-  repeat n [
-    ls:load-gui-model "Blank.nlogo"
-    ;ls:hide last ls:models
-  ]
-  ls:ask ls:models [ crt 300 ]
-  reset-timer
-  test-models
-  print (word "parallel " parallel? ", " n " gui models: " timer)
-end
-
-to test-model-loading [ n headless? ]
-  ls:reset
-  reset-timer
-  repeat n [
-    ifelse headless? [
-      ls:load-headless-model "Blank.nlogo"
-    ] [
-      ls:load-gui-model "Blank.nlogo"
-    ]
-  ]
-  print (word "headless: " headless? " loading " n " models: " timer)
-end
-
-to test-models
-  repeat 100 [
-    ifelse parallel? [
-      run-model ls:models
-    ] [
-      foreach ls:models run-model
-    ]
-  ]
-end
-
-to run-model [ models ]
-  ls:ask models [
-    ask turtles [
-      face one-of other turtles in-radius 10
-      fd 1
-    ]
-  ]
-end
-
-to test-exception [ models ]
-  ls:ask models [ let foo 0 show 1 / foo ]
-end
-
-to test-memory [ n ]
-  ls:reset
-  let i 0
-  ls:let j i
-  repeat n [
-    show i
-    ls:load-gui-model "LS.nlogo"
-    ls:ask last ls:models [
-      print (word j "1")
-      ls:let k j
-      ls:load-gui-model "LS.nlogo"
-      ls:ask last ls:models [
-        print (word k "2")
-        ls:load-gui-model "LS.nlogo"
-      ]
-    ]
-    ls:close last ls:models
-    set i i + 1
-  ]
-  print "done"
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+273
 10
-649
+712
 470
 -1
 -1
@@ -137,73 +27,153 @@ GRAPHICS-WINDOW
 ticks
 30.0
 
+BUTTON
+3
+12
+267
+45
+NIL
+ls:load-gui-model \"LS-Widgets.nlogo\"
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
 SLIDER
-18
-20
-190
-53
-max-num-models
-max-num-models
+14
+91
+186
+124
+foo
+foo
 0
-50
-8.0
+100
+50.0
 1
 1
 NIL
 HORIZONTAL
 
-BUTTON
-32
-82
-203
-115
-NIL
-test max-num-models
-NIL
+SLIDER
+11
+130
+183
+163
+bar
+bar
+0
+foo
+15.0
 1
-T
-OBSERVER
+1
 NIL
+HORIZONTAL
+
+SLIDER
+13
+170
+213
+203
+baz
+baz
+bar
+foo
+37.4
+(foo - bar) / 100
+1
 NIL
-NIL
-NIL
+HORIZONTAL
+
+TEXTBOX
+38
+52
+188
+70
+hi there!
+11
+0.0
 1
 
 SWITCH
-28
-234
+33
+232
 136
-267
-parallel?
-parallel?
-0
+265
+foo?
+foo?
+1
 1
 -1000
 
-BUTTON
-24
+CHOOSER
+18
+269
+165
+314
+foos
+foos
+"a" 2 false ["a" 2 false [true]]
+0
+
+MONITOR
+25
+349
 136
-342
-169
+394
 NIL
-test-headless-performance max-num-models
-NIL
+foo + bar + baz
+17
 1
-T
-OBSERVER
+11
+
+PLOT
+23
+414
+223
+564
+plot 1
 NIL
 NIL
-NIL
-NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+OUTPUT
+276
+473
+516
+527
+13
+
+INPUTBOX
+559
+493
+708
+553
+color-choice
+0.0
 1
+0
+Color
 
 BUTTON
-22
-182
-306
-215
+125
+48
+265
+81
 NIL
-test-gui-performance max-num-models
+ls:show ls:models
 NIL
 1
 T
