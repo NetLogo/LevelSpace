@@ -26,7 +26,7 @@ class Evaluator(name: String, ws: AbstractWorkspaceScala) {
     val fullCode = s"$letString\n$code"
 
     val proc = getCommandRunner(getTask(fullCode), fullArgs)
-    val job = ws.jobManager.makeConcurrentJob(owner, ws.world.observers, proc)
+    val job = ws.jobManager.makeConcurrentJob(owner, ws.world.observers, ws, proc)
     ws.jobManager.addJob(job, waitForCompletion = false)
     (w: World) => UnlockAndBlock(w) {
       while (job.state != Job.REMOVED) {

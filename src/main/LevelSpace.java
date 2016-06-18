@@ -111,9 +111,12 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                         Component[] c3 = ((Container) co2).getComponents();
                         for (Component co3 : c3) {
                             if (co3 instanceof SpeedSliderPanel) {
-                                SpeedSliderPanel speedSliderPanel = (SpeedSliderPanel) co3;
-                                speedSlider = (JSlider) speedSliderPanel.getComponents()[0];
-                                speedSlider.addChangeListener(speedSliderListener);
+                                for (Component c4 : ((Container) co3).getComponents()) {
+                                    if (c4 instanceof JSlider) {
+                                        speedSlider = (JSlider) c4;
+                                        speedSlider.addChangeListener(speedSliderListener);
+                                    }
+                                }
                             }
                         }
                     }
@@ -400,7 +403,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     private static void updateChildModelSpeed(ChildModel model){
         // If we're running tests, this should noop. So, we check if we've got a GUI.
         if (useGUI()) {
-            double theSpeed = App.app().workspace().speedSliderPosition();
+            double theSpeed = App.app().workspace().updateManager().speed();
             model.setSpeed(theSpeed);
         }
     }

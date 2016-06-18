@@ -8,7 +8,7 @@ import gui.{ ZoomableInterfaceComponent, GUIPanel, InterfaceComponent }
 import org.nlogo.api._
 import org.nlogo.app.App
 import org.nlogo.nvm.HaltException
-import org.nlogo.window.{SpeedSliderPanel, RuntimeErrorDialog}
+import org.nlogo.window.{SpeedSliderPanel, RuntimeErrorDialog, GUIWorkspace}
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window.Widget.LoadHelper
 import org.nlogo.workspace.AbstractWorkspaceScala
@@ -37,13 +37,6 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
       f.setVisible(true)
       currentlyFocused.toFront()
       component.open(path)
-      val c: Array[Component] = component.workspace.viewWidget.controlStrip.getComponents
-      c.foreach {
-        case ssp: SpeedSliderPanel =>
-          ssp.setVisible(false)
-          ssp.setValue(0)
-        case _ =>
-      }
       f.pack()
       f.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
       f.addWindowListener(new GUIWindowAdapter)
@@ -74,13 +67,16 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   }
 
   def setSpeed(d: Double): Unit = {
-    val c: Array[Component] = component.workspace.viewWidget.controlStrip.getComponents
-    for (co <- c) {
-      if (co.isInstanceOf[SpeedSliderPanel]) {
-        (co.asInstanceOf[SpeedSliderPanel]).setValue(d.toInt)
+    javax.swing.SwingUtilities.invokeLater(new Runnable {
+      def run = {
+        workspace.updateManager.speed = d
+        // Wakes up the workspace if the speed slider is super low.
+        // Makes it so there's not a long pause after increasing
+        // the speed slider from a low position. BCH 6/18/2016
+        workspace.updateManager.nudgeSleeper
       }
-    }
+    })
   }
 
-  def workspace: AbstractWorkspaceScala = component.workspace
+  def workspace: GUIWorkspace = component.workspace
 }

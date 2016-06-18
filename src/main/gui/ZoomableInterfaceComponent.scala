@@ -164,13 +164,6 @@ class ZoomableInterfacePanel(viewWidget: ViewWidgetInterface,
 
   override def loadWidget(coreWidget: CoreWidget): Widget = {
     val widget = super.loadWidget(coreWidget)
-    // these shenanigans shouldn't be necessary, but are made so by defects in InterfacePanelLite
-    // This can be removed once https://github.com/NetLogo/NetLogo/issues/1051 has been resolved
-    if (widget.isInstanceOf[ViewWidgetInterface]) {
-      moveToFront(widget)
-      widget.validate()
-      add(widget, JLayeredPane.DEFAULT_LAYER)
-    }
     registerZoomableComponent(widget)
     widget
   }
