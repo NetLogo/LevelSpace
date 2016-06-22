@@ -21,6 +21,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 
   var panel: GUIPanel = null
   val component = parentWorkspace.waitForResult(RunGUIChildModel)
+  updateFrameTitle
 
   object RunGUIChildModel extends ReporterRunnable[InterfaceComponent] {
     @throws(classOf[Exception])

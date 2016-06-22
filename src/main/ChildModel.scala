@@ -13,7 +13,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   private var _name: Option[String] = None
   def name_= (newName: String) = {
     _name = Some(newName)
-    frame.foreach(_.setTitle(frameTitle))
+    updateFrameTitle
   }
   def name = _name.getOrElse(workspace.getModelFileName)
 
@@ -41,6 +41,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
 
   def path = workspace.getModelPath
 
+  protected def updateFrameTitle = frame.foreach(_.setTitle(frameTitle))
   def frameTitle = s"$name (LevelSpace model #$modelID)"
   def frame: Option[JFrame]
 
