@@ -1,10 +1,10 @@
 extensions [ls]
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+243
 10
-649
-470
+680
+448
 -1
 -1
 13.0
@@ -45,10 +45,10 @@ NIL
 1
 
 BUTTON
-18
-114
-200
-147
+14
+164
+196
+197
 NIL
 ls:ask ls:models [ setup ]
 NIL
@@ -62,13 +62,30 @@ NIL
 1
 
 BUTTON
-24
-154
-188
-187
+20
+204
+184
+237
 NIL
 ls:ask ls:models [ go ]
 T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+4
+111
+238
+144
+NIL
+ls:load-headless-model user-file
+NIL
 1
 T
 OBSERVER
@@ -420,7 +437,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0-M7
+NetLogo 6.0-M8
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -33,8 +33,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
   setIndenter(true)
 
   locally {
-    val loader =
-      fileformat.standardLoader(workspace.compiler.compilerUtilities, workspace.autoConvert _)
+    val loader = fileformat.standardLoader(workspace.compiler.compilerUtilities, workspace.getExtensionManager, workspace.getCompilationEnvironment)
     val controller = new OpenModel.Controller {
       def errorOpeningURI(uri: java.net.URI,exception: Exception): Unit = {
         throw new ExtensionException("Levelspace encountered an error while opening: " + Paths.get(uri).toString + ". " + exception.toString)
@@ -114,7 +113,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
     println("saving code tab to: " + workspace.getModelPath)
     println("model type: " + workspace.getModelType)
     println("contents: " + innerSource)
-    val loader = fileformat.standardLoader(workspace.compiler.compilerUtilities, workspace.autoConvert _)
+    val loader = fileformat.standardLoader(workspace.compiler.compilerUtilities, workspace.getExtensionManager, workspace.getCompilationEnvironment)
     val controller = new SaveModel.Controller {
       def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
         Some(Paths.get(workspace.getModelPath).toUri)

@@ -1,10 +1,10 @@
 extensions [ ls ]
 @#$#@#$#@
 GRAPHICS-WINDOW
-273
-10
-712
-470
+306
+11
+743
+449
 -1
 -1
 13.0
@@ -29,9 +29,9 @@ ticks
 
 BUTTON
 3
-12
+57
 267
-45
+90
 NIL
 ls:load-gui-model \"LS-Widgets.nlogo\"
 NIL
@@ -46,9 +46,9 @@ NIL
 
 SLIDER
 14
-91
+136
 186
-124
+169
 foo
 foo
 0
@@ -61,9 +61,9 @@ HORIZONTAL
 
 SLIDER
 11
-130
+175
 183
-163
+208
 bar
 bar
 0
@@ -76,9 +76,9 @@ HORIZONTAL
 
 SLIDER
 13
-170
+215
 213
-203
+248
 baz
 baz
 bar
@@ -91,9 +91,9 @@ HORIZONTAL
 
 TEXTBOX
 38
-52
+97
 188
-70
+115
 hi there!
 11
 0.0
@@ -101,9 +101,9 @@ hi there!
 
 SWITCH
 33
-232
+277
 136
-265
+310
 foo?
 foo?
 1
@@ -112,9 +112,9 @@ foo?
 
 CHOOSER
 18
-269
-165
 314
+165
+359
 foos
 foos
 "a" 2 false ["a" 2 false [true]]
@@ -122,9 +122,9 @@ foos
 
 MONITOR
 25
-349
-136
 394
+136
+439
 NIL
 foo + bar + baz
 17
@@ -133,9 +133,9 @@ foo + bar + baz
 
 PLOT
 23
-414
+459
 223
-564
+609
 plot 1
 NIL
 NIL
@@ -148,6 +148,7 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles"
+"pen-1" 1.0 0 -7500403 true "" "plot bad code"
 
 OUTPUT
 276
@@ -169,11 +170,28 @@ Color
 
 BUTTON
 125
-48
+93
 265
-81
+126
 NIL
 ls:show ls:models
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+3
+11
+302
+44
+NIL
+ls:load-headless-model \"LS-Widgets.nlogo\"
 NIL
 1
 T
@@ -526,7 +544,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0-M7
+NetLogo 6.0-M8
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

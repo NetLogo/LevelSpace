@@ -144,7 +144,8 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
       override def filePath: Option[String] = {
         FileDialog.setDirectory(App.app.workspace.getModelDir)
 
-        val loader = fileformat.standardLoader(App.app.workspace.compiler.compilerUtilities, App.app.workspace.autoConvert _)
+        val ws = App.app.workspace
+        val loader = fileformat.standardLoader(ws.compiler.compilerUtilities, ws.getExtensionManager, ws.getCompilationEnvironment)
         val controller = new SaveModel.Controller {
           def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
             try {

@@ -7,23 +7,38 @@ import javax.swing.JFrame
 
 import org.nlogo.workspace.AbstractWorkspaceScala
 import org.nlogo.headless.HeadlessWorkspace
-import org.nlogo.api.{ReporterRunnable, ExtensionException}
+import org.nlogo.api._
 import org.nlogo.nvm.HaltException
+
+import org.nlogo.ls.gui.ViewFrame
 
 
 class HeadlessChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException]) (parentWorkspace: AbstractWorkspaceScala, path: String, modelID: Int)
 extends ChildModel(parentWorkspace, modelID) {
-  val workspace = HeadlessWorkspace.newInstance
+  val world = if(Version.is3D) new org.nlogo.agent.World3D() else new org.nlogo.agent.World
+
+  val workspace = new HeadlessWorkspace(
+      world,
+      new org.nlogo.compiler.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect),
+      new org.nlogo.render.Renderer(world),
+      new org.nlogo.sdm.AggregateManagerLite,
+      null) {
+    override def sendOutput(oo: org.nlogo.agent.OutputObject, toOutputArea: Boolean) = {
+      frame.foreach { f => onEDT {
+        new org.nlogo.window.Events.OutputEvent(false, oo, false, !toOutputArea).raise(f)
+      }}
+    }
+  }
+
   workspace.open(path)
 
-  var frame: Option[ImageFrame] = None
+  var frame: Option[ViewFrame] = None
 
   override def show = {
     val f = frame.getOrElse {
-      parentWorkspace waitForResult new ReporterRunnable[ImageFrame] {
-        def run: ImageFrame = {
-          val image = workspace.exportView
-          new ImageFrame(image, frameTitle)
+      parentWorkspace waitForResult new ReporterRunnable[ViewFrame] {
+        def run: ViewFrame = {
+          new ViewFrame(workspace)
         }
       }
     }
@@ -33,7 +48,7 @@ extends ChildModel(parentWorkspace, modelID) {
   }
 
   def updateView = onEDT{ frame.foreach { f =>
-    if (f.isVisible) f.updateImage(workspace.exportView)
+    if (f.isVisible) f.repaint()
   }}
 
   def setSpeed(d: Double) = {}

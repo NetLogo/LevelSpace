@@ -225,10 +225,9 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                 modelCounter++;
                 updateModelMenu();
             } catch (CompilerException e) {
-                throw new ExtensionException(modelPath + " did not compile properly. There is probably something wrong " +
-                        "with its code. Exception said" + e.getMessage());
+                throw new ExtensionException(modelPath + " has an error in its code: " + e.getMessage(), e);
             } catch (IOException e) {
-                throw new ExtensionException("There was no .nlogo file at the path: \"" + modelPath + "\"");
+                throw new ExtensionException("NetLogo couldn't read the file \"" + modelPath + "\". Are you sure it exists and that NetLogo has permission to read it?", e);
             } catch (InterruptedException e) {
                 throw new HaltException(false);
             }

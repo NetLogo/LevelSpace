@@ -29,7 +29,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
       val f = new JFrame
       frame = Some(f)
       val component: InterfaceComponent = new ZoomableInterfaceComponent(f)
-      panel = new GUIPanel(component)
+      panel = new GUIPanel(component.workspace, component)
       f.add(panel)
       val currentlyFocused: Window =
         Option(KeyboardFocusManager.getCurrentKeyboardFocusManager.getActiveWindow).getOrElse(App.app.frame)
