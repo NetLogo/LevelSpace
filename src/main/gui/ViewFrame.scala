@@ -7,7 +7,7 @@ import java.awt.event.{ActionListener, ActionEvent}
 import org.nlogo.api.{ViewSettings, RendererInterface}
 import org.nlogo.headless.HeadlessWorkspace
 import org.nlogo.window.JobWidget
-import org.nlogo.window.Events.{CompileMoreSourceEvent, CompiledEvent, AddJobEvent}
+import org.nlogo.window.Events.{CompileMoreSourceEvent, CompiledEvent, AddJobEvent, PeriodicUpdateEvent}
 import org.nlogo.core.CompilerException
 
 class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler {
@@ -18,12 +18,15 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
   }
 
   viewPanel.setPreferredSize(new Dimension((ws.viewWidth * ws.patchSize).toInt, (ws.viewHeight * ws.patchSize).toInt))
-  val guiPanel = new GUIPanel(ws, viewPanel)
+  val guiPanel = new GUIPanel(ws, viewPanel, false)
   getContentPane.add(guiPanel)
   pack()
 
   new Timer(1000 / 30, new ActionListener() {
-    override def actionPerformed(e: ActionEvent) = viewPanel.repaint()
+    override def actionPerformed(e: ActionEvent) = {
+      viewPanel.repaint()
+      new PeriodicUpdateEvent().raise(ViewFrame.this)
+    }
   }).start
 
   def handle(e: CompileMoreSourceEvent): Unit = {
