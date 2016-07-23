@@ -7,7 +7,8 @@ import javax.swing.JButton
 import org.nlogo.api.{ExtensionException, ModelReader, ModelSection, Version}
 import org.nlogo.core.{I18N, Model}
 import org.nlogo.app
-import org.nlogo.app.{ProceduresMenu, CodeTab, Tabs}
+import org.nlogo.app.Tabs
+import org.nlogo.app.codetab.{ProceduresMenu, CodeTab}
 import org.nlogo.awt.UserCancelException
 import org.nlogo.fileformat
 import org.nlogo.swing.ToolBar
@@ -33,7 +34,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
   setIndenter(true)
 
   locally {
-    val loader = fileformat.standardLoader(workspace.compiler.compilerUtilities, workspace.getExtensionManager, workspace.getCompilationEnvironment)
+    val loader = fileformat.basicLoader
     val controller = new OpenModel.Controller {
       def errorOpeningURI(uri: java.net.URI,exception: Exception): Unit = {
         throw new ExtensionException("Levelspace encountered an error while opening: " + Paths.get(uri).toString + ". " + exception.toString)
@@ -59,7 +60,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
   override def getToolBar: ToolBar = {
     new ToolBar {
       override def addControls(): Unit = {
-        add(new ToolBarActionButton(org.nlogo.app.FindDialog.FIND_ACTION))
+        add(new ToolBarActionButton(org.nlogo.app.common.FindDialog.FIND_ACTION))
         add(new ToolBarActionButton(compileAction))
         add(new Separator)
         add(new JButton(new FileCloseAction))
@@ -113,7 +114,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
     println("saving code tab to: " + workspace.getModelPath)
     println("model type: " + workspace.getModelType)
     println("contents: " + innerSource)
-    val loader = fileformat.standardLoader(workspace.compiler.compilerUtilities, workspace.getExtensionManager, workspace.getCompilationEnvironment)
+    val loader = fileformat.basicLoader
     val controller = new SaveModel.Controller {
       def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
         Some(Paths.get(workspace.getModelPath).toUri)

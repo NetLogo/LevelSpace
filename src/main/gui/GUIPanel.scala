@@ -3,9 +3,10 @@ package org.nlogo.ls.gui
 import java.awt._
 import java.awt.event.ActionEvent
 import javax.swing._
+import javax.swing.event
 
-import org.nlogo.app.CommandCenter
-import org.nlogo.window.{Events, TickCounterLabel}
+import org.nlogo.app.interfacetab.CommandCenter
+import org.nlogo.window.{Events, TickCounterLabel, GUIWorkspace}
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 class GUIPanel(ws: AbstractWorkspaceScala, panel: JPanel, fullView: Boolean) extends JPanel with Events.OutputEvent.Handler {
@@ -14,6 +15,22 @@ class GUIPanel(ws: AbstractWorkspaceScala, panel: JPanel, fullView: Boolean) ext
   val controlStrip = new JPanel
   controlStrip.setLayout(new BorderLayout)
   controlStrip.add(new TickCounterLabel(ws.world), BorderLayout.WEST)
+
+  ws match {
+    case gws: GUIWorkspace =>
+      val speedSliderPanel = new JPanel
+      speedSliderPanel.add(new JLabel("speed: "))
+      val speedSlider = new JSlider(-110, 112, gws.speedSliderPosition().toInt)
+      speedSlider.addChangeListener(new event.ChangeListener() {
+        override def stateChanged(e: event.ChangeEvent): Unit = {
+          gws.speedSliderPosition(speedSlider.getValue / 2)
+          gws.updateManager.nudgeSleeper
+        }
+      })
+      speedSliderPanel.add(speedSlider)
+      controlStrip.add(speedSliderPanel, BorderLayout.CENTER)
+    case _ =>
+  }
 
   add(controlStrip, BorderLayout.NORTH)
   var cc = new CommandCenter(ws, new AbstractAction() {

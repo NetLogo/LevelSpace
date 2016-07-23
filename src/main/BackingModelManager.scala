@@ -4,7 +4,8 @@ import org.nlogo.ls.gui.{ModelCodeTab, LevelSpaceMenu, ModelManager}
 
 import java.util.{ Map => JMap }
 
-import org.nlogo.app.{CodeTab, App}
+import org.nlogo.app.App
+import org.nlogo.app.codetab.CodeTab
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 import scala.collection.JavaConversions._

@@ -1,3 +1,5 @@
+import org.nlogo.build.NetLogoExtension
+
 enablePlugins(org.nlogo.build.NetLogoExtension)
 
 netLogoExtName := "ls"
@@ -20,28 +22,7 @@ javaSource in Test := baseDirectory.value / "src" / "test"
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature")
 
-val netLogoJarURL =
-  Option(System.getProperty("netlogo.jar.url")).getOrElse("https://s3.amazonaws.com/ccl-artifacts/NetLogo-hexy-fd7cd755.jar")
-
-val netLogoJarsOrDependencies = {
-  import java.io.File
-  import java.net.URI
-  val urlSegments = netLogoJarURL.split("/")
-  val lastSegment = urlSegments.last.replaceFirst("NetLogo", "NetLogo-tests")
-  val testsUrl = (urlSegments.dropRight(1) :+ lastSegment).mkString("/")
-  if (netLogoJarURL.startsWith("file:"))
-    Seq(unmanagedJars in Compile ++= Seq(
-      new File(new URI(netLogoJarURL)), new File(new URI(testsUrl))))
-  else
-    Seq(libraryDependencies ++= Seq(
-      "org.nlogo" % "NetLogo" % "6.0-PREVIEW-12-15" from netLogoJarURL,
-      "org.nlogo" % "NetLogo-tests" % "6.0-PREVIEW-12-15" % "test" from testsUrl))
-}
-
-netLogoJarsOrDependencies
-
 libraryDependencies ++= Seq(
-  "org.parboiled" %% "parboiled-scala" % "1.1.7",
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
   "org.ow2.asm" % "asm-all" % "5.0.3" % "test",
@@ -71,4 +52,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.0.0-M8"
+netLogoVersion := "6.0.0-M9"

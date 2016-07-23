@@ -55,6 +55,14 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   def show = onEDT { frame.foreach(_.setVisible(true)) }
   def hide = onEDT { frame.foreach(_.setVisible(false)) }
 
-  def onEDT(f: => Unit) = SwingUtilities.invokeLater(new Runnable { def run = f })
+  /**
+   * If on EDT already, runs the given function, otherwise, invokes it async on the EDT.
+   **/
+  def onEDT(f: => Unit) =
+    if (SwingUtilities.isEventDispatchThread)
+      f
+    else
+      SwingUtilities.invokeLater(new Runnable { def run = f })
+
 }
 

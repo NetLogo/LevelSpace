@@ -1,6 +1,6 @@
 package org.nlogo.ls.gui
 
-import org.nlogo.app.AgentMonitorManager
+import org.nlogo.app.tools.AgentMonitorManager
 import org.nlogo.lite.{ProceduresLite, LiteEditorFactory}
 import org.nlogo.window.{Event, NetLogoListenerManager, CompilerManager, LinkRoot, InterfacePanelLite, UpdateManager, GUIWorkspace, FileController, ReconfigureWorkspaceUI}
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
@@ -84,7 +84,7 @@ with LinkRoot {
     val uri = Paths.get(path).toUri
     interfacePanel.reset()
     val controller = new FileController(this, workspace)
-    val loader = fileformat.standardLoader(workspace.compiler.compilerUtilities, workspace.getExtensionManager, workspace.getCompilationEnvironment)
+    val loader = fileformat.basicLoader
     val modelOpt = OpenModel(uri, controller, loader, Version)
     modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
   }

@@ -34,22 +34,14 @@ extends ChildModel(parentWorkspace, modelID) {
 
   var frame: Option[ViewFrame] = None
 
-  override def show = {
-    val f = frame.getOrElse {
-      parentWorkspace waitForResult new ReporterRunnable[ViewFrame] {
-        def run: ViewFrame = {
-          new ViewFrame(workspace)
-        }
-      }
-    }
+  override def show = onEDT {
+    val f = frame.getOrElse { new ViewFrame(workspace) }
     frame = Some(f)
     super.show
     updateView
   }
 
-  def updateView = onEDT{ frame.foreach { f =>
-    if (f.isVisible) f.repaint()
-  }}
+  def updateView = onEDT{ frame.foreach { f => if (f.isVisible) f.repaint() }}
 
   def setSpeed(d: Double) = {}
 

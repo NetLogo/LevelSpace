@@ -1,6 +1,6 @@
 package org.nlogo.ls.gui
 
-import javax.swing.{JFrame, JPanel, SwingUtilities, Timer}
+import javax.swing.{JFrame, JPanel, SwingUtilities, Timer, BoxLayout}
 import java.awt.{Graphics, Graphics2D, Dimension}
 import java.awt.event.{ActionListener, ActionEvent}
 
@@ -17,8 +17,15 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
     }
   }
 
+  val viewContainer = new JPanel
+  viewContainer.setLayout(new BoxLayout(viewContainer, BoxLayout.Y_AXIS))
+
   viewPanel.setPreferredSize(new Dimension((ws.viewWidth * ws.patchSize).toInt, (ws.viewHeight * ws.patchSize).toInt))
-  val guiPanel = new GUIPanel(ws, viewPanel, false)
+  viewPanel.setMinimumSize(viewPanel.getPreferredSize)
+  viewPanel.setMaximumSize(viewPanel.getPreferredSize)
+  viewContainer.add(viewPanel)
+
+  val guiPanel = new GUIPanel(ws, viewContainer, false)
   getContentPane.add(guiPanel)
   pack()
 
