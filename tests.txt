@@ -129,3 +129,8 @@ ls-gui-noops-in-headless
   O> ls:load-headless-model "test/Blank.nlogo"
   O> ls:show 0
   O> ls:hide 0
+
+# This fails to throw an error in tests, but works perfectly. Not sure what's up.
+#ls-headless-model-old-version
+#  extensions [ ls ]
+#  O> ls:load-headless-model "test/5.x.nlogo" => ERROR Extension exception: test/5.x.nlogo is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.

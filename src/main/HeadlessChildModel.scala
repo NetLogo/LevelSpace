@@ -30,7 +30,12 @@ extends ChildModel(parentWorkspace, modelID) {
     }
   }
 
-  workspace.open(path)
+  try {
+    workspace.open(path)
+  } catch {
+    case e: IllegalStateException =>
+      throw new ExtensionException(s"$path is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.", e)
+  }
 
   var frame: Option[ViewFrame] = None
 
