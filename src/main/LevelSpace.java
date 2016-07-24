@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -63,7 +64,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     };
 
-    private static LSModelManager modelManager = useGUI() ? new BackingModelManager() : new HeadlessBackingModelManager();
+    private static LSModelManager modelManager = GraphicsEnvironment.isHeadless() ? new HeadlessBackingModelManager() : new BackingModelManager();
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
@@ -90,7 +91,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
 
 
-        if (useGUI()) {
+        if (!GraphicsEnvironment.isHeadless()) {
             // Adding event listener to Halt for halting child models
             MenuElement[] elements = App.app().frame().getJMenuBar().getSubElements();
             for (MenuElement e : elements) {
@@ -125,10 +126,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static boolean useGUI() {
-        return !"true".equals(System.getProperty("java.awt.headless"));
-    }
-
     public static boolean isMainModel(ExtensionManager myEM) {
         return myEM == App.app().workspace().getExtensionManager();
     }
@@ -152,7 +149,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void unload(ExtensionManager em) throws ExtensionException {
-        if (useGUI() && isMainModel(em)) {
+        if (!GraphicsEnvironment.isHeadless() && isMainModel(em)) {
             App.app().frame().getJMenuBar().remove(modelManager.guiComponent());
         }
         if (haltButton != null) {
@@ -211,11 +208,11 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         public void perform(Argument args[], Context ctx) throws ExtensionException, org.nlogo.api.LogoException {
             String modelPath = getModelPath((ExtensionContext) ctx, args[0].getString());
             try {
-                T model;
-                if (modelType == HeadlessChildModel.class) {
-                    model = modelType.cast(new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter));
+                ChildModel model;
+                if (modelType == HeadlessChildModel.class || GraphicsEnvironment.isHeadless()) {
+                    model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                 } else {
-                    model = modelType.cast(new GUIChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter));
+                    model = new GUIChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                     updateChildModelSpeed(model);
                 }
                 models.put(modelCounter, model);
@@ -384,7 +381,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     public void runOnce(ExtensionManager em) throws ExtensionException {
         modelManager.updateChildModels(models);
 
-        if (useGUI() && isMainModel(em)) {
+        if (!GraphicsEnvironment.isHeadless() && isMainModel(em)) {
             final JMenuBar menuBar = App.app().frame().getJMenuBar();
             if (menuBar.getComponentIndex(modelManager.guiComponent()) == -1) {
                 menuBar.add(modelManager.guiComponent());
@@ -401,7 +398,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     private static void updateChildModelSpeed(ChildModel model){
         // If we're running tests, this should noop. So, we check if we've got a GUI.
-        if (useGUI()) {
+        if (!GraphicsEnvironment.isHeadless()) {
             double theSpeed = App.app().workspace().updateManager().speed();
             model.setSpeed(theSpeed);
         }

@@ -1,4 +1,4 @@
-package test
+package org.nlogo.ls
 
 import org.nlogo.headless.TestLanguage
 

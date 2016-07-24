@@ -18,8 +18,6 @@ scalaSource in Test := baseDirectory.value / "src" / "test"
 
 javaSource in Compile := baseDirectory.value / "src" / "main"
 
-javaSource in Test := baseDirectory.value / "src" / "test"
-
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature")
 
 libraryDependencies ++= Seq(
