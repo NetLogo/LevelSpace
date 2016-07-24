@@ -6,6 +6,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import javax.swing.{JFrame, SwingUtilities}
+import java.awt.GraphicsEnvironment
 
 abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   lazy val evaluator = new Evaluator(name, workspace)
@@ -57,12 +58,15 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
 
   /**
    * If on EDT already, runs the given function, otherwise, invokes it async on the EDT.
+   * NoOps in headless.
    **/
   def onEDT(f: => Unit) =
-    if (SwingUtilities.isEventDispatchThread)
-      f
-    else
-      SwingUtilities.invokeLater(new Runnable { def run = f })
+    if (!GraphicsEnvironment.isHeadless) {
+      if (SwingUtilities.isEventDispatchThread)
+        f
+      else
+        SwingUtilities.invokeLater(new Runnable { def run = f })
+    }
 
 }
 

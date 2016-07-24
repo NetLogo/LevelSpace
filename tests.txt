@@ -123,3 +123,9 @@ ls-gui-children-work-in-headless
   O> ls:load-gui-model "test/Blank.nlogo"
   O> ls:ask 0 [ crt 5 ]
   [ count turtles ] ls:of 0 => 5
+
+ls-gui-noops-in-headless
+  extensions [ ls ]
+  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:show 0
+  O> ls:hide 0
