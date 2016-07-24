@@ -15,6 +15,7 @@ import org.nlogo.ls.gui.ViewFrame
 
 class HeadlessChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException]) (parentWorkspace: AbstractWorkspaceScala, path: String, modelID: Int)
 extends ChildModel(parentWorkspace, modelID) {
+
   val world = if(Version.is3D) new org.nlogo.agent.World3D() else new org.nlogo.agent.World
 
   val workspace = new HeadlessWorkspace(
@@ -42,6 +43,7 @@ extends ChildModel(parentWorkspace, modelID) {
   override def show = onEDT {
     val f = frame.getOrElse { new ViewFrame(workspace) }
     frame = Some(f)
+    updateFrameTitle
     super.show
     updateView
   }
