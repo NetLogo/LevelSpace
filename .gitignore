@@ -1,6 +1,6 @@
 .DS_Store
 .gitignore
-LevelsSpace_internal_release.iml
+*.iml
 bin/
 .project
 .settings
