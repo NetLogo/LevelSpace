@@ -34,7 +34,6 @@ import org.nlogo.core.Token;
 import org.nlogo.core.Syntax;
 import org.nlogo.core.SyntaxJ;
 import org.nlogo.awt.EventQueue$;
-import org.nlogo.window.SpeedSliderPanel;
 import org.nlogo.window.ViewUpdatePanel;
 import org.nlogo.workspace.AbstractWorkspaceScala;
 
@@ -50,13 +49,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     // These need to be cleaned up on unload
     private static JMenuItem haltButton;
-    private static JSlider speedSlider;
-    private static ChangeListener speedSliderListener = new ChangeListener() {
-        @Override
-        public void stateChanged(ChangeEvent arg0) {
-            updateChildModelsSpeed();
-        }
-    };
     private static ActionListener haltListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent arg0) {
@@ -101,28 +93,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                     haltButton.addActionListener(haltListener);
                 }
             }
-
-            // Attaching a ChangeEventLister to the main model's speed slider so we can
-            // update child models' speed sliders at the same time.
-            Component[] c = App.app().tabs().interfaceTab().getComponents();
-            for (Component co : c) {
-                Component[] c2 = ((Container) co).getComponents();
-                for (Component co2 : c2) {
-                    if (co2 instanceof ViewUpdatePanel) {
-                        Component[] c3 = ((Container) co2).getComponents();
-                        for (Component co3 : c3) {
-                            if (co3 instanceof SpeedSliderPanel) {
-                                for (Component c4 : ((Container) co3).getComponents()) {
-                                    if (c4 instanceof JSlider) {
-                                        speedSlider = (JSlider) c4;
-                                        speedSlider.addChangeListener(speedSliderListener);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -154,9 +124,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
         if (haltButton != null) {
             haltButton.removeActionListener(haltListener);
-        }
-        if (speedSlider != null) {
-            speedSlider.removeChangeListener(speedSliderListener);
         }
         try {
             reset();
@@ -213,7 +180,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                     model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                 } else {
                     model = new GUIChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
-                    updateChildModelSpeed(model);
                 }
                 models.put(modelCounter, model);
                 if (args.length > 1) {
@@ -386,21 +352,6 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
             if (menuBar.getComponentIndex(modelManager.guiComponent()) == -1) {
                 menuBar.add(modelManager.guiComponent());
             }
-        }
-    }
-
-    private static void updateChildModelsSpeed(){
-        for (ChildModel model : models.values()){
-            updateChildModelSpeed(model);
-        }
-    }
-
-
-    private static void updateChildModelSpeed(ChildModel model){
-        // If we're running tests, this should noop. So, we check if we've got a GUI.
-        if (!GraphicsEnvironment.isHeadless()) {
-            double theSpeed = App.app().workspace().updateManager().speed();
-            model.setSpeed(theSpeed);
         }
     }
 
