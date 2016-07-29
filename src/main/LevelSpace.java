@@ -173,14 +173,18 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
         @Override
         public void perform(Argument args[], Context ctx) throws ExtensionException, org.nlogo.api.LogoException {
+            AbstractWorkspaceScala parentWS = (AbstractWorkspaceScala) ctx.workspace();
+
             String modelPath = getModelPath((ExtensionContext) ctx, args[0].getString());
             try {
                 ChildModel model;
-                if (modelType == HeadlessChildModel.class || GraphicsEnvironment.isHeadless()) {
+                if (modelType == HeadlessChildModel.class || GraphicsEnvironment.isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
                     model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                 } else {
                     model = new GUIChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                 }
+                model.workspace().behaviorSpaceRunNumber(parentWS.behaviorSpaceRunNumber());
+                model.workspace().behaviorSpaceExperimentName(parentWS.behaviorSpaceExperimentName());
                 models.put(modelCounter, model);
                 if (args.length > 1) {
                     args[1].getCommandTask().perform(ctx, new Object[]{(double) modelCounter});
