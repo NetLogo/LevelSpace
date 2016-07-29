@@ -20,34 +20,29 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   var frame: Option[JFrame] = None
 
   var panel: GUIPanel = null
-  val component = parentWorkspace.waitForResult(RunGUIChildModel)
-  updateFrameTitle
-
-  object RunGUIChildModel extends ReporterRunnable[InterfaceComponent] {
-    @throws(classOf[Exception])
-    def run: InterfaceComponent = {
-      val f = new JFrame
-      frame = Some(f)
-      val component: InterfaceComponent = new ZoomableInterfaceComponent(f)
-      panel = new GUIPanel(component.workspace, component, true)
-      f.add(panel)
-      val currentlyFocused: Window =
-        Option(KeyboardFocusManager.getCurrentKeyboardFocusManager.getActiveWindow).getOrElse(App.app.frame)
-      f.setLocationRelativeTo(currentlyFocused)
-      f.setLocationByPlatform(true)
-      f.setVisible(true)
-      currentlyFocused.toFront()
-      component.open(path)
-      f.pack()
-      f.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
-      f.addWindowListener(new GUIWindowAdapter)
-      val newMenuBar = new JMenuBar()
-      val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
-      newMenuBar.add(zoomMenuClass.newInstance().asInstanceOf[org.nlogo.swing.Menu])
-      f.setJMenuBar(newMenuBar)
-      component
-    }
+  val component: InterfaceComponent = UnlockAndBlock.onEDT(parentWorkspace.world) {
+    val f = new JFrame
+    frame = Some(f)
+    val component: InterfaceComponent = new ZoomableInterfaceComponent(f)
+    panel = new GUIPanel(component.workspace, component, true)
+    f.add(panel)
+    val currentlyFocused: Window =
+      Option(KeyboardFocusManager.getCurrentKeyboardFocusManager.getActiveWindow).getOrElse(App.app.frame)
+    f.setLocationRelativeTo(currentlyFocused)
+    f.setLocationByPlatform(true)
+    f.setVisible(true)
+    currentlyFocused.toFront()
+    component.open(path)
+    f.pack()
+    f.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+    f.addWindowListener(new GUIWindowAdapter)
+    val newMenuBar = new JMenuBar()
+    val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
+    newMenuBar.add(zoomMenuClass.newInstance().asInstanceOf[org.nlogo.swing.Menu])
+    f.setJMenuBar(newMenuBar)
+    component
   }
+  updateFrameTitle
 
   class GUIWindowAdapter extends WindowAdapter {
     override def windowClosing(windowEvent: WindowEvent): Unit = frame.foreach { f =>
