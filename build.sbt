@@ -23,6 +23,7 @@ scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encodi
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
+  "org.parboiled" %% "parboiled-scala" % "1.1.7",
   "org.ow2.asm" % "asm-all" % "5.0.3" % "test",
   "com.google.guava"  % "guava"         % "18.0",
   "com.google.code.findbugs" % "jsr305" % "3.0.0"
