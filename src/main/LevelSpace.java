@@ -34,8 +34,8 @@ import org.nlogo.core.Token;
 import org.nlogo.core.Syntax;
 import org.nlogo.core.SyntaxJ;
 import org.nlogo.awt.EventQueue$;
-import org.nlogo.window.ViewUpdatePanel;
 import org.nlogo.workspace.AbstractWorkspaceScala;
+import org.nlogo.window.GUIWorkspace;
 
 import org.nlogo.ls.gui.ModelManager;
 
@@ -182,6 +182,10 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                     model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                 } else {
                     model = new GUIChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
+                    Workspace rootWS = App.app().workspace();
+                    if (rootWS instanceof GUIWorkspace) {
+                        model.setSpeed(((GUIWorkspace) rootWS).updateManager().speed());
+                    }
                 }
                 model.workspace().behaviorSpaceRunNumber(parentWS.behaviorSpaceRunNumber());
                 model.workspace().behaviorSpaceExperimentName(parentWS.behaviorSpaceExperimentName());

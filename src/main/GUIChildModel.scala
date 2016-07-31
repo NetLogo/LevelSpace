@@ -19,12 +19,11 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 
   var frame: Option[JFrame] = None
 
-  var panel: GUIPanel = null
-  val component: InterfaceComponent = UnlockAndBlock.onEDT(parentWorkspace.world) {
+  val (component, panel) = UnlockAndBlock.onEDT(parentWorkspace.world) {
     val f = new JFrame
     frame = Some(f)
     val component: InterfaceComponent = new ZoomableInterfaceComponent(f)
-    panel = new GUIPanel(component.workspace, component, true)
+    val panel = new GUIPanel(component.workspace, component)
     f.add(panel)
     val currentlyFocused: Window =
       Option(KeyboardFocusManager.getCurrentKeyboardFocusManager.getActiveWindow).getOrElse(App.app.frame)
@@ -40,7 +39,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
     newMenuBar.add(zoomMenuClass.newInstance().asInstanceOf[org.nlogo.swing.Menu])
     f.setJMenuBar(newMenuBar)
-    component
+    (component, panel)
   }
   updateFrameTitle
 
@@ -63,9 +62,10 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   }
 
   def setSpeed(d: Double): Unit = {
+    workspace.updateManager.speed = d
     javax.swing.SwingUtilities.invokeLater(new Runnable {
       def run = {
-        workspace.updateManager.speed = d
+        panel.speedSlider.setValue((d * 2).intValue)
         // Wakes up the workspace if the speed slider is super low.
         // Makes it so there's not a long pause after increasing
         // the speed slider from a low position. BCH 6/18/2016

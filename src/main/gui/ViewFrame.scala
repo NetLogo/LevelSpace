@@ -25,8 +25,8 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
   viewPanel.setMaximumSize(viewPanel.getPreferredSize)
   viewContainer.add(viewPanel)
 
-  val guiPanel = new GUIPanel(ws, viewContainer, false)
-  getContentPane.add(guiPanel)
+  val panel = new HeadlessPanel(ws, viewContainer)
+  getContentPane.add(panel)
   pack()
 
   new Timer(1000 / 30, new ActionListener() {
