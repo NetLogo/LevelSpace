@@ -9,33 +9,42 @@ ls-load-reference
   extensions [ ls ]
   globals [glob1]
   O> set glob1 5
-  O> (ls:load-headless-model "test/Blank.nlogo" [ set glob1 ? ])
+  O> (ls:load-headless-model "extensions/ls/test/Blank.nlogo" [ set glob1 ? ])
   glob1 => 0
   O> ls:close glob1
   ls:models => []
 
 ls-load-and-close-models
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   ls:uses-level-space? 0 => false
   ls:models => [0]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   ls:models => [0 1]
   O> ls:close 0
   ls:models => [1]
   O> ls:reset
   ls:models => []
 
+ls-uses-level-space
+  extensions [ ls ]
+  O> ls:load-headless-model "extensions/ls/extensions/ls/test/Blank.nlogo"
+  ls:uses-level-space? 0 => false
+  O> ls:load-headless-model "extensions/ls/test/LS.nlogo"
+  O> ls:ask 1 [ ls:load-headless-model "extensions/ls/test/Blank.nlogo" ]
+  [ length ls:models ] ls:of 1 => 1
+  ls:uses-level-space? 1 => true
+
 ls-ask-and-of-and-report-work-for-single-models
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ls:ask 0 [ crt 1 ]
   [ count turtles ] ls:of 0 => 1
   ls:report 0 [ count turtles ] => 1
 
 ls-ask-and-report-take-arguments
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> (ls:ask 0 [ crt ? ] 5)
   [ count turtles ] ls:of 0 => 5
   O> (ls:ask 0 [ crt ? ] 10)
@@ -46,49 +55,48 @@ ls-ask-and-report-take-arguments
 ls-ask-and-of-work-for-lists
   extensions [ ls ]
   [ count turtles ] ls:of [] => []
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ls:ask ls:models [ crt 1 ]
   [ count turtles ] ls:of ls:models => [1]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ls:ask ls:models [ crt 1 ]
   [ count turtles ] ls:of ls:models => [2 1]
 
 ls-with-filters
   extensions [ ls ]
-  O> repeat 10 [ ls:load-headless-model "test/Blank.nlogo" ]
+  O> repeat 10 [ ls:load-headless-model "extensions/ls/test/Blank.nlogo" ]
   O> foreach ls:models [ (ls:ask ? [ crt ? ] ?) ]
   ls:models ls:with [ count turtles mod 2 = 0 ] => [0 2 4 6 8]
 
 #ls-*-descendant-works-for-one-item-list
 #  extensions [ ls ]
-#  O> ls:load-headless-model "test/Blank.nlogo"
+#  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
 #  O> ls:ask-descendant [0] [ crt 1 ]
 #  [ count turtles ] ls:of-descendant [0] => 1
 
 ls-set-name
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ls:set-name 0 "foo"
   ls:name-of 0 => "foo"
   ls:name-of [0] => ["foo"]
 
 ls-path-of
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
-  member? "test/Blank.nlogo" ls:path-of 0 => true
-  member? "test/Blank.nlogo" first ls:path-of [0] => true
-
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
+  member? "extensions/ls/test/Blank.nlogo" ls:path-of 0 => true
+  member? "extensions/ls/test/Blank.nlogo" first ls:path-of [0] => true
 
 ls-errors-propogate
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ls:ask 0 [ error "hi" ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: hi
   [ 1 / count turtles ] ls:of 0 => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Division by zero.
   ls:report 0 [ 1 / count turtles ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Division by zero.
 
 ls-let-injects-variables
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   to-report test-of ls:let foo 5 report [ foo ] ls:of 0 end
   test-of => 5
   to-report test-report ls:let foo 6 report ls:report 0 [ foo ] end
@@ -98,39 +106,39 @@ ls-let-injects-variables
 
 ls-let-does-not-accumulate-variables
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ls:let foo 0 ls:let foo 1 ls:ask 0 [ show ?2 ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: task expected 2 inputs, but only got 1
 
 
 ls-let-respects-agent-scope
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ask patches [ ls:let foo 0 ] ls:ask 0 [ show foo ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Nothing named FOO has been defined.
 
 ls-let-respects-procedure-scope
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   to proc ls:let foo 0 end
   O> proc ls:ask 0 [ show foo ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Nothing named FOO has been defined.
 
 ls-?-doesnt-confuse-us
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   map [ [ count turtles ] ls:of ? ] ls:models => [0]
 
 ls-gui-children-work-in-headless
   extensions [ ls ]
-  O> ls:load-gui-model "test/Blank.nlogo"
+  O> ls:load-gui-model "extensions/ls/test/Blank.nlogo"
   O> ls:ask 0 [ crt 5 ]
   [ count turtles ] ls:of 0 => 5
 
 ls-gui-noops-in-headless
   extensions [ ls ]
-  O> ls:load-headless-model "test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> ls:show 0
   O> ls:hide 0
 
 # This fails to throw an error in tests, but works perfectly. Not sure what's up.
 #ls-headless-model-old-version
 #  extensions [ ls ]
-#  O> ls:load-headless-model "test/5.x.nlogo" => ERROR Extension exception: test/5.x.nlogo is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.
+#  O> ls:load-headless-model "extensions/ls/test/5.x.nlogo" => ERROR Extension exception: extensions/ls/test/5.x.nlogo is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.
