@@ -77,9 +77,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("display", UpdateView$.MODULE$);
         primitiveManager.addPrimitive("show", Show$.MODULE$);
         primitiveManager.addPrimitive("hide", Hide$.MODULE$);
-        // TODO: Add these back in
-        //primitiveManager.addPrimitive("ask-descendant", new HierarchicalAsk());
-        //primitiveManager.addPrimitive("of-descendant", new HierarchicalOf());
+        primitiveManager.addPrimitive("show-all", ShowAll$.MODULE$);
+        primitiveManager.addPrimitive("hide-all", HideAll$.MODULE$);
         primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
 
 

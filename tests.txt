@@ -31,8 +31,6 @@ ls-uses-level-space
   O> ls:load-headless-model "extensions/ls/extensions/ls/test/Blank.nlogo"
   ls:uses-level-space? 0 => false
   O> ls:load-headless-model "extensions/ls/test/LS.nlogo"
-  O> ls:ask 1 [ ls:load-headless-model "extensions/ls/test/Blank.nlogo" ]
-  [ length ls:models ] ls:of 1 => 1
   ls:uses-level-space? 1 => true
 
 ls-ask-and-of-and-report-work-for-single-models

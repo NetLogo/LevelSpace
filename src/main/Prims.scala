@@ -150,6 +150,8 @@ class ModelReporter(ret: Int, reporter: ChildModel => AnyRef) extends Reporter {
 
 object Show extends ModelCommand(_.show)
 object Hide extends ModelCommand(_.hide)
+object ShowAll extends ModelCommand(_.showAll)
+object HideAll extends ModelCommand(_.hideAll)
 object Close extends ModelCommand(LevelSpace.closeModel _)
 object UpdateView extends ModelCommand(_ match {
   case hm: HeadlessChildModel => hm.updateView

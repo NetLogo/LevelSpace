@@ -49,12 +49,26 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   def setSpeed(d: Double)
   def workspace: AbstractWorkspaceScala
 
-  def usesLevelSpace = workspace.getExtensionManager.loadedExtensions.asScala.find {
-    _.getClass.toString equals "class LevelSpace"
-  }.isDefined
+  def usesLevelSpace = {
+    workspace.getExtensionManager.loadedExtensions.asScala.find {
+      _.getClass.toString equals classOf[LevelSpace].toString
+    }.isDefined
+  }
 
   def show = onEDT { frame.foreach(_.setVisible(true)) }
   def hide = onEDT { frame.foreach(_.setVisible(false)) }
+  def showAll = {
+    show
+    if (usesLevelSpace) {
+      ask("ls:show-all ls:models", Seq(), Seq())(parentWorkspace.world)
+    }
+  }
+  def hideAll = {
+    hide
+    if (usesLevelSpace) {
+      ask("ls:hide-all ls:models", Seq(), Seq())(parentWorkspace.world)
+    }
+  }
 
   /**
    * If on EDT already, runs the given function, otherwise, invokes it async on the EDT.

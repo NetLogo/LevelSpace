@@ -111,9 +111,6 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
     save()
 
   def save(): Unit = {
-    println("saving code tab to: " + workspace.getModelPath)
-    println("model type: " + workspace.getModelType)
-    println("contents: " + innerSource)
     val loader = fileformat.basicLoader
     val controller = new SaveModel.Controller {
       def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
