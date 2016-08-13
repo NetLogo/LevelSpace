@@ -2,21 +2,21 @@ package org.nlogo.ls.gui
 
 import java.awt.event.ActionEvent
 import java.io.{FileReader, FileWriter}
-import javax.swing.JButton
+import javax.swing.{JButton, JOptionPane}
 
 import org.nlogo.api.{ExtensionException, ModelReader, ModelSection, Version}
 import org.nlogo.core.{I18N, Model}
 import org.nlogo.app
-import org.nlogo.app.Tabs
+import org.nlogo.app.{Tabs, App}
 import org.nlogo.app.codetab.{ProceduresMenu, CodeTab}
 import org.nlogo.awt.UserCancelException
 import org.nlogo.fileformat
-import org.nlogo.swing.ToolBar
+import org.nlogo.swing.{ToolBar, OptionDialog}
 import org.nlogo.swing.ToolBar.Separator
 import org.nlogo.swing.ToolBarActionButton
 import org.nlogo.util.Utils
 import org.nlogo.window.Events.ModelSavedEvent
-import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelTracker, OpenModel, SaveModel }
+import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelTracker, OpenModel, SaveModel, ModelsLibrary }
 
 import java.nio.file.Paths
 
@@ -52,6 +52,19 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
     OpenModel(Paths.get(filePath).toUri, controller, loader, Version).foreach { model =>
       currentModel = Some(model)
       innerSource = model.code
+    }
+
+    // All paths will be absolute, so this is okay
+    if (ModelsLibrary.getModelPaths contains filePath) {
+      text.setEditable(false)
+      JOptionPane.showMessageDialog(App.app.frame,
+        "<html><p style='width: 400px;'>" +
+        "Because this is a models library model, you will not be able to make any changes to the code. If you wish " +
+        "to make changes, copy the file to a different location, update your parent model with the new location, and " +
+        "reopen the model." +
+        "</p></html>",
+        "Warning",
+        JOptionPane.WARNING_MESSAGE)
     }
   }
 
@@ -92,7 +105,7 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
       "Discard",
       I18N.gui.get("common.buttons.cancel"))
     val message = "Do you want to save the changes you made to " + filePath + "?"
-    org.nlogo.swing.OptionDialog.show(this, I18N.gui.get("common.messages.warning"), message, options) match {
+    OptionDialog.show(this, I18N.gui.get("common.messages.warning"), message, options) match {
       case 0 => true
       case 1 => false
       case _ => throw new UserCancelException
