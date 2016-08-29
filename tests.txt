@@ -9,7 +9,7 @@ ls-load-reference
   extensions [ ls ]
   globals [glob1]
   O> set glob1 5
-  O> (ls:load-headless-model "extensions/ls/test/Blank.nlogo" [ set glob1 ? ])
+  O> (ls:load-headless-model "extensions/ls/test/Blank.nlogo" [ [id] -> set glob1 id ])
   glob1 => 0
   O> ls:close glob1
   ls:models => []
@@ -43,12 +43,12 @@ ls-ask-and-of-and-report-work-for-single-models
 ls-ask-and-report-take-arguments
   extensions [ ls ]
   O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
-  O> (ls:ask 0 [ crt ? ] 5)
+  O> (ls:ask 0 [ [num] -> crt num ] 5)
   [ count turtles ] ls:of 0 => 5
-  O> (ls:ask 0 [ crt ? ] 10)
+  O> (ls:ask 0 [ [num -> crt num ] 10)
   [ count turtles ] ls:of 0 => 15
-  (ls:report 0 [ ? ] 5) => 5
-  (ls:report 0 [ ?1 + ?2 ] 5 6) => 11
+  (ls:report 0 [ [x] -> x ] 5) => 5
+  (ls:report 0 [ [x y] -> x + y ] 5 6) => 11
 
 ls-ask-and-of-work-for-lists
   extensions [ ls ]
@@ -63,7 +63,7 @@ ls-ask-and-of-work-for-lists
 ls-with-filters
   extensions [ ls ]
   O> repeat 10 [ ls:load-headless-model "extensions/ls/test/Blank.nlogo" ]
-  O> foreach ls:models [ (ls:ask ? [ crt ? ] ?) ]
+  O> foreach ls:models [ [id] -> (ls:ask id [ [num] -> crt num ] id) ]
   ls:models ls:with [ count turtles mod 2 = 0 ] => [0 2 4 6 8]
 
 #ls-*-descendant-works-for-one-item-list
@@ -92,6 +92,11 @@ ls-errors-propogate
   [ 1 / count turtles ] ls:of 0 => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Division by zero.
   ls:report 0 [ 1 / count turtles ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Division by zero.
 
+ls-cant-report-agentsets
+  extensions [ ls ]
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
+  [ patches ] ls:of 0 => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: You cannot report agents or agentsets from LevelSpace models.
+
 ls-let-injects-variables
   extensions [ ls ]
   O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
@@ -101,12 +106,6 @@ ls-let-injects-variables
   test-report => 6
   O> ls:let foo 7 ls:ask 0 [ crt foo ]
   [ count turtles ] ls:of 0 => 7
-
-ls-let-does-not-accumulate-variables
-  extensions [ ls ]
-  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
-  O> ls:let foo 0 ls:let foo 1 ls:ask 0 [ show ?2 ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: task expected 2 inputs, but only got 1
-
 
 ls-let-respects-agent-scope
   extensions [ ls ]
@@ -118,11 +117,6 @@ ls-let-respects-procedure-scope
   O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   to proc ls:let foo 0 end
   O> proc ls:ask 0 [ show foo ] => ERROR Extension exception: Model 0 (Blank.nlogo) encountered an error: Nothing named FOO has been defined.
-
-ls-?-doesnt-confuse-us
-  extensions [ ls ]
-  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
-  map [ [ count turtles ] ls:of ? ] ls:models => [0]
 
 ls-gui-children-work-in-headless
   extensions [ ls ]

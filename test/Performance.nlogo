@@ -1,11 +1,11 @@
 extensions [ ls ]
 
 to test [ n ]
-  foreach n-values n [ ? + 1 ] [
-    test-headless-performance ?
+  foreach n-values n [ [i] -> i + 1 ] [ [i] ->
+    test-headless-performance i
   ]
-  foreach n-values n [ ? + 1 ] [
-    test-gui-performance ?
+  foreach n-values n [ [i] -> i + 1 ] [ [i] ->
+    test-gui-performance i
   ]
   ls:reset
 end
@@ -60,6 +60,7 @@ to test-model-loading [ n headless? ]
       ls:load-headless-model "Blank.nlogo"
     ] [
       ls:load-gui-model "Blank.nlogo"
+      ls:hide last ls:models
     ]
   ]
   print (word "headless: " headless? " loading " n " models: " timer)
@@ -556,7 +557,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0-M8
+NetLogo 6.0-RC1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

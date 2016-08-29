@@ -167,7 +167,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         @Override
         public Syntax getSyntax() {
             return SyntaxJ.commandSyntax(
-                    new int[] { Syntax.StringType(), Syntax.CommandTaskType() | Syntax.RepeatableType()}, 1);
+                    new int[] { Syntax.StringType(), Syntax.CommandType() | Syntax.RepeatableType()}, 1);
         }
 
         @Override
@@ -190,7 +190,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                 model.workspace().behaviorSpaceExperimentName(parentWS.behaviorSpaceExperimentName());
                 models.put(modelCounter, model);
                 if (args.length > 1) {
-                    args[1].getCommandTask().perform(ctx, new Object[]{(double) modelCounter});
+                    args[1].getCommand().perform(ctx, new Object[]{(double) modelCounter});
                 }
                 modelCounter++;
                 updateModelMenu();

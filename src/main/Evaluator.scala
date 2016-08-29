@@ -1,31 +1,38 @@
 package org.nlogo.ls
 
+import com.google.common.cache.{CacheBuilder, CacheLoader}
+import org.nlogo.api.{ExtensionException, SimpleJobOwner, World, AnonymousCommand, AnonymousProcedure, Context}
+import org.nlogo.core.{AgentKind, LogoList, Nobody, Syntax}
+import org.nlogo.nvm
+import org.nlogo.nvm.{Job, Procedure, Reporter}
+import org.nlogo.prim.{_constboolean, _constdouble, _constlist, _conststring, _nobody}
 import org.nlogo.workspace.AbstractWorkspaceScala
-import org.nlogo.api.{World, SimpleJobOwner, ExtensionException}
-import org.nlogo.core.{LogoList, Nobody, AgentKind, CompilerException}
-import org.nlogo.nvm.{Job, Reporter, Procedure}
-import org.nlogo.prim.{ _constboolean, _constdouble, _constlist, _conststring, _nobody }
-import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+
+
 
 class Evaluator(name: String, ws: AbstractWorkspaceScala) {
 
   val owner = new SimpleJobOwner(name, ws.world.mainRNG, AgentKind.Observer);
 
-  private val commandRunner = ws.compileCommands("run task []")
+  private val commandRunner = ws.compileCommands("run []")
+  private val reporterRunner = ws.compileReporter("runresult [ 0 ]")
 
-  private val taskCache = CacheBuilder.newBuilder.build(new CacheLoader[String, Reporter] {
-    override def load(code: String) = compileTaskReporter(code)
+  private val lambdaCache = CacheBuilder.newBuilder.build(new CacheLoader[String, Reporter] {
+    override def load(code: String) = compileProcedureReporter(code)
   })
 
-  def command(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): FutureJob[Unit] = {
-    val letString = lets.zipWithIndex.map {
-      case ((name, v), i) => s"let ${name} ?${1 + args.length + i}"
-    }.mkString("\n")
+  def command(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): FutureJob[Unit] =
+    run(code, lets, args, "__apply", commandRunner _, _ => Unit)
 
-    val fullArgs = args ++ lets.map(_._2)
-    val fullCode = s"$letString\n$code"
+  def report(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): FutureJob[AnyRef] =
+    run(code, lets, args, "__apply-result", reporterRunner _, checkResult)
 
-    val proc = getCommandRunner(getTask(fullCode), fullArgs)
+  def run[T](code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], apply: String, runner: (Reporter, Seq[AnyRef]) => Procedure, handleResult: AnyRef => T): FutureJob[T] = {
+    val fullCode = s"[ [ __levelspace-argument-list ${lets.map(_._1).mkString(" ")} ] -> $apply [ $code ] __levelspace-argument-list]"
+
+    val fullArgs = LogoList.fromVector(args.toVector) +: lets.map(_._2)
+
+    val proc = runner(getLambda(fullCode), fullArgs)
     val job = ws.jobManager.makeConcurrentJob(owner, ws.world.observers, ws, proc)
     ws.jobManager.addJob(job, waitForCompletion = false)
     (w: World) => UnlockAndBlock(w) {
@@ -34,21 +41,13 @@ class Evaluator(name: String, ws: AbstractWorkspaceScala) {
       }
       job.result match {
         case e: Exception => throw e
-        case _ => // fine
+        case x => handleResult(x)
       }
     }
   }
 
-  def report(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): FutureJob[AnyRef] = {
-    val resultReporter = new ReportFromCommand
-    command(s"(run ?${args.length + 1} ($code))", lets, args :+ resultReporter).andThen {
-      _ =>
-        checkResult(resultReporter.result)
-    }
-  }
-
-  private def getTask(code: String): Reporter = try {
-    taskCache.get(code)
+  private def getLambda(code: String): Reporter = try {
+    lambdaCache.get(code)
   } catch {
     // strip google's exception wrapping
     case ex: Exception => throw ex.getCause
@@ -64,24 +63,28 @@ class Evaluator(name: String, ws: AbstractWorkspaceScala) {
     case x => x
   }
 
-  private def compileTaskReporter(code: String): Reporter =
-    ws.compileReporter("task [ " + code + " ]").code(0).args(0)
+  private def compileProcedureReporter(code: String): Reporter =
+    ws.compileReporter(code).code(0).args(0)
 
   private def makeConstantReporter(value:Object): Reporter =
     value match {
-      case b:java.lang.Boolean => new _constboolean(b)
-      case d:java.lang.Double  => new _constdouble(d)
-      case l:LogoList          => new _constlist(l)
-      case s:String            => new _conststring(s)
-      case Nobody              => new _nobody
-      case r:ReportFromCommand => TaskReporter(r)
-      case _                   => throw new IllegalArgumentException(value.getClass.getName)
+      case b:java.lang.Boolean  => new _constboolean(b)
+      case d:java.lang.Double   => new _constdouble(d)
+      case l:LogoList           => new _constlist(l)
+      case s:String             => new _conststring(s)
+      case Nobody               => new _nobody
+      case _                    => throw new IllegalArgumentException(value.getClass.getName)
     }
 
   private def makeArgumentArray(task: Reporter, args: Seq[AnyRef]): Array[Reporter] =
     (task +: args.map(makeConstantReporter _)).toArray
 
-  private def getCommandRunner(task: Reporter, args: Seq[AnyRef]): Procedure = {
+  private def reporterRunner(task: Reporter, args: Seq[AnyRef]): Procedure = {
+    reporterRunner.code(0).args(0).args = makeArgumentArray(task, args)
+    reporterRunner
+  }
+
+  private def commandRunner(task: Reporter, args: Seq[AnyRef]): Procedure = {
     commandRunner.code(0).args = makeArgumentArray(task, args)
     commandRunner
   }
