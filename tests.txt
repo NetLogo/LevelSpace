@@ -45,7 +45,7 @@ ls-ask-and-report-take-arguments
   O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   O> (ls:ask 0 [ [num] -> crt num ] 5)
   [ count turtles ] ls:of 0 => 5
-  O> (ls:ask 0 [ [num -> crt num ] 10)
+  O> (ls:ask 0 [ [num] -> crt num ] 10)
   [ count turtles ] ls:of 0 => 15
   (ls:report 0 [ [x] -> x ] 5) => 5
   (ls:report 0 [ [x y] -> x + y ] 5 6) => 11
@@ -64,7 +64,7 @@ ls-with-filters
   extensions [ ls ]
   O> repeat 10 [ ls:load-headless-model "extensions/ls/test/Blank.nlogo" ]
   O> foreach ls:models [ [id] -> (ls:ask id [ [num] -> crt num ] id) ]
-  ls:models ls:with [ count turtles mod 2 = 0 ] => [0 2 4 6 8]
+  sort ls:models ls:with [ count turtles mod 2 = 0 ] => [0 2 4 6 8]
 
 #ls-*-descendant-works-for-one-item-list
 #  extensions [ ls ]
