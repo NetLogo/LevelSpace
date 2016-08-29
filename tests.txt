@@ -28,7 +28,7 @@ ls-load-and-close-models
 
 ls-uses-level-space
   extensions [ ls ]
-  O> ls:load-headless-model "extensions/ls/extensions/ls/test/Blank.nlogo"
+  O> ls:load-headless-model "extensions/ls/test/Blank.nlogo"
   ls:uses-level-space? 0 => false
   O> ls:load-headless-model "extensions/ls/test/LS.nlogo"
   ls:uses-level-space? 1 => true
