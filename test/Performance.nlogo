@@ -25,7 +25,7 @@ to test-load-gui [ path n ]
   repeat n [
     ls:load-gui-model path
   ]
-  print (word "load " n " headless models: " timer)
+  print (word "load " n " gui models: " timer)
 end
 
 
@@ -107,6 +107,18 @@ to test-memory [ n ]
     ]
     ls:close last ls:models
     set i i + 1
+  ]
+  print "done"
+end
+
+to test-load-close [ n ]
+  ls:reset
+  repeat n [
+    ls:load-gui-model "LS.nlogo"
+    ls:ask last ls:models [
+      ls:load-gui-model "LS.nlogo"
+    ]
+    ls:close last ls:models
   ]
   print "done"
 end

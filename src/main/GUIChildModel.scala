@@ -14,7 +14,7 @@ import org.nlogo.window.Widget.LoadHelper
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 
-class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (parentWorkspace: Workspace, path: String, modelID: Int)
+class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) (ls: LevelSpace, parentWorkspace: Workspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
 
   var frame: Option[JFrame] = None
@@ -50,7 +50,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
       n match {
         case 0 =>
           try {
-            LevelSpace.closeModel(GUIChildModel.this)
+            ls.closeModel(GUIChildModel.this)
           } catch {
             case e: ExtensionException => throw new RuntimeException(e)
             case e: HaltException =>

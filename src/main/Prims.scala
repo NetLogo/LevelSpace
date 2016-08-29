@@ -19,7 +19,7 @@ class ScopedVals(elems: (Activation, AnyRef)*) extends WeakHashMap[Activation, A
   elems foreach { case (k, v) => this(k) = v }
 }
 
-object LetPrim extends Command {
+class LetPrim extends Command {
 
   /**
    * In order to ensure no LS locals collide with regular locals in the
@@ -59,7 +59,7 @@ object LetPrim extends Command {
   }
 }
 
-object Ask extends Command {
+class Ask(ls: LevelSpace) extends Command {
   override def getSyntax =
     Syntax.commandSyntax(right = List(Syntax.NumberType | Syntax.ListType,
                                       Syntax.CodeBlockType,
@@ -69,26 +69,14 @@ object Ask extends Command {
   override def perform(args: Array[Argument], ctx: Context) = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
     val cmdArgs = args.slice(2, args.size).map(_.get)
-    val lets = LetPrim.letBindings(CtxConverter.nvm(ctx))
-    LevelSpace.toModelList(args(0)).map {
+    val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
+    ls.toModelList(args(0)).map {
       _.ask(code, lets, cmdArgs)
     }.foreach(_(ctx.world))
   }
 }
 
-object Of extends Reporter {
-  override def getSyntax =
-    Syntax.reporterSyntax(left = Syntax.CodeBlockType,
-                          right = List(Syntax.NumberType | Syntax.ListType),
-                          ret = Syntax.ReadableType,
-                          precedence = Syntax.NormalPrecedence + 1,
-                          isRightAssociative = true)
-
-  override def report(args: Array[Argument], ctx: Context): AnyRef =
-    Report.report(Array(args(1), args(0)), ctx)
-}
-
-object Report extends Reporter {
+class Report(ls: LevelSpace) extends Reporter {
   override def getSyntax =
     Syntax.reporterSyntax(right = List(Syntax.NumberType | Syntax.ListType,
                                        Syntax.CodeBlockType,
@@ -99,15 +87,27 @@ object Report extends Reporter {
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
     val cmdArgs = args.slice(2, args.size).map(_.get)
-    val lets = LetPrim.letBindings(CtxConverter.nvm(ctx))
-    val results = LevelSpace.toModelList(args(0)).map{
+    val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
+    val results = ls.toModelList(args(0)).map{
       _.of(code, lets, cmdArgs)
     }.map(_(ctx.world))
     if (args(0).get.isInstanceOf[Double]) results.head else LogoList.fromVector(results.toVector)
   }
 }
 
-object With extends Reporter {
+class Of(ls: LevelSpace) extends Report(ls) {
+  override def getSyntax =
+    Syntax.reporterSyntax(left = Syntax.CodeBlockType,
+                          right = List(Syntax.NumberType | Syntax.ListType),
+                          ret = Syntax.ReadableType,
+                          precedence = Syntax.NormalPrecedence + 1,
+                          isRightAssociative = true)
+
+  override def report(args: Array[Argument], ctx: Context): AnyRef =
+    super.report(Array(args(1), args(0)), ctx)
+}
+
+class With(ls: LevelSpace) extends Reporter {
   override def getSyntax =
     Syntax.reporterSyntax(left = Syntax.ListType,
                           right = List(Syntax.CodeBlockType),
@@ -118,8 +118,8 @@ object With extends Reporter {
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
     val cmdArgs = args.slice(2, args.size).map(_.get)
-    val lets = LetPrim.letBindings(CtxConverter.nvm(ctx))
-    val matchingModels = LevelSpace.toModelList(args(0))
+    val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
+    val matchingModels = ls.toModelList(args(0))
       .map(m => m -> m.of(code, lets, cmdArgs))
       .map(p => p._1 -> p._2(ctx.world))
       .filter {
@@ -134,28 +134,45 @@ object With extends Reporter {
   }
 }
 
-class ModelCommand(cmd: ChildModel => Unit) extends Command {
+class ModelCommand(ls: LevelSpace, cmd: ChildModel => Unit) extends Command {
   override def getSyntax = Syntax.commandSyntax(List(Syntax.NumberType | Syntax.ListType))
-  override def perform(args: Array[Argument], ctx: Context): Unit = LevelSpace.toModelList(args(0)).foreach(cmd)
+  override def perform(args: Array[Argument], ctx: Context): Unit = ls.toModelList(args(0)).foreach(cmd)
 }
 
-class ModelReporter(ret: Int, reporter: ChildModel => AnyRef) extends Reporter {
+class ModelReporter(ls: LevelSpace, ret: Int, reporter: ChildModel => AnyRef) extends Reporter {
   override def getSyntax = Syntax.reporterSyntax(right = List(Syntax.NumberType | Syntax.ListType), ret = ret)
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
-    val names = LevelSpace.toModelList(args(0)).map(reporter)
+    val names = ls.toModelList(args(0)).map(reporter)
     if (args(0).get.isInstanceOf[Double]) names.head
     else LogoList.fromVector(names.toVector)
   }
 }
 
-object Show extends ModelCommand(_.show)
-object Hide extends ModelCommand(_.hide)
-object ShowAll extends ModelCommand(_.showAll)
-object HideAll extends ModelCommand(_.hideAll)
-object Close extends ModelCommand(LevelSpace.closeModel _)
-object UpdateView extends ModelCommand(_ match {
+class Show(ls: LevelSpace) extends ModelCommand(ls, _.show)
+class Hide(ls: LevelSpace) extends ModelCommand(ls, _.hide)
+class ShowAll(ls: LevelSpace) extends ModelCommand(ls, _.showAll)
+class HideAll(ls: LevelSpace) extends ModelCommand(ls, _.hideAll)
+class Close(ls: LevelSpace) extends ModelCommand(ls, ls.closeModel _)
+class UpdateView(ls: LevelSpace) extends ModelCommand(ls, _ match {
   case hm: HeadlessChildModel => hm.updateView
   case _ =>
 })
-object Name extends ModelReporter(Syntax.StringType, _.name)
-object Path extends ModelReporter(Syntax.StringType, _.path)
+class Name(ls: LevelSpace) extends ModelReporter(ls, Syntax.StringType, _.name)
+class Path(ls: LevelSpace) extends ModelReporter(ls, Syntax.StringType, _.path)
+class UsesLS(ls: LevelSpace) extends ModelReporter(ls, Syntax.BooleanType, (model: ChildModel) => Boolean.box(model.usesLevelSpace))
+
+class SetName(ls: LevelSpace) extends Command {
+  override def getSyntax = Syntax.commandSyntax(List(Syntax.NumberType, Syntax.StringType))
+  override def perform(args: Array[Argument], ctx: Context) = ls.getModel(args(0).getIntValue).name = args(1).getString
+}
+
+class ModelExists(ls: LevelSpace) extends Reporter {
+  override def getSyntax = Syntax.reporterSyntax(right = List(Syntax.NumberType), ret = Syntax.BooleanType)
+  override def report(args: Array[Argument], ctx: Context) = Boolean.box(ls.containsModel(args(0).getIntValue))
+}
+
+class AllModels(ls: LevelSpace) extends Reporter {
+  override def getSyntax = Syntax.reporterSyntax(ret = Syntax.ListType)
+  override def report(args: Array[Argument], ctx: Context) = LogoList.fromVector(ls.modelSet.asScala.map(id => Double.box(id.doubleValue)).toVector)
+}
+

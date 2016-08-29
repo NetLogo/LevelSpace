@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.swing.*;
@@ -42,44 +43,46 @@ import org.nlogo.ls.gui.ModelManager;
 public class LevelSpace implements org.nlogo.api.ClassManager {
 
     // This can be accessed by both the JobThread and EDT (when halting)
-    private final static Map<Integer, ChildModel> models = new ConcurrentHashMap<Integer, ChildModel>();
+    private final Map<Integer, ChildModel> models = new ConcurrentHashMap<Integer, ChildModel>();
 
     // counter for keeping track of new models
-    private static int modelCounter = 0;
+    private int modelCounter = 0;
+
+    public LetPrim letManager = new LetPrim();
 
     // These need to be cleaned up on unload
-    private static JMenuItem haltButton;
-    private static ActionListener haltListener = new ActionListener() {
+    private JMenuItem haltButton;
+    private ActionListener haltListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent arg0) {
             haltChildModels(models);
         }
     };
 
-    private static LSModelManager modelManager = GraphicsEnvironment.isHeadless() ? new HeadlessBackingModelManager() : new BackingModelManager();
+    private LSModelManager modelManager = GraphicsEnvironment.isHeadless() ? new HeadlessBackingModelManager() : new BackingModelManager();
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
-        primitiveManager.addPrimitive("let", LetPrim$.MODULE$);
-        primitiveManager.addPrimitive("ask", Ask$.MODULE$);
-        primitiveManager.addPrimitive("of", Of$.MODULE$);
-        primitiveManager.addPrimitive("report", Report$.MODULE$);
-        primitiveManager.addPrimitive("with", With$.MODULE$);
+        primitiveManager.addPrimitive("let", letManager);
+        primitiveManager.addPrimitive("ask", new Ask(this));
+        primitiveManager.addPrimitive("of", new Of(this));
+        primitiveManager.addPrimitive("report", new Report(this));
+        primitiveManager.addPrimitive("with", new With(this));
         primitiveManager.addPrimitive("load-headless-model", new LoadModel<HeadlessChildModel>(HeadlessChildModel.class));
         primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
-        primitiveManager.addPrimitive("name-of", Name$.MODULE$);
-        primitiveManager.addPrimitive("set-name", new SetName());
-        primitiveManager.addPrimitive("close", Close$.MODULE$);
-        primitiveManager.addPrimitive("models", new AllModels());
-        primitiveManager.addPrimitive("model-exists?", new ModelExists());
+        primitiveManager.addPrimitive("name-of", new Name(this));
+        primitiveManager.addPrimitive("set-name", new SetName(this));
+        primitiveManager.addPrimitive("close", new Close(this));
+        primitiveManager.addPrimitive("models", new AllModels(this));
+        primitiveManager.addPrimitive("model-exists?", new ModelExists(this));
         primitiveManager.addPrimitive("reset", new Reset());
-        primitiveManager.addPrimitive("path-of", Path$.MODULE$);
-        primitiveManager.addPrimitive("display", UpdateView$.MODULE$);
-        primitiveManager.addPrimitive("show", Show$.MODULE$);
-        primitiveManager.addPrimitive("hide", Hide$.MODULE$);
-        primitiveManager.addPrimitive("show-all", ShowAll$.MODULE$);
-        primitiveManager.addPrimitive("hide-all", HideAll$.MODULE$);
-        primitiveManager.addPrimitive("uses-level-space?", new UsesLevelSpace());
+        primitiveManager.addPrimitive("path-of", new Path(this));
+        primitiveManager.addPrimitive("display", new UpdateView(this));
+        primitiveManager.addPrimitive("show", new Show(this));
+        primitiveManager.addPrimitive("hide", new Hide(this));
+        primitiveManager.addPrimitive("show-all", new ShowAll(this));
+        primitiveManager.addPrimitive("hide-all", new HideAll(this));
+        primitiveManager.addPrimitive("uses-level-space?", new UsesLS(this));
 
 
         if (!GraphicsEnvironment.isHeadless()) {
@@ -95,16 +98,24 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static boolean isMainModel(ExtensionManager myEM) {
+    public boolean isMainModel(ExtensionManager myEM) {
         return myEM == App.app().workspace().getExtensionManager();
     }
 
-    public static ChildModel getModel(int id) throws ExtensionException {
+    public ChildModel getModel(int id) throws ExtensionException {
         if (models.containsKey(id)) {
             return models.get(id);
         } else {
             throw new ExtensionException("There is no model with ID " + id);
         }
+    }
+
+    public boolean containsModel(int id) {
+        return models.containsKey(id);
+    }
+
+    public Set<Integer> modelSet() {
+        return models.keySet();
     }
 
     public static int castToId(Object id) throws ExtensionException {
@@ -140,24 +151,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    // TODO Move the hierarchical methods in Prims.scala and ditch this
-    private static String getCodeString(Object codeObj) {
-        String code;
-        if (codeObj instanceof List<?>) {
-            @SuppressWarnings("unchecked")
-            List<Token> tokens = (List<Token>) codeObj;
-            StringBuilder builder = new StringBuilder();
-            for (Token t : tokens) {
-                builder.append(t.text()).append(" ");
-            }
-            code = builder.toString();
-        } else {
-            code = (String) codeObj;
-        }
-        return code;
-    }
-
-    public static class LoadModel<T extends ChildModel> implements Command {
+    public class LoadModel<T extends ChildModel> implements Command {
         private Class<T> modelType;
 
         private LoadModel(Class<T> modelType) {
@@ -180,7 +174,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                 if (modelType == HeadlessChildModel.class || GraphicsEnvironment.isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
                     model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                 } else {
-                    model = new GUIChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
+                    model = new GUIChildModel(LevelSpace.this, (AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                     Workspace rootWS = App.app().workspace();
                     if (rootWS instanceof GUIWorkspace) {
                         model.setSpeed(((GUIWorkspace) rootWS).updateManager().speed());
@@ -204,7 +198,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static void updateModelMenu() {
+    public void updateModelMenu() {
         Runnable reportModelOpened = new Runnable() {
             @Override
             public void run() {
@@ -214,7 +208,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         EventQueue$.MODULE$.invokeLater(reportModelOpened);
     }
 
-    public static void reset() throws ExtensionException, HaltException {
+    public void reset() throws ExtensionException, HaltException {
         modelCounter = 0;
 
         for (ChildModel model : models.values()){
@@ -223,7 +217,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         models.clear();
     }
 
-    public static class Reset implements Command {
+    public class Reset implements Command {
         public Syntax getSyntax() {
             return SyntaxJ.commandSyntax();
         }
@@ -233,7 +227,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static ChildModel[] toModelList(Argument arg) throws LogoException, ExtensionException {
+    public ChildModel[] toModelList(Argument arg) throws LogoException, ExtensionException {
         Object obj = arg.get();
         if (obj instanceof Double) {
             return new ChildModel[] { getModel(arg.getIntValue()) };
@@ -251,72 +245,10 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public static void closeModel(ChildModel model) throws ExtensionException, HaltException {
+    public void closeModel(ChildModel model) throws ExtensionException, HaltException {
         model.kill();
         models.remove(model.modelID());
         updateModelMenu();
-    }
-
-    public static class SetName implements Command {
-
-        @Override
-        public Syntax getSyntax() {
-            return SyntaxJ.commandSyntax(new int[] {Syntax.NumberType(), Syntax.StringType()});
-        }
-        @Override
-        public void perform(Argument[] args, Context context) throws LogoException, ExtensionException {
-            getModel(args[0].getIntValue()).name_$eq(args[1].getString());
-        }
-    }
-
-    public static class ModelExists implements Reporter {
-        public Syntax getSyntax() {
-            return SyntaxJ.reporterSyntax(
-                    // we take in int[] {modelNumber, varName}
-                    new int[] { Syntax.NumberType() },
-                    // and return a number
-                    Syntax.BooleanType());
-        }
-
-        public Object report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            // get model number from args
-            int modelNumber = (int) args[0].getDoubleValue();
-
-            // find the model. if it exists, update graphics
-            return models.containsKey(modelNumber);
-
-        }
-    }
-
-    public static class AllModels implements Reporter {
-        public Syntax getSyntax() {
-            return SyntaxJ.reporterSyntax(
-                    new int[] {},
-                    Syntax.ListType());
-        }
-
-        public Object report(Argument args[], Context context)
-                throws ExtensionException, org.nlogo.api.LogoException {
-            LogoListBuilder myLLB = new LogoListBuilder();
-
-            for (Integer id :  models.keySet()) {
-                myLLB.add((double) id);
-            }
-            return myLLB.toLogoList();
-        }
-    }
-
-    public static class UsesLevelSpace implements Reporter {
-        @Override
-        public Syntax getSyntax() {
-            return SyntaxJ.reporterSyntax(new int[] {Syntax.NumberType()}, Syntax.BooleanType());
-        }
-
-        @Override
-        public Object report(Argument[] args, Context context) throws LogoException, ExtensionException {
-            return getModel(args[0].getIntValue()).usesLevelSpace();
-        }
     }
 
     @Override
@@ -362,17 +294,9 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    private static void haltChildModels(Map<Integer, ChildModel> models){
+    private void haltChildModels(Map<Integer, ChildModel> models){
         for (ChildModel aModel : models.values()){
             aModel.halt();
         }
-    }
-
-    public static Object[] getActuals(Argument[] args, int startIndex) throws LogoException, ExtensionException {
-        Object[] actuals = new Object[args.length - startIndex];
-        for(int i=startIndex; i < args.length; i++) {
-            actuals[i - startIndex] = args[i].get();
-        }
-        return actuals;
     }
 }
