@@ -68,8 +68,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("of", new Of(this));
         primitiveManager.addPrimitive("report", new Report(this));
         primitiveManager.addPrimitive("with", new With(this));
-        primitiveManager.addPrimitive("load-headless-model", new LoadModel<HeadlessChildModel>(HeadlessChildModel.class));
-        primitiveManager.addPrimitive("load-gui-model", new LoadModel<GUIChildModel>(GUIChildModel.class));
+        primitiveManager.addPrimitive("create-models", new CreateModels<HeadlessChildModel>(HeadlessChildModel.class));
+        primitiveManager.addPrimitive("create-interactive-models", new CreateModels<GUIChildModel>(GUIChildModel.class));
         primitiveManager.addPrimitive("name-of", new Name(this));
         primitiveManager.addPrimitive("set-name", new SetName(this));
         primitiveManager.addPrimitive("close", new Close(this));
@@ -151,42 +151,44 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public class LoadModel<T extends ChildModel> implements Command {
+    public class CreateModels<T extends ChildModel> implements Command {
         private Class<T> modelType;
 
-        private LoadModel(Class<T> modelType) {
+        private CreateModels(Class<T> modelType) {
             this.modelType = modelType;
         }
 
         @Override
         public Syntax getSyntax() {
             return SyntaxJ.commandSyntax(
-                    new int[] { Syntax.StringType(), Syntax.CommandType() | Syntax.RepeatableType()}, 1);
+                    new int[] { Syntax.NumberType(), Syntax.StringType(), Syntax.CommandType() | Syntax.RepeatableType()}, 2);
         }
 
         @Override
         public void perform(Argument args[], Context ctx) throws ExtensionException, org.nlogo.api.LogoException {
             AbstractWorkspaceScala parentWS = (AbstractWorkspaceScala) ctx.workspace();
 
-            String modelPath = getModelPath((ExtensionContext) ctx, args[0].getString());
+            String modelPath = getModelPath((ExtensionContext) ctx, args[1].getString());
             try {
-                ChildModel model;
-                if (modelType == HeadlessChildModel.class || GraphicsEnvironment.isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
-                    model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
-                } else {
-                    model = new GUIChildModel(LevelSpace.this, (AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
-                    Workspace rootWS = App.app().workspace();
-                    if (rootWS instanceof GUIWorkspace) {
-                        model.setSpeed(((GUIWorkspace) rootWS).updateManager().speed());
+                for (int i=0; i < args[0].getIntValue(); i++) {
+                    ChildModel model;
+                    if (modelType == HeadlessChildModel.class || GraphicsEnvironment.isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
+                        model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
+                    } else {
+                        model = new GUIChildModel(LevelSpace.this, (AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
+                        Workspace rootWS = App.app().workspace();
+                        if (rootWS instanceof GUIWorkspace) {
+                            model.setSpeed(((GUIWorkspace) rootWS).updateManager().speed());
+                        }
                     }
+                    model.workspace().behaviorSpaceRunNumber(parentWS.behaviorSpaceRunNumber());
+                    model.workspace().behaviorSpaceExperimentName(parentWS.behaviorSpaceExperimentName());
+                    models.put(modelCounter, model);
+                    if (args.length > 2) {
+                        args[2].getCommand().perform(ctx, new Object[]{(double) modelCounter});
+                    }
+                    modelCounter++;
                 }
-                model.workspace().behaviorSpaceRunNumber(parentWS.behaviorSpaceRunNumber());
-                model.workspace().behaviorSpaceExperimentName(parentWS.behaviorSpaceExperimentName());
-                models.put(modelCounter, model);
-                if (args.length > 1) {
-                    args[1].getCommand().perform(ctx, new Object[]{(double) modelCounter});
-                }
-                modelCounter++;
                 updateModelMenu();
             } catch (CompilerException e) {
                 throw new ExtensionException(modelPath + " has an error in its code: " + e.getMessage(), e);
