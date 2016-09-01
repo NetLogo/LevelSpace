@@ -13,9 +13,7 @@ end
 to test-load-headless [ path n ]
   ls:reset
   reset-timer
-  repeat n [
-    ls:load-headless-model path
-  ]
+  ls:create-models n path
   print (word "load " n " headless models: " timer)
 end
 
@@ -23,7 +21,7 @@ to test-load-gui [ path n ]
   ls:reset
   reset-timer
   repeat n [
-    ls:load-gui-model path
+    ls:create-interactive-models 1 path
   ]
   print (word "load " n " gui models: " timer)
 end
@@ -32,7 +30,7 @@ end
 to test-headless-performance [ n ]
   ls:reset
   repeat n [
-    ls:load-headless-model "Blank.nlogo"
+    ls:create-models 1 "Blank.nlogo"
   ]
   ls:ask ls:models [ crt 300 ]
   reset-timer
@@ -42,10 +40,7 @@ end
 
 to test-gui-performance [ n ]
   ls:reset
-  repeat n [
-    ls:load-gui-model "Blank.nlogo"
-    ls:hide last ls:models
-  ]
+  (ls:create-interactive-models 1 "Blank.nlogo" [ [id] -> ls:hide id ])
   ls:ask ls:models [ crt 300 ]
   reset-timer
   test-models
@@ -55,13 +50,10 @@ end
 to test-model-loading [ n headless? ]
   ls:reset
   reset-timer
-  repeat n [
-    ifelse headless? [
-      ls:load-headless-model "Blank.nlogo"
-    ] [
-      ls:load-gui-model "Blank.nlogo"
-      ls:hide last ls:models
-    ]
+  ifelse headless? [
+    ls:create-models n "Blank.nlogo"
+  ] [
+    (ls:create-interactive-models n "Blank.nlogo" [ [id] -> ls:hide id ])
   ]
   print (word "headless: " headless? " loading " n " models: " timer)
 end
@@ -91,35 +83,30 @@ end
 
 to test-memory [ n ]
   ls:reset
-  let i 0
-  ls:let j i
-  repeat n [
-    show i
-    ls:load-gui-model "LS.nlogo"
-    ls:ask last ls:models [
+  (ls:create-interactive-models n "LS.nlogo" [ [model] ->
+    show model
+    ls:let j model
+    ls:ask model [
       print (word j "1")
-      ls:let k j
-      ls:load-gui-model "LS.nlogo"
+      ls:create-interactive-models 1 "LS.nlogo"
       ls:ask last ls:models [
         print (word k "2")
-        ls:load-gui-model "LS.nlogo"
+        ls:create-interactive-models 1 "LS.nlogo"
       ]
     ]
-    ls:close last ls:models
-    set i i + 1
-  ]
+    ls:close model
+  ])
   print "done"
 end
 
 to test-load-close [ n ]
   ls:reset
-  repeat n [
-    ls:load-gui-model "LS.nlogo"
+  (ls:create-interactive-models n "LS.nlogo" [ [model] ->
     ls:ask last ls:models [
-      ls:load-gui-model "LS.nlogo"
+      ls:create-interactive-models 1 "LS.nlogo"
     ]
-    ls:close last ls:models
-  ]
+    ls:close model
+  ])
   print "done"
 end
 @#$#@#$#@

@@ -32,8 +32,8 @@ BUTTON
 67
 201
 100
-NIL
-ls:load-gui-model user-file\n
+create-interactive-model
+ls:create-interactive-models 1 user-file\n
 NIL
 1
 T
@@ -83,8 +83,8 @@ BUTTON
 111
 238
 144
-NIL
-ls:load-headless-model user-file
+create-model
+ls:create-models 1 user-file
 NIL
 1
 T
