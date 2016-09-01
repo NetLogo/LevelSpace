@@ -2,7 +2,7 @@ extensions [ ls ]
 
 to setup
   ls:reset
-  ls:load-gui-model "Blank.nlogo"
+  ls:create-interactive-models 1 "Blank.nlogo"
 end
 
 to test

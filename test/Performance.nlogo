@@ -14,7 +14,7 @@ to test-load-headless [ path n ]
   ls:reset
   reset-timer
   repeat n [
-    ls:load-headless-model path
+    ls:create-models 1 path
   ]
   print (word "load " n " headless models: " timer)
 end
@@ -23,7 +23,7 @@ to test-load-gui [ path n ]
   ls:reset
   reset-timer
   repeat n [
-    ls:load-gui-model path
+    ls:create-interactive-models 1 path
   ]
   print (word "load " n " gui models: " timer)
 end
@@ -32,7 +32,7 @@ end
 to test-headless-performance [ n ]
   ls:reset
   repeat n [
-    ls:load-headless-model "Blank.nlogo"
+    ls:create-models 1 "Blank.nlogo"
   ]
   ls:ask ls:models [ crt 300 ]
   reset-timer
@@ -43,7 +43,7 @@ end
 to test-gui-performance [ n ]
   ls:reset
   repeat n [
-    ls:load-gui-model "Blank.nlogo"
+    ls:create-interactive-models 1 "Blank.nlogo"
     ls:hide last ls:models
   ]
   ls:ask ls:models [ crt 300 ]
@@ -57,9 +57,9 @@ to test-model-loading [ n headless? ]
   reset-timer
   repeat n [
     ifelse headless? [
-      ls:load-headless-model "Blank.nlogo"
+      ls:create-models 1 "Blank.nlogo"
     ] [
-      ls:load-gui-model "Blank.nlogo"
+      ls:create-interactive-models 1 "Blank.nlogo"
       ls:hide last ls:models
     ]
   ]
@@ -95,14 +95,14 @@ to test-memory [ n ]
   ls:let j i
   repeat n [
     show i
-    ls:load-gui-model "LS.nlogo"
+    ls:create-interactive-models 1 "LS.nlogo"
     ls:ask last ls:models [
       print (word j "1")
       ls:let k j
-      ls:load-gui-model "LS.nlogo"
+      ls:create-interactive-models 1 "LS.nlogo"
       ls:ask last ls:models [
         print (word k "2")
-        ls:load-gui-model "LS.nlogo"
+        ls:create-interactive-models 1 "LS.nlogo"
       ]
     ]
     ls:close last ls:models
@@ -114,9 +114,9 @@ end
 to test-load-close [ n ]
   ls:reset
   repeat n [
-    ls:load-gui-model "LS.nlogo"
+    ls:create-interactive-models 1 "LS.nlogo"
     ls:ask last ls:models [
-      ls:load-gui-model "LS.nlogo"
+      ls:create-interactive-models 1 "LS.nlogo"
     ]
     ls:close last ls:models
   ]

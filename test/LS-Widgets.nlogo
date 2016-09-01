@@ -33,7 +33,7 @@ BUTTON
 267
 90
 NIL
-ls:load-gui-model \"LS-Widgets.nlogo\"
+ls:create-interactive-models 1 \"LS-Widgets.nlogo\"
 NIL
 1
 T
@@ -191,7 +191,7 @@ BUTTON
 302
 44
 NIL
-ls:load-headless-model \"LS-Widgets.nlogo\"
+ls:create-models 1 \"LS-Widgets.nlogo\"
 NIL
 1
 T
