@@ -26,7 +26,7 @@ end
 We then want to run all our child models, and then find out what the mean number of sheep is:
 ```
 to go
-    ls:ask ls:models "go"
+    ls:ask ls:models [ go ]
     show mean [ count sheep ] ls:of ls:models
 end
 ```
