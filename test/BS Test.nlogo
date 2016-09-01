@@ -2,9 +2,7 @@ extensions [ ls ]
 
 to headless-setup
   ls:reset
-  repeat 4 [
-    ls:create-models 1 "LS.nlogo"
-  ]
+  ls:create-models 4 "LS.nlogo"
   ls:ask ls:models [
     clear-all
     ls:create-models 1 "Blank.nlogo"
@@ -15,9 +13,7 @@ end
 
 to gui-setup
   ls:reset
-  repeat 4 [
-    ls:create-interactive-models 1 "LS.nlogo"
-  ]
+  ls:create-interactive-models 4 "LS.nlogo"
   ls:ask ls:models [
     clear-all
     ls:create-interactive-models 1 "Blank.nlogo"
@@ -28,10 +24,10 @@ end
 
 to hybrid-setup
   ls:reset
-  repeat 2 [
-    ls:create-interactive-models 1 "LS.nlogo"
-    ls:create-models 1 "LS.nlogo"
-  ]
+
+  ls:create-interactive-models 2 "LS.nlogo"
+  ls:create-models 2 "LS.nlogo"
+
   ls:ask ls:models [
     clear-all
     ls:create-interactive-models 1 "Blank.nlogo"

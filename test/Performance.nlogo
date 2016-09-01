@@ -13,27 +13,22 @@ end
 to test-load-headless [ path n ]
   ls:reset
   reset-timer
-  repeat n [
-    ls:create-models 1 path
-  ]
+  ls:create-models n path
   print (word "load " n " headless models: " timer)
 end
 
 to test-load-gui [ path n ]
   ls:reset
   reset-timer
-  repeat n [
-    ls:create-interactive-models 1 path
-  ]
+  ls:create-interactive-models n path
+
   print (word "load " n " gui models: " timer)
 end
 
 
 to test-headless-performance [ n ]
   ls:reset
-  repeat n [
-    ls:create-models 1 "Blank.nlogo"
-  ]
+  ls:create-models n "Blank.nlogo"
   ls:ask ls:models [ crt 300 ]
   reset-timer
   test-models
