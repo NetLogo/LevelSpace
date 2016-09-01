@@ -42,6 +42,10 @@ import org.nlogo.ls.gui.ModelManager;
 
 public class LevelSpace implements org.nlogo.api.ClassManager {
 
+    private static boolean isHeadless() {
+      return GraphicsEnvironment.isHeadless() || System.getProperty("org.nlogo.preferHeadless") == "true";
+    }
+
     // This can be accessed by both the JobThread and EDT (when halting)
     private final Map<Integer, ChildModel> models = new ConcurrentHashMap<Integer, ChildModel>();
 
@@ -59,7 +63,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     };
 
-    private LSModelManager modelManager = GraphicsEnvironment.isHeadless() ? new HeadlessBackingModelManager() : new BackingModelManager();
+    private LSModelManager modelManager = isHeadless() ? new HeadlessBackingModelManager() : new BackingModelManager();
 
     @Override
     public void load(PrimitiveManager primitiveManager) throws ExtensionException {
@@ -85,7 +89,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("uses-level-space?", new UsesLS(this));
 
 
-        if (!GraphicsEnvironment.isHeadless()) {
+        if (!isHeadless()) {
             // Adding event listener to Halt for halting child models
             MenuElement[] elements = App.app().frame().getJMenuBar().getSubElements();
             for (MenuElement e : elements) {
@@ -129,7 +133,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     @Override
     public void unload(ExtensionManager em) throws ExtensionException {
-        if (!GraphicsEnvironment.isHeadless() && isMainModel(em)) {
+        if (!isHeadless() && isMainModel(em)) {
             App.app().frame().getJMenuBar().remove(modelManager.guiComponent());
         }
         if (haltButton != null) {
@@ -172,7 +176,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
             try {
                 for (int i=0; i < args[0].getIntValue(); i++) {
                     ChildModel model;
-                    if (modelType == HeadlessChildModel.class || GraphicsEnvironment.isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
+                    if (modelType == HeadlessChildModel.class || isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
                         model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                     } else {
                         model = new GUIChildModel(LevelSpace.this, (AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
@@ -288,7 +292,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     public void runOnce(ExtensionManager em) throws ExtensionException {
         modelManager.updateChildModels(models);
 
-        if (!GraphicsEnvironment.isHeadless() && isMainModel(em)) {
+        if (!isHeadless() && isMainModel(em)) {
             final JMenuBar menuBar = App.app().frame().getJMenuBar();
             if (menuBar.getComponentIndex(modelManager.guiComponent()) == -1) {
                 menuBar.add(modelManager.guiComponent());
