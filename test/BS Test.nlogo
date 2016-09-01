@@ -2,12 +2,10 @@ extensions [ ls ]
 
 to headless-setup
   ls:reset
-  repeat 4 [
-    ls:load-headless-model "LS.nlogo"
-  ]
+  ls:create-models 4 "LS.nlogo"
   ls:ask ls:models [
     clear-all
-    ls:load-headless-model "Blank.nlogo"
+    ls:create-models 1 "Blank.nlogo"
     reset-ticks
   ]
   reset-ticks
@@ -15,12 +13,10 @@ end
 
 to gui-setup
   ls:reset
-  repeat 4 [
-    ls:load-gui-model "LS.nlogo"
-  ]
+  ls:create-interactive-models 4 "LS.nlogo"
   ls:ask ls:models [
     clear-all
-    ls:load-gui-model "Blank.nlogo"
+    ls:create-interactive-models 1 "Blank.nlogo"
     reset-ticks
   ]
   reset-ticks
@@ -28,14 +24,14 @@ end
 
 to hybrid-setup
   ls:reset
-  repeat 2 [
-    ls:load-gui-model "LS.nlogo"
-    ls:load-headless-model "LS.nlogo"
-  ]
+
+  ls:create-interactive-models 2 "LS.nlogo"
+  ls:create-models 2 "LS.nlogo"
+
   ls:ask ls:models [
     clear-all
-    ls:load-gui-model "Blank.nlogo"
-    ls:load-headless-model "Blank.nlogo"
+    ls:create-interactive-models 1 "Blank.nlogo"
+    ls:create-models 1 "Blank.nlogo"
     reset-ticks
   ]
   reset-ticks
@@ -486,7 +482,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0-M9
+NetLogo 6.0-RC1
 @#$#@#$#@
 need-to-manually-make-preview-for-this-model
 @#$#@#$#@
