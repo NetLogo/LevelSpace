@@ -69,3 +69,21 @@ Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`
   ; finally ask both models to go
   ls:ask ls:models [ go ]
 ``` 
+
+### A general Usecase: Tidying up "Dead" Child Models
+
+As previously mentioned, it is important to keep track of "living" and "dead" models when you dynamically create and dispose of models. Let us imagine we have some lists of models of different kinds, and we want to make sure that we only keep the models that are alive. After running code that kills child models we can use the `ls:model-exists?` primitive to clean up our list of models like this:
+
+```
+to-report remove-dead-models [list-of-models]
+  report filter [ [ model-id ] -> ls:model-exists model-id] list-of-models
+end
+```
+
+We then reassign each list of models with this, e.g. 
+
+```
+
+set a-list-of-models remove-dead-models a-list-of-models
+set another-list-of-models remove-dead-models a-list-of-models
+```
