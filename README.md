@@ -1,29 +1,49 @@
 
 # LS Extension for NetLogo
 
-LevelSpace is an extension for NetLogo that allows you to run several models concurrently and have them talk with each other. LevelSpace models are hierarchical, meaning that a model has child models. In this documentation, we will refer to models that have loaded LevelSpace and have opened models as 'parents', and to the models they have opened as 'children' or 'child models'.
+LevelSpace is an extension for NetLogo that allows you to run several models concurrently and have them "talk" with each other. LevelSpace models are hierarchical, in that models always belong hierarchically to another model. In this documentation, we will refer to models that have loaded LevelSpace and have opened models as 'parents', and to the models they have opened as 'children' or 'child models'.
 
 ## LevelSpace fundamentals
 
 LevelSpace must be loaded in a model using ```extensions [ls]``` at the top of your model. Once this is done, a model will be able to load up other models using the LevelSpace primitives, run commands and reporters in them, and close them down when they are no longer needed.
 
-Asking and reporting in LevelSpace is conceptually pretty straight forward: You pass blocks of code to child models, and the child models respond as if you had typed that string into their Command Center. LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets. Further, it is not possible to push data from a child to its parent - parents must ask their children to report.
+Asking and reporting in LevelSpace is conceptually pretty straight forward: You pass blocks of code to child models, and the child models respond as if you had typed that code into their Command Center. LevelSpace allows you to report strings, numbers, and lists from a child to its parent. It is not possible to directly report turtles, patches, links, or any of their respective sets. Further, it is not possible to push data from a child to its parent - parents must ask their children to report. This mimicks the way in which turtles cannot "push" data to the observer, but rely on the observer to ask them for it.
 
-LevelSpace has two different child model types, headless models and interactive models. They each have their strengths and weaknesses: Headless models are faster and use less memory than interactive models. Interactive models allow you full access to their interface and widgets, whereas headless models only give you access to their view and command center. Typically you will want to use headless models when you are running a large number of models, or if you simply want to run them faster - interactive models are good if you run a small amount of models, or if you are writing a LevelSpace model and need to be able to debug.
+In general, the LevelSpace syntax has been designed to align with existing NetLogo primitives whenever possible.
+
+### Headless and Interactive Models 
+
+LevelSpace has two different child model types; headless models and interactive models. They each have their strengths and weaknesses: 
+
+Interactive models 
+* are full-fledged models that give full access to their interface and widgets,
+* run a bit slower, and use more memory
+* are visible by default
+
+Headless Models
+* only give you access to their view and command center 
+* are faster and use less memory than interactive models. 
+* are hidden by default
+
+Typically you will want to use headless models when you are running a large number of models, or if you simply want to run them faster. Interactive models are good if you run a small amount of models, if you are writing a LevelSpace model and need to be able to debug, or if you need access to widgets during runtime.
+
+### Keeping Track of Models
 
 Child models are kept track of in the extension with an id number, starting with 0, and all communication from parent to child is done by referencing this number, henceforth referred to as `model-id`.
 
 The easiest way to work with multiple models is to store their `model-id` in a list, and use NetLogo's list primitives to sort, filter, etc. them during runtime.
 
-### A general usecase
+Keeping track of models is important: Most LevelSpace primitives will fail and cause a runtime interruption if provided a `model-id` to a non-existing model. 
 
-A simple thing we can do is to open up some models, run them concurrently, and find out an average of some reporter. Let's say that we are interested in finding the mean of the number of sheep in a bunch of wolf sheep predation models. First we would open up some of these models, and set them up:
+### A general usecase: Asking and Reporting
+
+A simple thing we can do is to open up some models, run them concurrently, and calculate the average of some reporter. Let's say that we are interested in finding the mean number of sheep in a bunch of Wolf Sheep Predation models. First we would open up some of these models, and set them up:
 
 ```
 to setup
-  ca
   ls:reset
-  repeat 30 [ ls:load-headless-model "Wolf Sheep Predation.nlogo" ]
+  ca
+  ls:load-models 30 "Wolf Sheep Predation.nlogo" 
   ls:ask ls:models [ set grass? true setup ]
   reset-ticks
 end
@@ -34,6 +54,43 @@ to go
     ls:ask ls:models [ go ]
     show mean [ count sheep ] ls:of ls:models
 end
+```
+
+### A general Usecase: Inter-Model Interactions
+
+This usecase is based on the Model Interactions Example-model from the NetLogo Models Library.
+
+Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`, and a Climate Change model called `CC`. Now let's imagine that we want the regrowth time in the wSP model to depend on the temperature in the CC model. Using LevelSpace's primitives, we could do something like this: 
+
+```
+  ; save new regrowth time in a temporary LevelSpace let-variable
+  ls:let new-regrowth-time 25 + ( abs [ temperature - 55 ] ls:of CC ) / 2
+
+  ; remove decimals, pass it to the wolf sheep predation model and change the time
+  ls:ask WSP [
+    set grass-regrowth-time round new-regrowth-time
+  ]
+
+  ; finally ask both models to go
+  ls:ask ls:models [ go ]
+``` 
+
+### A general Usecase: Tidying up "Dead" Child Models
+
+As previously mentioned, it is important to keep track of "living" and "dead" models when you dynamically create and dispose of models. Let us imagine we have some lists of models of different kinds, and we want to make sure that we only keep the models that are alive. After running code that kills child models we can use the `ls:model-exists?` primitive to clean up our list of models like this:
+
+```
+to-report remove-dead-models [list-of-models]
+  report filter [ [ model-id ] -> ls:model-exists model-id] list-of-models
+end
+```
+
+We then reassign each list of models with this, e.g. 
+
+```
+
+set a-list-of-models remove-dead-models a-list-of-models
+set another-list-of-models remove-dead-models a-list-of-models
 ```
 
 ## Citing LevelSpace in Research
@@ -55,14 +112,14 @@ Hjorth, A.  Head, B. & Wilensky, U. (2015). “LevelSpace NetLogo extension”. 
 
 ### Logic and Control
 
-[`ls:model`](#lsmodel)
+[`ls:models`](#lsmodels)
 [`ls:show`](#lsshow)
 [`ls:show-all`](#lsshow-all)
 [`ls:hide`](#lshide)
 [`ls:hide-all`](#lshide-all)
 [`ls:path-of`](#lspath-of)
 [`ls:name-of`](#lsname-of)
-[`ls:model-exists`](#lsmodel-exists)
+[`ls:model-exists?`](#lsmodel-exists?)
 
 ### Opening and Closing Models
 
@@ -81,13 +138,13 @@ ls:create-models number path anonymous command
 ```
 
 
-Create the specified number of instances of the given .nlogo model.  The path can be absolute, or relative to the main model. Compared with `ls:create-interactive-models`, this primitive creates lightweight models that start hidden. You should use this primitive if you plan on having many instances of the given model. The models may be shown using `ls:show`; when visible, they will have a view and command center, but no other widgets.
+Create the specified number of instances of the given .nlogo model.  The path can be absolute, or relative to the main model. Compared with `ls:create-interactive-models`, this primitive creates lightweight models that are hidden by default. You should use this primitive if you plan on having many instances of the given model. The models may be shown using `ls:show`; when visible, they will have a view and command center, but no other widgets, e.g. plots or monitors.
 
-If given a command, LevelSpace will call the command after loading each instance of the model withe model id as the argument. This allows you to easily store model ids in a variable or list when loading models, or do other initialization. For example, to store a model id in a variable, you can do:
+If given a command, LevelSpace will call the command after loading each instance of the model with the `model-id` as the argument. This allows you to easily store model ids in a variable or list when loading models, or do other initialization. For example, to store a model id in a variable, you can do:
 
 ```NetLogo
 let model-id 0
-(ls:create-models "My-Model.nlogo" [ set model-id ? ])
+(ls:create-models "My-Model.nlogo" [ [id] -> set model-id id ])
 ```
 
 
@@ -100,18 +157,18 @@ ls:create-interactive-models number path anonymous command
 ```
 
 
-Like `ls:create-models`, create the specified number of instances of the given .nlogo model. Unlike `ls:create-models`, `ls:create-interactive-models` creates models which are visible by default, and have all widgets. You should use this primitive you plan on having only a handful of instances of the given model, and would like to be able to interact with the instances through their interfaces.
+Like `ls:create-models`, creates the specified number of instances of the given .nlogo model. Unlike `ls:create-models`, `ls:create-interactive-models` creates models that are visible by default, and have all widgets. You should use this primitive if you plan on having only a handful of instances of the given model, and would like to be able to interact with the instances through their interfaces during runtime.
 
 
 
 ### `ls:close`
 
 ```NetLogo
-ls:close model-id
+ls:close model-or-list-of-models
 ```
 
 
-Close the model with the given `model-id`.
+Close the model or models with the given `model-id`.
 
 
 
@@ -135,7 +192,7 @@ ls:ask model-or-list-of-models command argument
 ```
 
 
-Tell the given child model or list of child models to run the given command. This is the main way you get child models to actually do things. For example:
+Ask the given child model or list of child models to run the given command. This is the primary of doing things with child models. For example:
 
 ```NetLogo
 ls:ask model-id [ create-turtles 5 ]
@@ -168,7 +225,7 @@ ls:of reporter model-or-list-of-models
 
 Run the given reporter in the given model and report the result.
 
-`ls:of` is designed to work like NetLogo's inbuilt `of`: If you send `ls:of` a model-id, it will report the value of the reporter from that model. If you send it a list of model-ids, it will report a list of values of the reporter string from all models. You cannot pass arguments to `ls:of`, but you can use `ls:let`.
+`ls:of` is designed to work like NetLogo's inbuilt `of`: If you send `ls:of` a `model-id`, it will report the value of the reporter from that model. If you send it a list of model-ids, it will report a list of values of the reporter string from all models. You cannot pass arguments to `ls:of`, but you can use `ls:let`.
 
 ```NetLogo
 [ count turtles ] ls:of model-id
@@ -187,7 +244,7 @@ Run the given reporter in the given model and report the result. This form exist
 
 ```NetLogo
 let turtle-id 0
-(ls:report model-id [ [ color ] of turtle ? ] turtle-id)
+(ls:report model-id [ [a-turtle] -> [ color ] of turtle a-turtle ] turtle-id)
 ```
 
 
@@ -214,13 +271,13 @@ ls:let variable-name value
 ```
 
 
-Creates a variable containing the given data that can be accessed by the child models in this context.
+Creates a variable containing the given data that can be accessed by the child models.
 
 ```NetLogo
-ls:let num-turtles count turtles
 ask turtles [
-  ls:ask brain-model [
-    create-turtles num-turtles
+  ls:set my-color color
+  ls:ask my-model [
+    ask turtles [ set color my-color ]
   ]
 ]
 ```
@@ -302,10 +359,10 @@ The scope of `ask` is respected, however.
 
 
 
-### `ls:model`
+### `ls:models`
 
 ```NetLogo
-ls:model
+ls:models
 ```
 
 
@@ -375,18 +432,18 @@ ls:name-of model-or-list-of-models
 ```
 
 
-Reports the name of the .nlogo file of the model. This is the name of window in which the model appears when visible. If a list of models is given, a list of names is reported.
+Reports the name of the .nlogo file of the model. This is the name of the window in which the model appears when visible. If a list of models is given, a list of names is reported.
 
 
 
-### `ls:model-exists`
+### `ls:model-exists?`
 
 ```NetLogo
-ls:model-exists model-or-list-of-models
+ls:model-exists? model-or-list-of-models
 ```
 
 
-Report a boolean value for whether there is a model with that model-id. This is often useful when you are dynamically generating models, and want to make sure that you are not asking models that no longer exist to do stuff.
+Report a boolean value for whether there is a model with that model-id. This is often useful when you are dynamically generating models, and want to ensure that you are not asking models that no longer exist to do stuff.
 
 
 
