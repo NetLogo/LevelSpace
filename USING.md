@@ -13,10 +13,12 @@ LevelSpace has two different child model types; headless models and interactive 
 Interactive models 
 * are full-fledged models that give full access to their interface and widgets,
 * run a bit slower, and use more memory
+* are visible by default
 
 Headless Models
 * only give you access to their view and command center 
 * are faster and use less memory than interactive models. 
+* are hidden by default
 
 Typically you will want to use headless models when you are running a large number of models, or if you simply want to run them faster. Interactive models are good if you run a small amount of models, if you are writing a LevelSpace model and need to be able to debug, or if you need access to widgets during runtime.
 
