@@ -20,7 +20,7 @@ extends ChildModel(parentWorkspace, modelID) {
 
   val workspace = new HeadlessWorkspace(
       world,
-      new org.nlogo.compiler.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect),
+      new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect),
       new org.nlogo.render.Renderer(world),
       new org.nlogo.sdm.AggregateManagerLite,
       null) {
