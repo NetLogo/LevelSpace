@@ -25,7 +25,7 @@ with LinkRoot {
 
   // KioskLevel.NONE - We want a 3d button
   val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, null, listenerManager) {
-    val compiler = new org.nlogo.compiler.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
+    val compiler = new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
       override def defaultFrameRate = workspace.frameRate

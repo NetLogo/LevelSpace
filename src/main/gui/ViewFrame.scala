@@ -43,7 +43,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
       val results =
         ws.compiler.compileMoreCode(owner.source,
           displayName, ws.world.program,
-          ws.getProcedures, ws.getExtensionManager,
+          ws.procedures, ws.getExtensionManager,
           ws.getCompilationEnvironment);
       results.head.init(ws)
       results.head.owner = owner
