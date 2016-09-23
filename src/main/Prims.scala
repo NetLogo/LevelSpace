@@ -173,6 +173,6 @@ class ModelExists(ls: LevelSpace) extends Reporter {
 
 class AllModels(ls: LevelSpace) extends Reporter {
   override def getSyntax = Syntax.reporterSyntax(ret = Syntax.ListType)
-  override def report(args: Array[Argument], ctx: Context) = LogoList.fromVector(ls.modelSet.asScala.map(id => Double.box(id.doubleValue)).toVector)
+  override def report(args: Array[Argument], ctx: Context) = LogoList.fromVector(ls.modelList.asScala.map(id => Double.box(id.doubleValue)).toVector)
 }
 

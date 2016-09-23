@@ -13,6 +13,7 @@ import java.net.MalformedURLException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,7 +60,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     private ActionListener haltListener = new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent arg0) {
-            haltChildModels(models);
+            haltChildModels();
         }
     };
 
@@ -118,8 +119,10 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         return models.containsKey(id);
     }
 
-    public Set<Integer> modelSet() {
-        return models.keySet();
+    public List<Integer> modelList() {
+        List<Integer> modelList = new ArrayList<Integer>(models.keySet());
+        Collections.sort(modelList);
+        return modelList;
     }
 
     public static int castToId(Object id) throws ExtensionException {
@@ -300,7 +303,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    private void haltChildModels(Map<Integer, ChildModel> models){
+    private void haltChildModels(){
         for (ChildModel aModel : models.values()){
             aModel.halt();
         }
