@@ -45,19 +45,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 
   class GUIWindowAdapter extends WindowAdapter {
     override def windowClosing(windowEvent: WindowEvent): Unit = frame.foreach { f =>
-      val options: Array[AnyRef] = Array("Close Model", "Run in Background", "Cancel")
-      val n: Int = JOptionPane.showOptionDialog(f, "Close the model, run it in the background, or do nothing?", null, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options(2))
-      n match {
-        case 0 =>
-          try {
-            ls.closeModel(GUIChildModel.this)
-          } catch {
-            case e: ExtensionException => throw new RuntimeException(e)
-            case e: HaltException =>
-          }
-        case 1 => hide
-        case 2 =>
-      }
+      hide
     }
   }
 
