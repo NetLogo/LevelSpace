@@ -8,8 +8,6 @@ import org.nlogo.nvm.{Job, Procedure, Reporter}
 import org.nlogo.prim.{_constboolean, _constdouble, _constlist, _conststring, _nobody}
 import org.nlogo.workspace.AbstractWorkspaceScala
 
-
-
 class Evaluator(name: String, ws: AbstractWorkspaceScala) {
 
   val owner = new SimpleJobOwner(name, ws.world.mainRNG, AgentKind.Observer);
