@@ -91,7 +91,7 @@ with ControlSet {
     interfacePanel.reset()
     val controller = new FileController(this, workspace)
     val loader = fileformat.basicLoader
-    val modelOpt = OpenModel(uri, controller, loader, Version)
+    val modelOpt = OpenModel(uri, controller, loader, fileformat.defaultConverter, Version)
     modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
   }
 
