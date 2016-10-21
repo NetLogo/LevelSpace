@@ -42,6 +42,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     (component, panel)
   }
   updateFrameTitle
+  injectProcedures
 
   class GUIWindowAdapter extends WindowAdapter {
     override def windowClosing(windowEvent: WindowEvent): Unit = frame.foreach { f =>

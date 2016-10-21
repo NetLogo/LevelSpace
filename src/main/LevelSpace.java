@@ -75,16 +75,12 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("with", new With(this));
         primitiveManager.addPrimitive("create-models", new CreateModels<HeadlessChildModel>(HeadlessChildModel.class));
         primitiveManager.addPrimitive("create-interactive-models", new CreateModels<GUIChildModel>(GUIChildModel.class));
-        primitiveManager.addPrimitive("name-of", new Name(this));
-        primitiveManager.addPrimitive("set-name", new SetName(this));
         primitiveManager.addPrimitive("close", new Close(this));
         primitiveManager.addPrimitive("models", new AllModels(this));
         primitiveManager.addPrimitive("model-exists?", new ModelExists(this));
         primitiveManager.addPrimitive("reset", new Reset());
         primitiveManager.addPrimitive("path-of", new Path(this));
         primitiveManager.addPrimitive("display", new UpdateView(this));
-        primitiveManager.addPrimitive("show", new Show(this));
-        primitiveManager.addPrimitive("hide", new Hide(this));
         primitiveManager.addPrimitive("show-all", new ShowAll(this));
         primitiveManager.addPrimitive("hide-all", new HideAll(this));
         primitiveManager.addPrimitive("uses-level-space?", new UsesLS(this));

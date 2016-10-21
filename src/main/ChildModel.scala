@@ -1,7 +1,7 @@
 package org.nlogo.ls
 
 import org.nlogo.api.{CommandRunnable, Workspace}
-import org.nlogo.workspace.AbstractWorkspaceScala
+import org.nlogo.workspace.{AbstractWorkspaceScala, InMemoryExtensionLoader}
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -82,5 +82,12 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
         SwingUtilities.invokeLater(new Runnable { def run = f })
     }
 
-}
+  def injectProcedures = {
+    val extName= "ls"
+    val ext = new InjectedExtension(this)
+    val loader = new InMemoryExtensionLoader(extName, ext)
+    workspace.extensionManager.addLoader(loader)
+    workspace.extensionManager.importExtension(loader, loader.locateExtension(extName).get, extName, null)
+  }
 
+}

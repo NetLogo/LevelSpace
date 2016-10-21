@@ -37,6 +37,7 @@ extends ChildModel(parentWorkspace, modelID) {
     case e: IllegalStateException =>
       throw new ExtensionException(s"$path is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.", e)
   }
+  injectProcedures
 
   var frame: Option[ViewFrame] = None
 

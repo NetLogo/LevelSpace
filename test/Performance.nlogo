@@ -38,7 +38,7 @@ end
 
 to test-gui-performance [ n ]
   ls:reset
-  (ls:create-interactive-models n "Blank.nlogo" [ [id] -> ls:hide id ])
+  (ls:create-interactive-models n "Blank.nlogo" [ [id] -> ls:ask id [ ls:hide ] ])
   ls:ask ls:models [ crt 300 ]
   reset-timer
   test-models
@@ -51,7 +51,7 @@ to test-model-loading [ n headless? ]
   ifelse headless? [
     ls:create-models n "Blank.nlogo"
   ] [
-    (ls:create-interactive-models n "Blank.nlogo" [ [id] -> ls:hide id ])
+    (ls:create-interactive-models n "Blank.nlogo" [ [id] -> ls:ask id [ ls:hide ] ])
   ]
   print (word "headless: " headless? " loading " n " models: " timer)
 end
