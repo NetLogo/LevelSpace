@@ -1,9 +1,10 @@
 package org.nlogo.ls.gui
 
 import org.nlogo.app.tools.AgentMonitorManager
-import org.nlogo.lite.{ProceduresLite, LiteEditorFactory}
-import org.nlogo.window.{Event, NetLogoListenerManager, CompilerManager, LinkRoot, InterfacePanelLite, UpdateManager,
-   GUIWorkspace, FileController, OutputWidget, ReconfigureWorkspaceUI}
+import org.nlogo.lite.ProceduresLite
+import org.nlogo.window.{Event, NetLogoListenerManager, CompilerManager,
+  DefaultEditorFactory, LinkRoot, InterfacePanelLite, UpdateManager,
+  GUIWorkspace, FileController, OutputWidget, ReconfigureWorkspaceUI}
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
 import org.nlogo.api
 import org.nlogo.api.{ ControlSet, Version, NetLogoThreeDDialect, NetLogoLegacyDialect, AggregateManagerInterface, RendererInterface, ModelType }
@@ -63,7 +64,7 @@ with ControlSet {
   addLinkComponent(viewManager)
 
   val procedures = new ProceduresLite(workspace, workspace)
-  val liteEditorFactory = new LiteEditorFactory(workspace)
+  val liteEditorFactory = new DefaultEditorFactory(workspace)
   val interfacePanel = createInterfacePanel(workspace)
 
   addLinkComponent(workspace.aggregateManager)
