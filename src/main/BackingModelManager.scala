@@ -8,7 +8,7 @@ import org.nlogo.app.App
 import org.nlogo.app.codetab.CodeTab
 import org.nlogo.workspace.AbstractWorkspaceScala
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.parallel.mutable.ParHashMap
 
 trait LSModelManager extends ModelManager {
@@ -22,7 +22,7 @@ class BackingModelManager extends LSModelManager {
   var openModels    = Map.empty[String, ChildModel]
 
   override def updateChildModels(indexedModels: JMap[java.lang.Integer, ChildModel]): Unit = {
-    val models            = indexedModels.values
+    val models            = indexedModels.values.asScala
 
     // toSeq.distinct preserves ordering, whereas toSet does not
     val modelPaths        = models.map(_.workspace.getModelPath).toSeq.distinct
