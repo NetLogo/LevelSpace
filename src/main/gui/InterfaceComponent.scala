@@ -1,11 +1,13 @@
 package org.nlogo.ls.gui
 
 import org.nlogo.app.tools.AgentMonitorManager
-import org.nlogo.lite.{ProceduresLite, LiteEditorFactory}
-import org.nlogo.window.{Event, NetLogoListenerManager, CompilerManager, LinkRoot, InterfacePanelLite, UpdateManager, GUIWorkspace, FileController, ReconfigureWorkspaceUI}
+import org.nlogo.lite.ProceduresLite
+import org.nlogo.window.{Event, NetLogoListenerManager, CompilerManager,
+  DefaultEditorFactory, LinkRoot, InterfacePanelLite, UpdateManager,
+  GUIWorkspace, FileController, OutputWidget, ReconfigureWorkspaceUI}
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
 import org.nlogo.api
-import org.nlogo.api.{Version, NetLogoThreeDDialect, NetLogoLegacyDialect, AggregateManagerInterface, RendererInterface, ModelType}
+import org.nlogo.api.{ ControlSet, Version, NetLogoThreeDDialect, NetLogoLegacyDialect, AggregateManagerInterface, RendererInterface, ModelType }
 import org.nlogo.agent.{World, World3D, Agent}
 import org.nlogo.core.{AgentKind, Model}
 import org.nlogo.nvm
@@ -14,17 +16,22 @@ import org.nlogo.awt.EventQueue
 import org.nlogo.workspace.OpenModel
 import org.nlogo.fileformat
 
+import java.awt.EventQueue.isDispatchThread
+import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
+import scala.util.Try
+import scala.concurrent.{ Future, Promise }
 
 abstract class InterfaceComponent(frame: javax.swing.JFrame) extends javax.swing.JPanel
 with Event.LinkParent
-with LinkRoot {
+with LinkRoot
+with ControlSet {
   val listenerManager = new NetLogoListenerManager
   val world = if(Version.is3D) new World3D() else new World
 
   // KioskLevel.NONE - We want a 3d button
-  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, null, listenerManager) {
+  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, null, listenerManager, this) {
     val compiler = new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
@@ -57,7 +64,7 @@ with LinkRoot {
   addLinkComponent(viewManager)
 
   val procedures = new ProceduresLite(workspace, workspace)
-  val liteEditorFactory = new LiteEditorFactory(workspace)
+  val liteEditorFactory = new DefaultEditorFactory(workspace)
   val interfacePanel = createInterfacePanel(workspace)
 
   addLinkComponent(workspace.aggregateManager)
@@ -85,9 +92,41 @@ with LinkRoot {
     interfacePanel.reset()
     val controller = new FileController(this, workspace)
     val loader = fileformat.basicLoader
-    val modelOpt = OpenModel(uri, controller, loader, Version)
+    val modelOpt = OpenModel(uri, controller, loader, fileformat.defaultConverter, Version)
     modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
   }
 
   protected def createInterfacePanel(workspace: GUIWorkspace): InterfacePanelLite
+
+  def userInterface: Future[BufferedImage] = {
+    import org.nlogo.swing.Implicits.thunk2runnable
+    if (isDispatchThread)
+      Promise.fromTry(Try(interfacePanel.interfaceImage)).future
+    else {
+      val promise = Promise[BufferedImage]()
+      EventQueue.invokeLater { () =>
+        promise.complete(Try(interfacePanel.interfaceImage))
+        ()
+      }
+      promise.future
+    }
+  }
+
+  def userOutput: Future[String] = {
+    import org.nlogo.swing.Implicits.thunk2runnable
+    def findOutput(ipl: InterfacePanelLite): String =
+      ipl.getComponents.collect {
+        case ow: OutputWidget => ow.valueText
+      }.headOption.getOrElse("")
+    if (isDispatchThread)
+      Promise.fromTry(Try(findOutput(interfacePanel))).future
+    else {
+      val promise = Promise[String]()
+      EventQueue.invokeLater { () =>
+        promise.complete(Try(findOutput(interfacePanel)))
+        ()
+      }
+      promise.future
+    }
+  }
 }

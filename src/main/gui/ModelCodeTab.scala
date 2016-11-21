@@ -45,11 +45,12 @@ class ModelCodeTab(workspace: AbstractWorkspaceScala,
       def invalidModelVersion(uri: java.net.URI,version: String): Unit = {
         throw new ExtensionException("Levelspace couldn't open invalid NetLogo model: " + Paths.get(uri).toString)
       }
+      def errorAutoconvertingModel(failure: fileformat.FailedConversionResult): Option[Model] = None
       def shouldOpenModelOfDifferingArity(arity: Int,version: String): Boolean = false
       def shouldOpenModelOfLegacyVersion(version: String): Boolean = true
       def shouldOpenModelOfUnknownVersion(version: String): Boolean = true
     }
-    OpenModel(Paths.get(filePath).toUri, controller, loader, Version).foreach { model =>
+    OpenModel(Paths.get(filePath).toUri, controller, loader, fileformat.defaultConverter, Version).foreach { model =>
       currentModel = Some(model)
       innerSource = model.code
     }
