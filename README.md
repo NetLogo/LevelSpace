@@ -33,9 +33,11 @@ Child models are kept track of in the extension with an id number, starting with
 
 The easiest way to work with multiple models is to store their `model-id` in a list, and use NetLogo's list primitives to sort, filter, etc. them during runtime.
 
-Keeping track of models is important: Most LevelSpace primitives will fail and cause a runtime interruption if provided a `model-id` to a non-existing model. 
+Keeping track of models is important: Most LevelSpace primitives will fail and cause a runtime interruption if provided a `model-id` to a non-existing model. You can use `ls:model-exists? model-id` to check if `model-id` refers to an existing model.
 
-### A general usecase: Asking and Reporting
+### A general use case: Asking and Reporting
+
+This use case is based on the Model Visualizer and Plotter Example-model from the NetLogo Models Library.
 
 A simple thing we can do is to open up some models, run them concurrently, and calculate the average of some reporter. Let's say that we are interested in finding the mean number of sheep in a bunch of Wolf Sheep Predation models. First we would open up some of these models, and set them up:
 
@@ -43,7 +45,7 @@ A simple thing we can do is to open up some models, run them concurrently, and c
 to setup
   ls:reset
   ca
-  ls:load-models 30 "Wolf Sheep Predation.nlogo" 
+  ls:create-models 30 "Wolf Sheep Predation.nlogo"
   ls:ask ls:models [ set grass? true setup ]
   reset-ticks
 end
@@ -56,9 +58,9 @@ to go
 end
 ```
 
-### A general Usecase: Inter-Model Interactions
+### A general use case: Inter-Model Interactions
 
-This usecase is based on the Model Interactions Example-model from the NetLogo Models Library.
+This use case is based on the Model Interactions Example-model from the NetLogo Models Library.
 
 Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`, and a Climate Change model called `CC`. Now let's imagine that we want the regrowth time in the wSP model to depend on the temperature in the CC model. Using LevelSpace's primitives, we could do something like this: 
 
