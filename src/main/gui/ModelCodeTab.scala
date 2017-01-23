@@ -14,7 +14,7 @@ import org.nlogo.fileformat
 import org.nlogo.swing.{ ToolBar, ToolBarActionButton, OptionDialog }, ToolBar.Separator
 import org.nlogo.util.Utils
 import org.nlogo.window.Events.ModelSavedEvent
-import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelTracker, OpenModel, SaveModel, ModelsLibrary }
+import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelTracker, OpenModel, OpenModelFromURI, SaveModel, ModelsLibrary }
 
 import java.nio.file.Paths
 
@@ -45,7 +45,7 @@ with ModelSavedEvent.Handler {
       def shouldOpenModelOfLegacyVersion(version: String): Boolean = true
       def shouldOpenModelOfUnknownVersion(version: String): Boolean = true
     }
-    OpenModel(Paths.get(filePath).toUri, controller, loader, fileformat.defaultConverter, Version).foreach { model =>
+    OpenModelFromURI(Paths.get(filePath).toUri, controller, loader, fileformat.defaultConverter, Version).foreach { model =>
       currentModel = Some(model)
       innerSource = model.code
     }

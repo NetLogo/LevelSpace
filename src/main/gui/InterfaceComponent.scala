@@ -13,7 +13,7 @@ import org.nlogo.core.{AgentKind, Model}
 import org.nlogo.nvm
 import org.nlogo.nvm.{CompilerInterface}
 import org.nlogo.awt.EventQueue
-import org.nlogo.workspace.OpenModel
+import org.nlogo.workspace.{ OpenModel, OpenModelFromURI }
 import org.nlogo.fileformat
 
 import java.awt.EventQueue.isDispatchThread
@@ -92,7 +92,7 @@ with ControlSet {
     interfacePanel.reset()
     val controller = new FileController(this, workspace)
     val loader = fileformat.basicLoader
-    val modelOpt = OpenModel(uri, controller, loader, fileformat.defaultConverter, Version)
+    val modelOpt = OpenModelFromURI(uri, controller, loader, fileformat.defaultConverter, Version)
     modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
   }
 
