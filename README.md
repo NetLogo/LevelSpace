@@ -277,7 +277,7 @@ Creates a variable containing the given data that can be accessed by the child m
 
 ```NetLogo
 ask turtles [
-  ls:set my-color color
+  ls:let my-color color
   ls:ask my-model [
     ask turtles [ set color my-color ]
   ]
