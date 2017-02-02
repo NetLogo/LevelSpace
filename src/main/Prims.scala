@@ -30,13 +30,16 @@ class LetPrim extends Command {
    **/
   val LetPrefix = "ls "
 
-  def letBindings(ctx: NvmContext): Seq[(String, AnyRef)] =
-    ctx.allLets
-      .filter(b => b.let.name != null && b.let.name.startsWith(LetPrefix))
-      .flatMap {
-        case LetBinding(Let(name), m) =>
-          toScopedVals(m).get(ctx.activation).map(name.substring(LetPrefix.length) -> _)
+  def letBindings(ctx: NvmContext): Seq[(String, AnyRef)] = {
+    var letValues = Seq.empty[(String, AnyRef)]
+    ctx.activation.binding.allLets
+      .filter {
+        case (let: Let, value: AnyRef) => let.name != null && let.name.startsWith(LetPrefix)
       }
+      .flatMap {
+        case (let: Let, value: AnyRef) => toScopedVals(value).get(ctx.activation).map(let.name.substring(LetPrefix.length) -> _)
+      }
+  }
 
   override def getSyntax = Syntax.commandSyntax(List(Syntax.SymbolType, Syntax.ReadableType))
 
@@ -45,11 +48,15 @@ class LetPrim extends Command {
     val let = Let(LetPrefix + token.text)
     val nvmCtx = CtxConverter.nvm(ctx)
 
-    nvmCtx.letBindings.find(let.name equals _.let.name) match {
-      // Note that we need to replace the value in the map is found since different scopes can have the same
-      // Activation. `ask` is the most common instance of this. -- BCH 1/23/2016
-      case Some(lb) => toScopedVals(lb.value)(nvmCtx.activation) = args(1).get
-      case None     => nvmCtx.let(let, new ScopedVals(nvmCtx.activation -> args(1).get))
+    // Note that we need to replace the value in the map if the name is bound,
+    // since different scopes can have the same Activation.
+    // `ask` is the most common instance of this. -- BCH 1/23/2016
+    try {
+      val scopedVal = nvmCtx.activation.binding.getLet(let)
+      toScopedVals(scopedVal)(nvmCtx.activation) = args(1).get
+    } catch {
+      case e: NoSuchElementException =>
+        nvmCtx.activation.binding.let(let, new ScopedVals(nvmCtx.activation -> args(1).get))
     }
   }
 
