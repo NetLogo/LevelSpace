@@ -10,11 +10,11 @@ import org.nlogo.app.codetab.ExternalFileManager
 import org.nlogo.app.tools.AgentMonitorManager
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.{AgentKind, Model}
-import org.nlogo.{api, fileformat}
 import org.nlogo.lite.ProceduresLite
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
 import org.nlogo.window.{CompilerManager, DefaultEditorFactory, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
 import org.nlogo.workspace.OpenModelFromURI
+import org.nlogo.{api, fileformat}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try

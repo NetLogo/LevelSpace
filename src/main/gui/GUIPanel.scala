@@ -43,11 +43,9 @@ extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) 
   val speedSliderPanel = new JPanel
   speedSliderPanel.add(new JLabel("speed: "))
   val speedSlider = new JSlider(-110, 112, ws.speedSliderPosition().toInt)
-  speedSlider.addChangeListener(new event.ChangeListener() {
-    override def stateChanged(e: event.ChangeEvent): Unit = {
-      ws.speedSliderPosition(speedSlider.getValue / 2)
-      ws.updateManager.nudgeSleeper
-    }
+  speedSlider.addChangeListener((e: event.ChangeEvent) => {
+    ws.speedSliderPosition(speedSlider.getValue / 2)
+    ws.updateManager().nudgeSleeper
   })
   speedSliderPanel.add(speedSlider)
   controlStrip.add(speedSliderPanel, BorderLayout.CENTER)
