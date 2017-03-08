@@ -1,27 +1,23 @@
 package org.nlogo.ls.gui
 
-import org.nlogo.app.tools.AgentMonitorManager
-import org.nlogo.lite.ProceduresLite
-import org.nlogo.window.{Event, NetLogoListenerManager, CompilerManager,
-  DefaultEditorFactory, LinkRoot, InterfacePanelLite, UpdateManager,
-  GUIWorkspace, FileController, OutputWidget, ReconfigureWorkspaceUI}
-import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
-import org.nlogo.api
-import org.nlogo.api.{ ControlSet, Version, NetLogoThreeDDialect, NetLogoLegacyDialect, AggregateManagerInterface, RendererInterface, ModelType }
-import org.nlogo.agent.{World, World3D, Agent}
-import org.nlogo.core.{AgentKind, Model}
-import org.nlogo.nvm
-import org.nlogo.nvm.{CompilerInterface}
-import org.nlogo.awt.EventQueue
-import org.nlogo.workspace.{ OpenModel, OpenModelFromURI }
-import org.nlogo.fileformat
-
 import java.awt.EventQueue.isDispatchThread
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
+import org.nlogo.agent.{Agent, World, World3D}
+import org.nlogo.api.{ControlSet, ModelType, NetLogoLegacyDialect, NetLogoThreeDDialect, Version}
+import org.nlogo.app.codetab.ExternalFileManager
+import org.nlogo.app.tools.AgentMonitorManager
+import org.nlogo.awt.EventQueue
+import org.nlogo.core.{AgentKind, Model}
+import org.nlogo.{api, fileformat}
+import org.nlogo.lite.ProceduresLite
+import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
+import org.nlogo.window.{CompilerManager, DefaultEditorFactory, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
+import org.nlogo.workspace.OpenModelFromURI
+
+import scala.concurrent.{Future, Promise}
 import scala.util.Try
-import scala.concurrent.{ Future, Promise }
 
 abstract class InterfaceComponent(frame: javax.swing.JFrame) extends javax.swing.JPanel
 with Event.LinkParent
@@ -31,7 +27,7 @@ with ControlSet {
   val world = if(Version.is3D) new World3D() else new World
 
   // KioskLevel.NONE - We want a 3d button
-  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, null, listenerManager, this) {
+  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, this) {
     val compiler = new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
@@ -99,7 +95,6 @@ with ControlSet {
   protected def createInterfacePanel(workspace: GUIWorkspace): InterfacePanelLite
 
   def userInterface: Future[BufferedImage] = {
-    import org.nlogo.swing.Implicits.thunk2runnable
     if (isDispatchThread)
       Promise.fromTry(Try(interfacePanel.interfaceImage)).future
     else {
@@ -113,7 +108,6 @@ with ControlSet {
   }
 
   def userOutput: Future[String] = {
-    import org.nlogo.swing.Implicits.thunk2runnable
     def findOutput(ipl: InterfacePanelLite): String =
       ipl.getComponents.collect {
         case ow: OutputWidget => ow.valueText
