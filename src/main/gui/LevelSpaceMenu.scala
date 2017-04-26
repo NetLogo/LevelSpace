@@ -125,7 +125,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
 
         private def showLoadSelection: Option[String] =
           try {
-            Some(FileDialog.show(App.app.frame, "Load a LevelSpace Model...", LOADFILE))
+            Some(FileDialog.showFiles(App.app.frame, "Load a LevelSpace Model...", LOADFILE))
           } catch {
             case e: UserCancelException =>
               Exceptions.ignore(e)
@@ -150,7 +150,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
         val controller = new SaveModel.Controller {
           def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
             try {
-              val userEntry = FileDialog.show(App.app.frame, "Select a path for new Model...", SAVEFILE)
+              val userEntry = FileDialog.showFiles(App.app.frame, "Select a path for new Model...", SAVEFILE)
               // we basically need to write an empty NetLogo model in before we read...
               val fileName =
                 if (userEntry.endsWith(".nlogo")) userEntry else userEntry + ".nlogo"
