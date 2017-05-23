@@ -18,10 +18,7 @@ extends JPanel with Events.OutputEvent.Handler {
   controlStrip.add(new TickCounterLabel(ws.world), BorderLayout.WEST)
 
   add(controlStrip, BorderLayout.NORTH)
-  var cc = new CommandCenter(ws, new AbstractAction() {
-    def actionPerformed(actionEvent: ActionEvent) = {
-    }
-  })
+  var cc = new CommandCenter(ws)
 
   val scrollPane: JScrollPane = new JScrollPane(panel, verticalScroll, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED)
   val splitPane: JSplitPane   = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, scrollPane, cc)
