@@ -16,7 +16,7 @@ import org.nlogo.ls.gui.ViewFrame
 class HeadlessChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException]) (parentWorkspace: AbstractWorkspaceScala, path: String, modelID: Int)
 extends ChildModel(parentWorkspace, modelID) {
 
-  val world = if(Version.is3D) new org.nlogo.agent.World3D() else new org.nlogo.agent.World
+  val world = if(Version.is3D) new org.nlogo.agent.World3D() else new org.nlogo.agent.World2D()
 
   val workspace = new HeadlessWorkspace(
       world,

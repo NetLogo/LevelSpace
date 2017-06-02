@@ -4,7 +4,7 @@ import java.awt.EventQueue.isDispatchThread
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
-import org.nlogo.agent.{Agent, World, World3D}
+import org.nlogo.agent.{Agent, CompilationManagement, World, World2D, World3D}
 import org.nlogo.api.{ControlSet, ModelType, NetLogoLegacyDialect, NetLogoThreeDDialect, Version}
 import org.nlogo.app.codetab.ExternalFileManager
 import org.nlogo.app.tools.AgentMonitorManager
@@ -24,7 +24,7 @@ with Event.LinkParent
 with LinkRoot
 with ControlSet {
   val listenerManager = new NetLogoListenerManager
-  val world = if(Version.is3D) new World3D() else new World
+  val world = if(Version.is3D) new World3D() else new World2D()
 
   // KioskLevel.NONE - We want a 3d button
   val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, this) {
@@ -66,7 +66,7 @@ with ControlSet {
   addLinkComponent(workspace.aggregateManager)
   addLinkComponent(workspace)
   addLinkComponent(procedures)
-  addLinkComponent(new CompilerManager(workspace, procedures))
+  addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World with CompilationManagement], procedures))
   addLinkComponent(new CompiledEvent.Handler {
     override def handle(e: CompiledEvent) {
       if (e.error != null)

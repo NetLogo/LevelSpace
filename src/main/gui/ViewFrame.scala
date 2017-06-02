@@ -55,7 +55,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
   }
 
   def handle(e: AddJobEvent): Unit = {
-    val agents = if (e.agents == null ) ws.world.agentKindToAgentSet(e.owner.asInstanceOf[JobWidget].kind) else e.agents
+    val agents = if (e.agents == null ) ws.world.agentSetOfKind(e.owner.asInstanceOf[JobWidget].kind) else e.agents
     ws.jobManager.addJob(e.owner, agents, ws, e.procedure)
   }
 
