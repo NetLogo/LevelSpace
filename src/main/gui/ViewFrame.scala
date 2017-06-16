@@ -1,14 +1,13 @@
 package org.nlogo.ls.gui
 
-import javax.swing.{JFrame, JPanel, SwingUtilities, Timer, BoxLayout}
-import java.awt.{Graphics, Graphics2D, Dimension}
-import java.awt.event.{ActionListener, ActionEvent}
+import java.awt.event.{ActionEvent, ActionListener}
+import java.awt.{Dimension, Graphics, Graphics2D}
+import javax.swing.{BoxLayout, JFrame, JPanel, Timer}
 
-import org.nlogo.api.{ViewSettings, RendererInterface}
-import org.nlogo.headless.HeadlessWorkspace
-import org.nlogo.window.JobWidget
-import org.nlogo.window.Events.{CompileMoreSourceEvent, CompiledEvent, AddJobEvent, PeriodicUpdateEvent}
 import org.nlogo.core.CompilerException
+import org.nlogo.headless.HeadlessWorkspace
+import org.nlogo.window.Events.{AddJobEvent, CompileMoreSourceEvent, CompiledEvent, PeriodicUpdateEvent}
+import org.nlogo.window.JobWidget
 
 class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler {
   val viewPanel = new JPanel() {
@@ -34,7 +33,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
       viewPanel.repaint()
       new PeriodicUpdateEvent().raise(ViewFrame.this)
     }
-  }).start
+  }).start()
 
   def handle(e: CompileMoreSourceEvent): Unit = {
     val owner = e.owner
@@ -44,7 +43,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
         ws.compiler.compileMoreCode(owner.source,
           displayName, ws.world.program,
           ws.procedures, ws.getExtensionManager,
-          ws.getCompilationEnvironment);
+          ws.getCompilationEnvironment)
       results.head.init(ws)
       results.head.owner = owner
       new CompiledEvent(owner, ws.world.program, results.head, null).raise(this)

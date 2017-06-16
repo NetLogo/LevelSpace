@@ -3,6 +3,7 @@ package org.nlogo.ls
 import java.awt._
 import java.awt.event.{WindowAdapter, WindowEvent}
 import javax.swing.{JFrame, JMenuBar, WindowConstants}
+import java.io.IOException
 
 import org.nlogo.api._
 import org.nlogo.app.App
@@ -12,8 +13,7 @@ import org.nlogo.window.GUIWorkspace
 
 import scala.util.{Failure, Try}
 
-@throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException])
-class GUIChildModel (ls: LevelSpace, parentWorkspace: Workspace, path: String, modelID: Int)
+class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException]) (ls: LevelSpace, parentWorkspace: Workspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
 
   val (component, panel, frame) = UnlockAndBlock.onEDT(parentWorkspace.world) {

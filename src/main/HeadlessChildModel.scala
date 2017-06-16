@@ -12,7 +12,6 @@ import org.nlogo.nvm.HaltException
 
 import org.nlogo.ls.gui.ViewFrame
 
-
 class HeadlessChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException]) (parentWorkspace: AbstractWorkspaceScala, path: String, modelID: Int)
 extends ChildModel(parentWorkspace, modelID) {
 
@@ -48,9 +47,14 @@ extends ChildModel(parentWorkspace, modelID) {
     updateView
   }
 
-  def updateView = onEDT{ frame.foreach { f => if (f.isVisible) f.repaint() }}
+  def updateView = frame.foreach { f => if (f.isVisible) onEDT{ f.repaint() } }
 
   def setSpeed(d: Double) = {}
 
-  override def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): FutureJob[Unit] = super.ask(code, lets, args).andThen(r => {updateView; r})
+  override def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): FutureJob[Unit] =
+    super.ask(code, lets, args).andThen(r => {
+      //frame.foreach { f => if (f.isVisible()) updateView }
+      updateView
+      r
+    })
 }
