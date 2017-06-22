@@ -13,7 +13,8 @@ import org.nlogo.window.GUIWorkspace
 
 import scala.util.{Failure, Try}
 
-class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException]) (ls: LevelSpace, parentWorkspace: Workspace, path: String, modelID: Int)
+class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException])
+(ls: LevelSpace, parentWorkspace: Workspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
 
   val (component, panel, frame) = UnlockAndBlock.onEDT(parentWorkspace.world) {
@@ -45,25 +46,21 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     case Failure(_) => kill
     case _ =>
   }
-  updateFrameTitle
+  updateFrameTitle()
 
   class GUIWindowAdapter extends WindowAdapter {
-    override def windowClosing(windowEvent: WindowEvent): Unit = frame.foreach { f =>
-      hide
-    }
+    override def windowClosing(windowEvent: WindowEvent): Unit = hide()
   }
 
   def setSpeed(d: Double): Unit = {
-    workspace.updateManager.speed = d
-    javax.swing.SwingUtilities.invokeLater(new Runnable {
-      def run = {
-        panel.speedSlider.setValue((d * 2).intValue)
-        // Wakes up the workspace if the speed slider is super low.
-        // Makes it so there's not a long pause after increasing
-        // the speed slider from a low position. BCH 6/18/2016
-        workspace.updateManager.nudgeSleeper
-      }
-    })
+    workspace.updateManager().speed = d
+    onEDT {
+      panel.speedSlider.setValue((d * 2).intValue)
+      // Wakes up the workspace if the speed slider is super low.
+      // Makes it so there's not a long pause after increasing
+      // the speed slider from a low position. BCH 6/18/2016
+      workspace.updateManager().nudgeSleeper
+    }
   }
 
   def workspace: GUIWorkspace = component.workspace

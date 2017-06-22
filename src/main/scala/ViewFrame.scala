@@ -1,6 +1,6 @@
 package org.nlogo.ls.gui
 
-import java.awt.event.{ActionEvent, ActionListener}
+import java.awt.event.ActionEvent
 import java.awt.{Dimension, Graphics, Graphics2D}
 import javax.swing.{BoxLayout, JFrame, JPanel, Timer}
 
@@ -28,11 +28,9 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
   getContentPane.add(panel)
   pack()
 
-  new Timer(1000 / 30, new ActionListener() {
-    override def actionPerformed(e: ActionEvent) = {
-      viewPanel.repaint()
-      new PeriodicUpdateEvent().raise(ViewFrame.this)
-    }
+  new Timer(1000 / 30, (e: ActionEvent) => {
+    viewPanel.repaint()
+    new PeriodicUpdateEvent().raise(ViewFrame.this)
   }).start()
 
   def handle(e: CompileMoreSourceEvent): Unit = {

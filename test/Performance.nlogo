@@ -107,6 +107,28 @@ to test-load-close [ n ]
   ])
   print "done"
 end
+
+to test-empty [ n k ]
+  ls:reset
+  ls:create-models k "Blank.nlogo"
+  reset-timer
+  repeat n * k [
+    let foo 0
+  ]
+  print (word "raw: " timer)
+  reset-timer
+  repeat n * k [
+    run [ let foo 0 ]
+  ]
+  print (word "lambda: " timer)
+  ls:ask ls:models [let foo 0]
+  print "starting ls..."
+  reset-timer
+  repeat n [
+    ls:ask ls:models [let foo 0]
+  ]
+  print (word "ls: " timer)
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -554,7 +576,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0-BETA1
+NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

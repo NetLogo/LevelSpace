@@ -23,8 +23,8 @@ trait ZoomableContainer
 
   val zoomMin             = 0.1
 
-  val zoomableComponents  = MList.empty[Component]
-  val unitAttributes      = MMap.empty[Component, ScalableAttributes]
+  val zoomableComponents: MList[Component] = MList.empty[Component]
+  val unitAttributes: MMap[Component, ScalableAttributes] = MMap.empty[Component, ScalableAttributes]
 
   def zoomFactor          = _zoomFactor
 

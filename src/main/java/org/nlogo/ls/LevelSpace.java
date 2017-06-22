@@ -1,54 +1,49 @@
 package org.nlogo.ls;
 
-import scala.collection.JavaConverters;
-
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.GraphicsEnvironment;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import com.google.common.collect.MapMaker;
-
-import org.nlogo.nvm.HaltException;
-import org.nlogo.nvm.ExtensionContext;
-
-import org.nlogo.api.*;
-import org.nlogo.app.*;
+import org.nlogo.api.Argument;
+import org.nlogo.api.Command;
+import org.nlogo.api.Context;
+import org.nlogo.api.DefaultClassManager;
+import org.nlogo.api.ExtensionException;
+import org.nlogo.api.ExtensionManager;
+import org.nlogo.api.ImportErrorHandler;
+import org.nlogo.api.LogoException;
+import org.nlogo.api.PrimitiveManager;
+import org.nlogo.app.App;
+import org.nlogo.app.ToolsMenu;
+import org.nlogo.awt.EventQueue$;
+import org.nlogo.core.CompilerException;
 import org.nlogo.core.ExtensionObject;
 import org.nlogo.core.LogoList;
-import org.nlogo.core.CompilerException;
-import org.nlogo.core.Token;
 import org.nlogo.core.Syntax;
 import org.nlogo.core.SyntaxJ;
-import org.nlogo.awt.EventQueue$;
-import org.nlogo.workspace.AbstractWorkspaceScala;
+import org.nlogo.nvm.ExtensionContext;
+import org.nlogo.nvm.HaltException;
 import org.nlogo.window.GUIWorkspace;
+import org.nlogo.workspace.AbstractWorkspaceScala;
 
-import org.nlogo.ls.gui.ModelManager;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.MenuElement;
+import java.awt.GraphicsEnvironment;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class LevelSpace implements org.nlogo.api.ClassManager {
+public class LevelSpace extends DefaultClassManager {
 
     private static boolean isHeadless() {
-      return GraphicsEnvironment.isHeadless() || System.getProperty("org.nlogo.preferHeadless") == "true";
+      return GraphicsEnvironment.isHeadless() || Objects.equals(System.getProperty("org.nlogo.preferHeadless"), "true");
     }
 
     // This can be accessed by both the JobThread and EDT (when halting)
-    private final Map<Integer, ChildModel> models = new ConcurrentHashMap<Integer, ChildModel>();
+    private final Map<Integer, org.nlogo.ls.ChildModel> models = new ConcurrentHashMap<>();
 
     // counter for keeping track of new models
     private int modelCounter = 0;
@@ -57,12 +52,7 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
 
     // These need to be cleaned up on unload
     private JMenuItem haltButton;
-    private ActionListener haltListener = new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-            haltChildModels();
-        }
-    };
+    private ActionListener haltListener = ignored -> haltChildModels();
 
     private LSModelManager modelManager = isHeadless() ? new HeadlessBackingModelManager() : new BackingModelManager();
 
@@ -73,8 +63,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         primitiveManager.addPrimitive("of", new Of(this));
         primitiveManager.addPrimitive("report", new Report(this));
         primitiveManager.addPrimitive("with", new With(this));
-        primitiveManager.addPrimitive("create-models", new CreateModels<HeadlessChildModel>(HeadlessChildModel.class));
-        primitiveManager.addPrimitive("create-interactive-models", new CreateModels<GUIChildModel>(GUIChildModel.class));
+        primitiveManager.addPrimitive("create-models", new CreateModels<>(HeadlessChildModel.class));
+        primitiveManager.addPrimitive("create-interactive-models", new CreateModels<>(GUIChildModel.class));
         primitiveManager.addPrimitive("name-of", new Name(this));
         primitiveManager.addPrimitive("set-name", new SetName(this));
         primitiveManager.addPrimitive("close", new Close(this));
@@ -120,12 +110,12 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
     }
 
     public List<Integer> modelList() {
-        List<Integer> modelList = new ArrayList<Integer>(models.keySet());
+        List<Integer> modelList = new ArrayList<>(models.keySet());
         Collections.sort(modelList);
         return modelList;
     }
 
-    public static int castToId(Object id) throws ExtensionException {
+    private static int castToId(Object id) throws ExtensionException {
         if (id instanceof Number) {
             return ((Number) id).intValue();
         } else {
@@ -182,11 +172,9 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
                     if (modelType == HeadlessChildModel.class || isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
                         model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
                     } else {
-                        model = new GUIChildModel(LevelSpace.this, (AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
-                        Workspace rootWS = App.app().workspace();
-                        if (rootWS instanceof GUIWorkspace) {
-                            model.setSpeed(((GUIWorkspace) rootWS).updateManager().speed());
-                        }
+                        model = new GUIChildModel(LevelSpace.this, ctx.workspace(), modelPath, modelCounter);
+                        GUIWorkspace rootWS = App.app().workspace();
+                        model.setSpeed(rootWS.updateManager().speed());
                     }
                     model.workspace().behaviorSpaceRunNumber(parentWS.behaviorSpaceRunNumber());
                     model.workspace().behaviorSpaceExperimentName(parentWS.behaviorSpaceExperimentName());
@@ -207,13 +195,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         }
     }
 
-    public void updateModelMenu() {
-        Runnable reportModelOpened = new Runnable() {
-            @Override
-            public void run() {
-                modelManager.updateChildModels(models);
-            }
-        };
+    private void updateModelMenu() {
+        Runnable reportModelOpened = () -> modelManager.updateChildModels(models);
         EventQueue$.MODULE$.invokeLater(reportModelOpened);
     }
 
@@ -244,8 +227,8 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
             LogoList idList = arg.getList();
             ChildModel[] models = new ChildModel[idList.size()];
             int i = 0;
-            for (Object modelIdObj : arg.getList().javaIterable()) {
-                models[i] = getModel(castToId(modelIdObj));
+            for (Object modelIDObj : arg.getList().javaIterable()) {
+                models[i] = getModel(castToId(modelIDObj));
                 i++;
             }
             return models;
@@ -260,35 +243,11 @@ public class LevelSpace implements org.nlogo.api.ClassManager {
         updateModelMenu();
     }
 
-    @Override
-    @SuppressWarnings("deprecation")
-    public List<String> additionalJars() {
-        return null;
-    }
-
-    @Override
-    public void clearAll() {
-        // We want to keep models between clear-alls, yes?
-    }
-
-    @Override
-    public StringBuilder exportWorld() {
-        // Not supported
-        return new StringBuilder();
-    }
 
     @Override
     public void importWorld(List<String[]> arg0, ExtensionManager arg1,
                             ImportErrorHandler arg2) throws ExtensionException {
-        // Not supported
-    }
-
-    @Override
-    public ExtensionObject readExtensionObject(ExtensionManager arg0,
-                                               String arg1, String arg2) throws ExtensionException,
-            CompilerException {
-        // Not supported
-        return null;
+        // TODO
     }
 
     @Override

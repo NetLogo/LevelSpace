@@ -18,8 +18,8 @@ trait LSModelManager extends ModelManager {
 
 class BackingModelManager extends LSModelManager {
   override val guiComponent  = new LevelSpaceMenu(App.app.tabs, this)
-  val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
-  var openModels    = Map.empty[String, ChildModel]
+  private val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
+  private var openModels    = Map.empty[String, ChildModel]
 
   override def updateChildModels(indexedModels: JMap[java.lang.Integer, ChildModel]): Unit = {
     val models            = indexedModels.values.asScala
@@ -48,7 +48,7 @@ class BackingModelManager extends LSModelManager {
 
   def removeTab(tab: ModelCodeTab): Unit = {
     if (! openModelPaths(tab.filePath))
-      backingModels.get(tab.filePath).foreach(_._1.kill)
+      backingModels.get(tab.filePath).foreach(_._1.kill())
     backingModels -= tab.filePath
   }
 

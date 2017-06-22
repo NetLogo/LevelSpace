@@ -1,19 +1,15 @@
 package org.nlogo.ls
 
-import org.nlogo.api.Workspace
-import scala.concurrent.ExecutionContext.global
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.util.{Success, Failure}
 import javax.swing.SwingUtilities
-import java.util.concurrent.Executor
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object UnlockAndBlock {
-  val swingExecutionContext: ExecutionContext = ExecutionContext.fromExecutor(new Executor {
-    def execute(command: Runnable): Unit = SwingUtilities.invokeLater(command)
-  })
+  val swingExecutionContext: ExecutionContext = ExecutionContext.fromExecutor(
+    (command: Runnable) => SwingUtilities.invokeLater(command)
+  )
 
-  def apply[R](unlock: AnyRef)(fn: => R): R = UnlockAndBlock.run(global, unlock)(fn)
   def onEDT[R](unlock: AnyRef)(fn: => R): R = UnlockAndBlock.run(swingExecutionContext, unlock)(fn)
   /**
    * Runs `fn` in a Future and waits for it to return while keeping `unlock`
@@ -25,12 +21,14 @@ object UnlockAndBlock {
   def run[R](executionContext: ExecutionContext, unlock: AnyRef)(fn: => R): R = {
     implicit val ec = executionContext
     val future = Future {
-      try fn finally unlock.synchronized { unlock.notifyAll }
+      try fn finally unlock.synchronized {
+        unlock.notifyAll()
+      }
     }
     try {
       while (!future.isCompleted) {
         unlock.synchronized {
-          unlock.wait(50)
+          unlock.wait(0,1)
         }
         if (Thread.currentThread.isInterrupted) throw new InterruptedException()
       }
@@ -39,7 +37,7 @@ object UnlockAndBlock {
         case Failure(e) => throw e
       }.get
     } catch {
-      case ex: InterruptedException =>
+      case _: InterruptedException =>
         Thread.currentThread.interrupt()
         throw new org.nlogo.nvm.HaltException(false)
     }

@@ -1,4 +1,15 @@
 extensions [ls]
+
+to setup
+  ca
+  ls:ask ls:models [ setup ]
+  reset-ticks
+end
+
+to go
+  ls:ask ls:models [ go ]
+  tick
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 243
@@ -47,10 +58,10 @@ NIL
 BUTTON
 14
 164
-196
+109
 197
 NIL
-ls:ask ls:models [ setup ]
+setup
 NIL
 1
 T
@@ -64,10 +75,10 @@ NIL
 BUTTON
 20
 204
-184
+107
 237
 NIL
-ls:ask ls:models [ go ]
+go\n
 T
 1
 T
@@ -437,7 +448,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0-RC1
+NetLogo 6.0.1-RC1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

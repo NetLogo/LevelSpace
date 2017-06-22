@@ -1,21 +1,18 @@
 package org.nlogo.ls
 
-import scala.collection.breakOut
+import org.nlogo.api.{Argument, Command, Context, Dump, ExtensionException, Reporter}
+import org.nlogo.core.{I18N, Let, LogoList, Syntax}
+import org.nlogo.nvm.{Activation, ExtensionContext, Context => NvmContext}
+
 import scala.collection.JavaConverters._
-import scala.collection.mutable.{Map => MMap, WeakHashMap}
-
-import org.nlogo.api.{Context, Argument, Command, Reporter, ExtensionException, Dump}
-import org.nlogo.core.{Syntax, LogoList, Let, Token, I18N}
-import org.nlogo.nvm.{Context => NvmContext, ExtensionContext, Activation, LetBinding}
-
-import com.google.common.collect.MapMaker
+import scala.collection.mutable
 
 
 object CtxConverter {
   def nvm(ctx: Context): NvmContext = ctx.asInstanceOf[ExtensionContext].nvmContext
 }
 
-class ScopedVals(elems: (Activation, AnyRef)*) extends WeakHashMap[Activation, AnyRef] {
+class ScopedVals(elems: (Activation, AnyRef)*) extends mutable.WeakHashMap[Activation, AnyRef] {
   elems foreach { case (k, v) => this(k) = v }
 }
 
@@ -31,10 +28,9 @@ class LetPrim extends Command {
   val LetPrefix = "ls "
 
   def letBindings(ctx: NvmContext): Seq[(String, AnyRef)] = {
-    var letValues = Seq.empty[(String, AnyRef)]
     ctx.activation.binding.allLets
       .filter {
-        case (let: Let, value: AnyRef) => let.name != null && let.name.startsWith(LetPrefix)
+        case (let: Let, _: AnyRef) => let.name != null && let.name.startsWith(LetPrefix)
       }
       .flatMap {
         case (let: Let, value: AnyRef) => toScopedVals(value).get(ctx.activation).map(let.name.substring(LetPrefix.length) -> _)
@@ -55,7 +51,7 @@ class LetPrim extends Command {
       val scopedVal = nvmCtx.activation.binding.getLet(let)
       toScopedVals(scopedVal)(nvmCtx.activation) = args(1).get
     } catch {
-      case e: NoSuchElementException =>
+      case _: NoSuchElementException =>
         nvmCtx.activation.binding.let(let, new ScopedVals(nvmCtx.activation -> args(1).get))
     }
   }
@@ -75,11 +71,11 @@ class Ask(ls: LevelSpace) extends Command {
 
   override def perform(args: Array[Argument], ctx: Context) = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
-    val cmdArgs = args.slice(2, args.size).map(_.get)
+    val cmdArgs = args.slice(2, args.length).map(_.get)
     val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
-    ls.toModelList(args(0)).map {
-      _.ask(code, lets, cmdArgs)
-    }.foreach(_(ctx.world))
+    ls.toModelList(args(0)).map { (m: ChildModel) =>
+      m.ask(code, lets, cmdArgs)
+    }.foreach(_.waitFor)
   }
 }
 
@@ -93,12 +89,12 @@ class Report(ls: LevelSpace) extends Reporter {
 
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
-    val cmdArgs = args.slice(2, args.size).map(_.get)
+    val cmdArgs = args.slice(2, args.length).map(_.get)
     val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
-    val results = ls.toModelList(args(0)).map{
-      _.of(code, lets, cmdArgs)
-    }.map(_(ctx.world))
-    if (args(0).get.isInstanceOf[Double]) results.head else LogoList.fromVector(results.toVector)
+    val results = ls.toModelList(args(0)).map{ (m: ChildModel) =>
+      m.of(code, lets, cmdArgs)
+    }.map(_.waitFor)
+    if (args(0).get.isInstanceOf[LogoList]) LogoList.fromVector(results.toVector) else results.head
   }
 }
 
@@ -124,18 +120,18 @@ class With(ls: LevelSpace) extends Reporter {
 
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val code = args(1).getCode.asScala.map(_.text).mkString(" ")
-    val cmdArgs = args.slice(2, args.size).map(_.get)
+    val cmdArgs = args.slice(2, args.length).map(_.get)
     val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
     val matchingModels = ls.toModelList(args(0))
-      .map(m => m -> m.of(code, lets, cmdArgs))
-      .map(p => p._1 -> p._2(ctx.world))
+      .map((m: ChildModel) => m -> m.of(code, lets, cmdArgs))
+      .map(p => p._1 -> p._2.waitFor)
       .filter {
         case (_, b: java.lang.Boolean) => b
         case (m: ChildModel, x: AnyRef) =>
           throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
-                                                         "ls:with", m.name, Dump.logoObject(x)))
+            "ls:with", m.name, Dump.logoObject(x)))
       }
-      .map(_._1.modelID: java.lang.Double)
+      .map(_._1.modelID.toDouble: java.lang.Double)
       .toVector
     LogoList.fromVector(matchingModels)
   }
@@ -150,18 +146,18 @@ class ModelReporter(ls: LevelSpace, ret: Int, reporter: ChildModel => AnyRef) ex
   override def getSyntax = Syntax.reporterSyntax(right = List(Syntax.NumberType | Syntax.ListType), ret = ret)
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val names = ls.toModelList(args(0)).map(reporter)
-    if (args(0).get.isInstanceOf[Double]) names.head
-    else LogoList.fromVector(names.toVector)
+    if (args(0).get.isInstanceOf[LogoList]) LogoList.fromVector(names.toVector)
+    else names.head
   }
 }
 
-class Show(ls: LevelSpace) extends ModelCommand(ls, _.show)
-class Hide(ls: LevelSpace) extends ModelCommand(ls, _.hide)
-class ShowAll(ls: LevelSpace) extends ModelCommand(ls, _.showAll)
-class HideAll(ls: LevelSpace) extends ModelCommand(ls, _.hideAll)
-class Close(ls: LevelSpace) extends ModelCommand(ls, ls.closeModel _)
-class UpdateView(ls: LevelSpace) extends ModelCommand(ls, _ match {
-  case hm: HeadlessChildModel => hm.updateView
+class Show(ls: LevelSpace) extends ModelCommand(ls, _.show())
+class Hide(ls: LevelSpace) extends ModelCommand(ls, _.hide())
+class ShowAll(ls: LevelSpace) extends ModelCommand(ls, _.showAll())
+class HideAll(ls: LevelSpace) extends ModelCommand(ls, _.hideAll())
+class Close(ls: LevelSpace) extends ModelCommand(ls, ls.closeModel)
+class UpdateView(ls: LevelSpace) extends ModelCommand(ls, {
+  case hm: HeadlessChildModel => hm.updateView()
   case _ =>
 })
 class Name(ls: LevelSpace) extends ModelReporter(ls, Syntax.StringType, _.name)

@@ -24,7 +24,7 @@ with Event.LinkParent
 with LinkRoot
 with ControlSet {
   val listenerManager = new NetLogoListenerManager
-  val world = if(Version.is3D) new World3D() else new World
+  val world: World = if(Version.is3D) new World3D() else new World
 
   // KioskLevel.NONE - We want a 3d button
   val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, this) {
@@ -33,7 +33,7 @@ with ControlSet {
     lazy val updateManager = new UpdateManager {
       override def defaultFrameRate = workspace.frameRate
       override def ticks = workspace.world.tickCounter.ticks
-      override def updateMode = workspace.updateMode
+      override def updateMode = workspace.updateMode()
     }
 
     val aggregateManager = new org.nlogo.sdm.AggregateManagerLite
@@ -61,7 +61,7 @@ with ControlSet {
 
   val procedures = new ProceduresLite(workspace, workspace)
   val liteEditorFactory = new DefaultEditorFactory(workspace)
-  val interfacePanel = createInterfacePanel(workspace)
+  val interfacePanel: InterfacePanelLite = createInterfacePanel(workspace)
 
   addLinkComponent(workspace.aggregateManager)
   addLinkComponent(workspace)
