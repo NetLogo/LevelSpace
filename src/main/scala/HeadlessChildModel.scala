@@ -2,7 +2,7 @@ package org.nlogo.ls
 
 import java.io.IOException
 
-import org.nlogo.agent
+import org.nlogo.agent.{World, World2D, World3D, OutputObject, CompilationManagement}
 import org.nlogo.api._
 import org.nlogo.headless.HeadlessWorkspace
 import org.nlogo.ls.gui.ViewFrame
@@ -13,11 +13,10 @@ import org.nlogo.workspace.AbstractWorkspaceScala
 @throws(classOf[ExtensionException])
 @throws(classOf[HaltException])
 @throws(classOf[IOException])
-class HeadlessChildModel
-(parentWorkspace: AbstractWorkspaceScala, path: String, modelID: Int)
+class HeadlessChildModel (parentWorkspace: AbstractWorkspaceScala, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
 
-  val world: agent.World = if(Version.is3D) new org.nlogo.agent.World3D() else new org.nlogo.agent.World
+  val world: World with CompilationManagement = if(Version.is3D) new World3D() else new World2D()
 
   val workspace = new HeadlessWorkspace(
       world,
@@ -25,7 +24,7 @@ class HeadlessChildModel
       new org.nlogo.render.Renderer(world),
       new org.nlogo.sdm.AggregateManagerLite,
       null) {
-    override def sendOutput(oo: org.nlogo.agent.OutputObject, toOutputArea: Boolean) = {
+    override def sendOutput(oo: OutputObject, toOutputArea: Boolean) = {
       frame.foreach { f => onEDT {
         new org.nlogo.window.Events.OutputEvent(false, oo, false, !toOutputArea).raise(f)
       }}
