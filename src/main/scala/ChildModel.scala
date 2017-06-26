@@ -19,10 +19,10 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   }
   def name = _name.getOrElse(workspace.getModelFileName)
 
-  def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): NotifyingJob =
+  def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
     evaluator.command(code, lets, args)
 
-  def of(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): NotifyingJob =
+  def of(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[AnyRef] =
     evaluator.report(code, lets, args)
 
   def kill() = {

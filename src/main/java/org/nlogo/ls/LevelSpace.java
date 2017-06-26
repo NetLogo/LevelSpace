@@ -13,7 +13,6 @@ import org.nlogo.app.App;
 import org.nlogo.app.ToolsMenu;
 import org.nlogo.awt.EventQueue$;
 import org.nlogo.core.CompilerException;
-import org.nlogo.core.ExtensionObject;
 import org.nlogo.core.LogoList;
 import org.nlogo.core.Syntax;
 import org.nlogo.core.SyntaxJ;

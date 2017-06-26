@@ -52,6 +52,6 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspaceScala, path: String,
 
   def setSpeed(d: Double) = {}
 
-  override def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): NotifyingJob =
-    super.ask(code, lets, args)
+  override def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
+    super.ask(code, lets, args).map {r => updateView(); r}
 }

@@ -1,7 +1,7 @@
 package org.nlogo.ls
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import org.nlogo.api.{SimpleJobOwner, World}
+import org.nlogo.api.{ExtensionException, SimpleJobOwner, World}
 import org.nlogo.core.{AgentKind, LogoList, Nobody}
 import org.nlogo.nvm.{Procedure, Reporter}
 import org.nlogo.prim.{_constboolean, _constdouble, _constlist, _conststring, _nobody}
@@ -18,25 +18,40 @@ class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWo
     override def load(code: String) = compileProcedureReporter(code)
   })
 
-  def command(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): NotifyingJob =
-    run(code, lets, args, "__apply", commandRunner)
+  def command(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
+    run(code, lets, args, "__apply", commandRunner).map(_ => Unit)
 
-  def report(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): NotifyingJob =
-    run(code, lets, args, "__apply-result", reporterRunner)
+  def report(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[AnyRef] =
+    run(code, lets, args, "__apply-result", reporterRunner).map(checkResult)
 
-  def run(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], apply: String, runner: (Reporter, Seq[AnyRef]) => Procedure): NotifyingJob = {
-    val fullCode = s"[ [ __levelspace-argument-list ${lets.map(_._1).mkString(" ")} ] -> $apply [ $code ] __levelspace-argument-list]"
+  def run(code: String, lets: Seq[(String, AnyRef)],
+          args: Seq[AnyRef],
+          apply: String,
+          runner: (Reporter, Seq[AnyRef]) => Procedure): Notifying[AnyRef] =
+    ErrorUtils.handle(modelID, name) {
+      val fullCode = s"[ [ __levelspace-argument-list ${lets.map(_._1).mkString(" ")} ] -> $apply [ $code ] __levelspace-argument-list]"
 
-    val fullArgs = LogoList.fromVector(args.toVector) +: lets.map(_._2)
+      val fullArgs = LogoList.fromVector(args.toVector) +: lets.map(_._2)
 
-    val proc = ErrorUtils.handle(modelID, name) {
-      runner(getLambda(fullCode), fullArgs)
+      val proc = runner(getLambda(fullCode), fullArgs)
+      val job = new NotifyingJob(parentWorld, ws, owner, ws.world.observers, proc)
+      ws.jobManager.addJob(job, waitForCompletion = false)
+
+      job.map {
+        case ex: Exception => throw ErrorUtils.wrap(modelID, name, ex)
+        case r => r
+      }
     }
-    val job = new NotifyingJob(parentWorld, modelID, name, ws, owner, ws.world.observers, proc)
-    ws.jobManager.addJob(job, waitForCompletion = false)
 
-    job
+  private def checkResult(result: AnyRef): AnyRef = result match {
+    case (_: org.nlogo.agent.Agent | _: org.nlogo.agent.AgentSet) =>
+      throw ErrorUtils.wrap(modelID, name, "You cannot report agents or agentsets from LevelSpace models.")
+    case l: LogoList =>
+      l.foreach(checkResult)
+      l
+    case x => x
   }
+
 
   private def getLambda(code: String): Reporter = try {
     lambdaCache.get(code)
