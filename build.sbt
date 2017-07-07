@@ -52,4 +52,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.0.1-839717c"
+netLogoVersion := "6.0.2-M1"
