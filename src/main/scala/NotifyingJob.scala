@@ -1,9 +1,8 @@
 package org.nlogo.ls
 
 import org.nlogo.agent.AgentSet
-import org.nlogo.api.{ExtensionException, JobOwner}
-import org.nlogo.core.LogoList
-import org.nlogo.nvm.{ConcurrentJob, Job, Procedure}
+import org.nlogo.api.JobOwner
+import org.nlogo.nvm.{ConcurrentJob, HaltException, Job, Procedure}
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 class NotifyingJob(override val notifyObject: AnyRef,
@@ -14,29 +13,31 @@ class NotifyingJob(override val notifyObject: AnyRef,
 extends ConcurrentJob(owner, agentSet, procedure, 0, null, workspace, owner.random)
 with Notifying[AnyRef] {
 
-  override def finish() = {
+  override def finish(): Unit = {
     super[ConcurrentJob].finish()
     super[Notifying].finish()
   }
 
-  override def isFinished = state == Job.REMOVED
+  override def isFinished: Boolean = state == Job.REMOVED
 
-  override def waitFor: AnyRef = {
+  override def waitFor: AnyRef = try {
     waitForFinish()
     result
+  } catch {
+    case _: InterruptedException => throw new HaltException(true)
   }
 }
 
 trait Notifying[R] {
   def notifyObject: AnyRef
 
-  def finish() = {
+  def finish(): Unit = {
     notifyObject.synchronized(notifyObject.notify())
   }
 
   def isFinished: Boolean
 
-  final def waitForFinish() = {
+  final def waitForFinish(): Unit = {
     while (!isFinished) {
       notifyObject.synchronized(notifyObject.wait(200))
     }
@@ -49,7 +50,7 @@ trait Notifying[R] {
 
 case class MappedNotifying[A,B](base: Notifying[A], fn: A => B) extends Notifying[B] {
   override def notifyObject: AnyRef = base.notifyObject
-  override def finish() = base.finish()
+  override def finish(): Unit = base.finish()
   override def isFinished: Boolean =  base.isFinished
   override def waitFor = fn(base.waitFor)
 }

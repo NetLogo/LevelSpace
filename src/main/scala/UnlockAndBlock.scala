@@ -19,7 +19,7 @@ object UnlockAndBlock {
    * anything that may end up blocking on the EDT doing something.
    **/
   def run[R](executionContext: ExecutionContext, unlock: AnyRef)(fn: => R): R = {
-    implicit val ec = executionContext
+    implicit val ec: ExecutionContext = executionContext
     val future = Future {
       try fn finally unlock.synchronized {
         unlock.notifyAll()
