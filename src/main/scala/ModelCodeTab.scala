@@ -5,7 +5,7 @@ import java.io.{FileReader, FileWriter}
 import java.net.URI
 import javax.swing.{ AbstractAction, JButton, JOptionPane }
 
-import org.nlogo.api.{ ExtensionException, ModelReader, ModelSection, ModelType, Version }
+import org.nlogo.api.{ ExtensionException, ModelReader, ModelSection, ModelType, TwoDVersion, Version }
 import org.nlogo.app.{ Tabs, App }
 import org.nlogo.app.codetab.{ ProceduresMenu, CodeTab }
 import org.nlogo.awt.UserCancelException
@@ -14,11 +14,11 @@ import org.nlogo.fileformat
 import org.nlogo.swing.{ ToolBar, ToolBarActionButton, OptionDialog }, ToolBar.Separator
 import org.nlogo.util.Utils
 import org.nlogo.window.Events.ModelSavedEvent
-import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelTracker, OpenModel, OpenModelFromURI, SaveModel, ModelsLibrary }
+import org.nlogo.workspace.{ AbstractWorkspace, ModelTracker, OpenModel, OpenModelFromURI, SaveModel, ModelsLibrary }
 
 import java.nio.file.Paths
 
-class ModelCodeTab(workspace: AbstractWorkspaceScala, tabs: Tabs, modelManager: ModelManager)
+class ModelCodeTab(workspace: AbstractWorkspace, tabs: Tabs, modelManager: ModelManager)
 extends CodeTab(workspace, tabs)
 with ModelSavedEvent.Handler {
   val tabName            = workspace.getModelFileName
@@ -41,9 +41,9 @@ with ModelSavedEvent.Handler {
         throw new ExtensionException("Levelspace couldn't open invalid NetLogo model: " + Paths.get(uri).toString)
       }
       def errorAutoconvertingModel(failure: fileformat.FailedConversionResult): Option[Model] = None
-      def shouldOpenModelOfDifferingArity(arity: Int, version: String): Boolean = false
-      def shouldOpenModelOfLegacyVersion(version: String): Boolean = true
-      def shouldOpenModelOfUnknownVersion(version: String): Boolean = true
+      def shouldOpenModelOfDifferingArity(arity: Int, version: String): OpenModel.VersionResponse = OpenModel.CancelOpening
+      def shouldOpenModelOfLegacyVersion(currentVersion: String, openVersion: String): Boolean = true
+      def shouldOpenModelOfUnknownVersion(currentVersion: String, openVersion: String): Boolean = true
     }
     OpenModelFromURI(Paths.get(filePath).toUri, controller, loader, fileformat.defaultConverter, Version).foreach { model =>
       currentModel = Some(model)
@@ -51,7 +51,7 @@ with ModelSavedEvent.Handler {
     }
 
     // All paths will be absolute, so this is okay
-    if (ModelsLibrary.getModelPaths contains filePath) {
+    if (ModelsLibrary.getModelPaths(TwoDVersion) contains filePath) {
       text.setEditable(false)
       JOptionPane.showMessageDialog(App.app.frame,
         "<html><p style='width: 400px;'>" +
@@ -107,7 +107,7 @@ with ModelSavedEvent.Handler {
       def chooseFilePath(modelType: ModelType): Option[URI] = {
         Some(Paths.get(workspace.getModelPath).toUri)
       }
-      def shouldSaveModelOfDifferingVersion(version: String): Boolean = false
+      def shouldSaveModelOfDifferingVersion(currentVersion: Version, saveVersion: String): Boolean = false
       // shouldn't see invalid file format
       def warnInvalidFileFormat(format: String): Unit = {
         throw new ExtensionException("Internal LevelSpace error: invalid file format: " + format)
@@ -115,7 +115,7 @@ with ModelSavedEvent.Handler {
     }
     currentModel = currentModel.map(_.copy(code = innerSource)) orElse Some(Model(code = innerSource))
     currentModel.foreach { model =>
-      SaveModel(model, loader, controller, workspace, Version).foreach {
+      SaveModel(model, loader, controller, workspace.modelTracker, Version).foreach {
         _.apply().foreach { _ =>
           changedSourceWarning()
           dirty = false

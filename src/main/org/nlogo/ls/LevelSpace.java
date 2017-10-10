@@ -19,7 +19,7 @@ import org.nlogo.core.SyntaxJ;
 import org.nlogo.nvm.ExtensionContext;
 import org.nlogo.nvm.HaltException;
 import org.nlogo.window.GUIWorkspace;
-import org.nlogo.workspace.AbstractWorkspaceScala;
+import org.nlogo.workspace.AbstractWorkspace;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -162,14 +162,14 @@ public class LevelSpace extends DefaultClassManager {
 
         @Override
         public void perform(Argument args[], Context ctx) throws ExtensionException, org.nlogo.api.LogoException {
-            AbstractWorkspaceScala parentWS = (AbstractWorkspaceScala) ctx.workspace();
+            AbstractWorkspace parentWS = (AbstractWorkspace) ctx.workspace();
 
             String modelPath = getModelPath((ExtensionContext) ctx, args[1].getString());
             try {
                 for (int i=0; i < args[0].getIntValue(); i++) {
                     ChildModel model;
                     if (modelType == HeadlessChildModel.class || isHeadless() || parentWS.behaviorSpaceRunNumber() != 0) {
-                        model = new HeadlessChildModel((AbstractWorkspaceScala) ctx.workspace(), modelPath, modelCounter);
+                        model = new HeadlessChildModel((AbstractWorkspace) ctx.workspace(), modelPath, modelCounter);
                     } else {
                         model = new GUIChildModel(LevelSpace.this, ctx.workspace(), modelPath, modelCounter);
                         GUIWorkspace rootWS = App.app().workspace();

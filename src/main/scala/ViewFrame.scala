@@ -6,6 +6,7 @@ import javax.swing.{BoxLayout, JFrame, JPanel, Timer}
 
 import org.nlogo.core.CompilerException
 import org.nlogo.headless.HeadlessWorkspace
+import org.nlogo.nvm.{ CompilerFlags, Optimizations }
 import org.nlogo.window.Events.{AddJobEvent, CompileMoreSourceEvent, CompiledEvent, PeriodicUpdateEvent}
 import org.nlogo.window.JobWidget
 
@@ -41,7 +42,8 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
         ws.compiler.compileMoreCode(owner.source,
           displayName, ws.world.program,
           ws.procedures, ws.getExtensionManager,
-          ws.getCompilationEnvironment)
+          ws.getCompilationEnvironment,
+          CompilerFlags(optimizations = Optimizations.guiOptimizations))
       results.head.init(ws)
       results.head.owner = owner
       new CompiledEvent(owner, ws.world.program, results.head, null).raise(this)
@@ -53,7 +55,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
 
   def handle(e: AddJobEvent): Unit = {
     val agents = if (e.agents == null ) ws.world.agentSetOfKind(e.owner.asInstanceOf[JobWidget].kind) else e.agents
-    ws.jobManager.addJob(e.owner, agents, ws, e.procedure)
+    ws.jobManager.addJob(e.owner, agents, e.procedure)
   }
 
 }

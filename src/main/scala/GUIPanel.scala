@@ -4,16 +4,19 @@ import java.awt._
 import javax.swing.{event, _}
 
 import org.nlogo.app.interfacetab.CommandCenter
-import org.nlogo.window.{Events, GUIWorkspace, TickCounterLabel}
-import org.nlogo.workspace.AbstractWorkspaceScala
 
-abstract class ModelPanel(ws: AbstractWorkspaceScala, panel: JPanel, verticalScroll: Int, resizeWeight: Int)
+import org.nlogo.window.{Events, GUIWorkspace, TickCounterLabel}
+import org.nlogo.workspace.AbstractWorkspace
+
+abstract class ModelPanel(ws: AbstractWorkspace, panel: JPanel, verticalScroll: Int, resizeWeight: Int)
 extends JPanel with Events.OutputEvent.Handler {
   setLayout(new BorderLayout)
 
   val controlStrip = new JPanel
   controlStrip.setLayout(new BorderLayout)
-  controlStrip.add(new TickCounterLabel(ws.world), BorderLayout.WEST)
+  protected val tickCounterLabel = new TickCounterLabel
+  controlStrip.add(tickCounterLabel, BorderLayout.WEST)
+
 
   add(controlStrip, BorderLayout.NORTH)
   var cc = new CommandCenter(ws)
@@ -40,11 +43,17 @@ extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) 
   val speedSlider = new JSlider(-110, 112, ws.speedSliderPosition().toInt)
   speedSlider.addChangeListener((_: event.ChangeEvent) => {
     ws.speedSliderPosition(speedSlider.getValue / 2)
-    ws.updateManager().nudgeSleeper
+    ws.updateManager.nudgeSleeper
   })
   speedSliderPanel.add(speedSlider)
   controlStrip.add(speedSliderPanel, BorderLayout.CENTER)
+
+  ws.listenerManager.addListener(tickCounterLabel)
 }
 
-class HeadlessPanel(ws: AbstractWorkspaceScala, panel: JPanel)
-extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, 0)
+class HeadlessPanel(ws: AbstractWorkspace, panel: JPanel)
+extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, 0) with Events.PeriodicUpdateEvent.Handler {
+  def handle(outputEvent: Events.PeriodicUpdateEvent): Unit = {
+    tickCounterLabel.tickCounterChanged(ws.world.tickCounter.ticks)
+  }
+}

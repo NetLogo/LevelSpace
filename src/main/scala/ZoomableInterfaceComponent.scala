@@ -177,9 +177,9 @@ class ZoomableInterfacePanel(viewWidget: ViewWidgetInterface,
       zoomByStep(zoomedEvent.action)
 }
 
-class ZoomableInterfaceComponent(frame: JFrame) extends InterfaceComponent(frame) {
+class ZoomableInterfaceComponent(frame: JFrame, is3D: Boolean) extends InterfaceComponent(frame, is3D) {
   override protected def createInterfacePanel(workspace: GUIWorkspace) = {
-    new ZoomableInterfacePanel(workspace.viewWidget, workspace, workspace,
+    new ZoomableInterfacePanel(workspace.viewWidget, workspace.compilerServices, workspace,
       workspace.plotManager, liteEditorFactory)
   }
 }

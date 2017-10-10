@@ -5,9 +5,9 @@ import org.nlogo.api.SimpleJobOwner
 import org.nlogo.core.{AgentKind, LogoList, Nobody}
 import org.nlogo.nvm.{ExclusiveJob, Procedure, Reporter}
 import org.nlogo.prim.{_constboolean, _constdouble, _constlist, _conststring, _nobody}
-import org.nlogo.workspace.AbstractWorkspaceScala
+import org.nlogo.workspace.AbstractWorkspace
 
-class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWS: AbstractWorkspaceScala) {
+class Evaluator(modelID: Int, name: String, ws: AbstractWorkspace, parentWS: AbstractWorkspace) {
 
   val owner = new SimpleJobOwner(name, ws.world.mainRNG, AgentKind.Observer)
 
@@ -54,11 +54,11 @@ class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWS
       val proc = runner(getLambda(fullCode), LogoList.fromVector(args.toVector), lets)
 
       val job: Notifying[AnyRef] = if (parallel) {
-        val job = new NotifyingJob(parentWS.world, ws, owner, ws.world.observers, proc)
+        val job = new NotifyingJob(parentWS.world, owner, ws.world.observers, proc)
         ws.jobManager.addJob(job, waitForCompletion = false)
         job
       } else {
-        val j = new ExclusiveJob(owner, ws.world.observers, proc, 0, null, ws, owner.random)
+        val j = new ExclusiveJob(owner, ws.world.observers, proc, 0, null, owner.random, ExclusiveJob.initialComeUpForAir)
         j.run()
         new FakeNotifier[AnyRef](j.result)
       }

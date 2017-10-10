@@ -7,14 +7,14 @@ import java.io.{File, FileWriter, IOException}
 import javax.swing._
 
 import org.nlogo.api.ModelSections.ModelSaveable
-import org.nlogo.api.{ExtensionException, ModelSections, Version, Exceptions}
+import org.nlogo.api.{ Exceptions, ExtensionException, ModelSections, TwoDVersion, Version }
 import org.nlogo.core.{CompilerException, Shape, ShapeParser}
 import org.nlogo.app.{ModelSaver, App, Tabs}
 import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.fileformat
 import org.nlogo.swing.FileDialog
-import org.nlogo.workspace.{AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel}
+import org.nlogo.workspace.{AbstractWorkspace, ModelsLibrary, ModelTracker, SaveModel}
 
 import scala.collection.JavaConversions._
 
@@ -22,7 +22,7 @@ trait ModelManager {
   def removeTab(tab: ModelCodeTab): Unit
   def existingTab(filePath: String): Option[CodeTab]
   def registerTab(filePath: String)
-                 (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab]
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab]
 }
 
 class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
@@ -117,7 +117,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
 
         private def selectFile: Option[String] =
           showLoadSelection.flatMap(path =>
-              if (ModelsLibrary.getModelPaths.contains(path)) {
+              if (ModelsLibrary.getModelPaths(TwoDVersion).contains(path)) {
                 showLibraryModelErrorMessage()
                 None
               } else
@@ -166,7 +166,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
                 None
             }
           }
-          def shouldSaveModelOfDifferingVersion(version: String): Boolean = true
+          def shouldSaveModelOfDifferingVersion(currentVersion: Version, saveVersion: String): Boolean = true
           def warnInvalidFileFormat(format: String): Unit = {
             // we force users to save in NetLogo, so this doesn't happen
           }

@@ -12,61 +12,67 @@ import org.nlogo.awt.EventQueue
 import org.nlogo.core.{AgentKind, Model}
 import org.nlogo.lite.ProceduresLite
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
-import org.nlogo.window.{CompilerManager, DefaultEditorFactory, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
+import org.nlogo.window.{CompilerManager, DefaultEditorFactory, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager, WorkspaceConfig }
 import org.nlogo.workspace.OpenModelFromURI
 import org.nlogo.{api, fileformat}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
-abstract class InterfaceComponent(frame: javax.swing.JFrame) extends javax.swing.JPanel
+abstract class InterfaceComponent(frame: javax.swing.JFrame, is3D: Boolean) extends javax.swing.JPanel
 with Event.LinkParent
 with LinkRoot
 with ControlSet {
   val listenerManager = new NetLogoListenerManager
-  val world: World = if(Version.is3D) new World3D() else new World2D()
+
+  val world: World with CompilationManagement =
+    if (is3D) new World3D() else new World2D()
+
+  val compiler = new org.nlogo.compile.Compiler(if (is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
+
+  val monitorManager = new AgentMonitorManager(frame)
+
+  val aggregateManager = new org.nlogo.sdm.AggregateManagerLite
+
+  val config = WorkspaceConfig
+    .default
+    .withWorld(world)
+    .withCompiler(compiler)
+    .withUpdateManager(new UpdateManager(world.tickCounter))
+    .withExternalFileManager(new ExternalFileManager)
+    .withFrame(frame)
+    .withLinkParent(frame)
+    .withListenerManager(listenerManager)
+    .withMonitorManager(monitorManager)
+    .withControlSet(this)
+    .withSourceOwner(aggregateManager)
+
 
   // KioskLevel.NONE - We want a 3d button
-  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, this) {
-    val compiler = new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
-
-    lazy val updateManager = new UpdateManager {
-      override def defaultFrameRate = workspace.frameRate
-      override def ticks = workspace.world.tickCounter.ticks
-      override def updateMode = workspace.updateMode()
-    }
-
-    val aggregateManager = new org.nlogo.sdm.AggregateManagerLite
-
-
-    override def inspectAgent(agent: api.Agent, radius: Double) = {
-      val a = agent.asInstanceOf[Agent]
-      monitorManager.inspect(a.kind, a, radius)
-    }
-    override def inspectAgent(kind: AgentKind, agent: Agent, radius: Double) =
-      monitorManager.inspect(kind, agent, radius)
-    override def stopInspectingAgent(agent: Agent): Unit = monitorManager.stopInspecting(agent)
-    override def stopInspectingDeadAgents(): Unit = monitorManager.stopInspectingDeadAgents()
-    override def closeAgentMonitors() = monitorManager.closeAll()
+  val workspace: GUIWorkspace = new GUIWorkspace(config) {
     override def newRenderer = new org.nlogo.render.Renderer(world)
     override def updateModel(m: Model): Model = m
   }
 
-  val monitorManager = new AgentMonitorManager(workspace)
   addLinkComponent(monitorManager)
 
-  val viewManager = new org.nlogo.gl.view.ViewManager(workspace, frame, new java.awt.event.KeyAdapter{})
+  val viewManager = {
+    val glViewFactory =
+      if (is3D) new org.nlogo.gl.view.ThreeDGLViewFactory()
+      else      new org.nlogo.gl.view.TwoDGLViewFactory()
+    new org.nlogo.gl.view.ViewManager(workspace, frame, glViewFactory)
+  }
   workspace.init(viewManager)
   addLinkComponent(viewManager)
 
   val procedures = new ProceduresLite(workspace, workspace)
-  val liteEditorFactory = new DefaultEditorFactory(workspace)
+  val liteEditorFactory = new DefaultEditorFactory(workspace.compiler, workspace.getExtensionManager)
   val interfacePanel: InterfacePanelLite = createInterfacePanel(workspace)
 
-  addLinkComponent(workspace.aggregateManager)
+  addLinkComponent(aggregateManager)
   addLinkComponent(workspace)
   addLinkComponent(procedures)
-  addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World with CompilationManagement], procedures))
+  addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World with CompilationManagement], procedures, Seq(aggregateManager)))
   addLinkComponent(new CompiledEvent.Handler {
     override def handle(e: CompiledEvent) {
       if (e.error != null)
@@ -74,7 +80,7 @@ with ControlSet {
   }})
   addLinkComponent(new LoadModelEvent.Handler {
     override def handle(e: LoadModelEvent) {
-      workspace.aggregateManager.load(e.model, workspace)
+      aggregateManager.load(e.model, workspace)
   }})
   addLinkComponent(listenerManager)
 
@@ -86,10 +92,10 @@ with ControlSet {
     EventQueue.mustBeEventDispatchThread()
     val uri = Paths.get(path).toUri
     interfacePanel.reset()
-    val controller = new FileController(this, workspace)
+    val controller = new FileController(this, workspace.modelTracker)
     val loader = fileformat.basicLoader
     val modelOpt = OpenModelFromURI(uri, controller, loader, fileformat.defaultConverter, Version)
-    modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
+    modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace.compilerServices, Version))
   }
 
   protected def createInterfacePanel(workspace: GUIWorkspace): InterfacePanelLite
