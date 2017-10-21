@@ -43,7 +43,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     f.setJMenuBar(newMenuBar)
     (component, panel)
   }) match {
-    case Failure(_) => kill
+    case Failure(_) => kill()
     case _ =>
   }
   updateFrameTitle()

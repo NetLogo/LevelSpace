@@ -28,6 +28,13 @@ with Notifying[AnyRef] {
   }
 }
 
+class FakeNotifier[R](result: R) extends Notifying[R]{
+  override def notifyObject: AnyRef = null
+  override def finish(): Unit = {}
+  override def isFinished: Boolean = true
+  override def waitFor: R = result
+}
+
 trait Notifying[R] {
   def notifyObject: AnyRef
 

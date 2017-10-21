@@ -114,7 +114,7 @@ public class LevelSpace extends DefaultClassManager {
         return modelList;
     }
 
-    private static int castToId(Object id) throws ExtensionException {
+    public static int castToId(Object id) throws ExtensionException {
         if (id instanceof Number) {
             return ((Number) id).intValue();
         } else {

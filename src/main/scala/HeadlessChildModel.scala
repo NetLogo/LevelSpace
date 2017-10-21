@@ -2,11 +2,11 @@ package org.nlogo.ls
 
 import java.io.IOException
 
-import org.nlogo.agent.{World, World2D, World3D, OutputObject, CompilationManagement}
+import org.nlogo.agent.{CompilationManagement, OutputObject, World, World2D, World3D}
 import org.nlogo.api._
+import org.nlogo.nvm.{Context, HaltException, Instruction}
 import org.nlogo.headless.HeadlessWorkspace
 import org.nlogo.ls.gui.ViewFrame
-import org.nlogo.nvm.HaltException
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 @throws(classOf[InterruptedException])
@@ -18,16 +18,21 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspaceScala, path: String,
 
   val world: World with CompilationManagement = if(Version.is3D) new World3D() else new World2D()
 
-  val workspace = new HeadlessWorkspace(
+  val workspace: HeadlessWorkspace = new HeadlessWorkspace(
       world,
       new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect),
       new org.nlogo.render.Renderer(world),
       new org.nlogo.sdm.AggregateManagerLite,
       null) {
-    override def sendOutput(oo: OutputObject, toOutputArea: Boolean) = {
+
+    override def sendOutput(oo: OutputObject, toOutputArea: Boolean): Unit = {
       frame.foreach { f => onEDT {
         new org.nlogo.window.Events.OutputEvent(false, oo, false, !toOutputArea).raise(f)
       }}
+    }
+
+    override def runtimeError(owner: JobOwner, context: Context, instruction: Instruction, ex: Exception): Unit = {
+
     }
   }
 
@@ -40,7 +45,7 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspaceScala, path: String,
 
   var frame: Option[ViewFrame] = None
 
-  override def show() = onEDT {
+  override def show(): Unit = onEDT {
     val f = frame.getOrElse { new ViewFrame(workspace) }
     frame = Some(f)
     updateFrameTitle()
@@ -48,10 +53,17 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspaceScala, path: String,
     updateView()
   }
 
-  def updateView() = frame.foreach { f => if (f.isVisible) onEDT{ f.repaint() } }
+  def updateView(): Unit = frame.foreach { f => if (f.isVisible) onEDT{ f.repaint() } }
 
-  def setSpeed(d: Double) = {}
+  def setSpeed(d: Double): Unit = {}
 
   override def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
     super.ask(code, lets, args).map {r => updateView(); r}
+
+  def tryEagerAsk(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
+    evaluator.command(code, lets, args, parallel = usesLevelSpace)
+
+  def tryEagerOf(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[AnyRef] =
+    evaluator.report(code, lets, args, parallel = usesLevelSpace)
+
 }

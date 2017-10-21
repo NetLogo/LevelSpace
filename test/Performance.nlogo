@@ -26,6 +26,23 @@ to test-load-gui [ path n ]
   print (word "load " n " gui models: " timer)
 end
 
+to test-overhead [ n ]
+  ls:reset
+  ls:create-models 1 "Blank.nlogo"
+  ls:ask 0 [ crt 1 ]
+  reset-timer
+  repeat n * 100 [
+    ls:ask 0 [ ask turtles [ fd 1 ] ]
+  ]
+  print (word "ls: " timer)
+  ca
+  crt 1
+  reset-timer
+  repeat n * 100 [
+    ask turtles [ fd 1 ]
+  ]
+  print (word "native: " timer)
+end
 
 to test-headless-performance [ n ]
   ls:reset
@@ -166,7 +183,7 @@ max-num-models
 max-num-models
 0
 50
-8.0
+1.0
 1
 1
 NIL
@@ -576,7 +593,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.1
+NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

@@ -1,12 +1,10 @@
 package org.nlogo.ls.gui
 
 import java.awt._
-import java.awt.event.ActionEvent
-import javax.swing._
-import javax.swing.event
+import javax.swing.{event, _}
 
 import org.nlogo.app.interfacetab.CommandCenter
-import org.nlogo.window.{Events, TickCounterLabel, GUIWorkspace}
+import org.nlogo.window.{Events, GUIWorkspace, TickCounterLabel}
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 abstract class ModelPanel(ws: AbstractWorkspaceScala, panel: JPanel, verticalScroll: Int, resizeWeight: Int)
@@ -40,7 +38,7 @@ extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) 
   val speedSliderPanel = new JPanel
   speedSliderPanel.add(new JLabel("speed: "))
   val speedSlider = new JSlider(-110, 112, ws.speedSliderPosition().toInt)
-  speedSlider.addChangeListener((e: event.ChangeEvent) => {
+  speedSlider.addChangeListener((_: event.ChangeEvent) => {
     ws.speedSliderPosition(speedSlider.getValue / 2)
     ws.updateManager().nudgeSleeper
   })

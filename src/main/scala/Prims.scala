@@ -1,9 +1,9 @@
 package org.nlogo.ls
 
-import java.lang.{Boolean => JBoolean}
+import java.lang.{Boolean => JBoolean, Double => JDouble}
 
 import org.nlogo.api.{Argument, Command, Context, Dump, ExtensionException, Reporter}
-import org.nlogo.core.{I18N, Let, LogoList, Syntax}
+import org.nlogo.core.{I18N, Let, LogoList, Syntax, Token}
 import org.nlogo.nvm.{Activation, ExtensionContext, Context => NvmContext}
 
 import scala.collection.JavaConverters._
@@ -64,6 +64,40 @@ class LetPrim extends Command {
   }
 }
 
+object ModelRunner {
+  def buildCode(tokens: java.util.List[Token]): String = {
+    val sb = new StringBuilder()
+    sb.clear()
+    tokens.forEach(t =>
+      sb.append(t.text).append(' ')
+    )
+    sb.toString
+  }
+
+  def extractArgs(args: Array[Argument], pos: Int): Vector[AnyRef] =
+    if (args.length > pos)
+      args.drop(pos).map(_.get).toVector
+    else
+      Vector.empty[AnyRef]
+
+  def run[R](ls: LevelSpace, allModels: LogoList, prun: ChildModel => Notifying[R], erun: HeadlessChildModel => Notifying[R]): Seq[Notifying[R]] = {
+    val results = Array.ofDim[Notifying[R]](allModels.size)
+    var i = 0
+    allModels.foreach { id =>
+      ls.getModel(LevelSpace.castToId(id)) match {
+        case m: GUIChildModel =>
+          results(i) = prun(m)
+        case m: HeadlessChildModel => if (i > allModels.size - 4 || i > allModels.size * 0.9)
+          results(i) = erun(m)
+        else
+          results(i) = prun(m)
+      }
+      i += 1
+    }
+    results
+  }
+
+}
 class Ask(ls: LevelSpace) extends Command {
   override def getSyntax: Syntax =
     Syntax.commandSyntax(right = List(Syntax.NumberType | Syntax.ListType,
@@ -72,12 +106,17 @@ class Ask(ls: LevelSpace) extends Command {
                          defaultOption = Some(2))
 
   override def perform(args: Array[Argument], ctx: Context): Unit = {
-    val code = args(1).getCode.asScala.map(_.text).mkString(" ")
-    val cmdArgs = args.slice(2, args.length).map(_.get)
+    val code = ModelRunner.buildCode(args(1).getCode)
+    val cmdArgs = ModelRunner.extractArgs(args, 2)
     val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
-    ls.toModelList(args(0)).map { (m: ChildModel) =>
-      m.ask(code, lets, cmdArgs)
-    }.foreach(_.waitFor)
+    args(0).get match {
+      case i: JDouble => (ls.getModel(i.toInt) match {
+        case m: HeadlessChildModel => m.tryEagerAsk(code, lets, cmdArgs)
+        case m => m.ask(code, lets, cmdArgs)
+      }).waitFor
+      case l: LogoList =>
+        ModelRunner.run(ls, l, _.ask(code, lets, cmdArgs), _.tryEagerAsk(code, lets, cmdArgs)).foreach(_.waitFor)
+    }
   }
 }
 
@@ -90,13 +129,18 @@ class Report(ls: LevelSpace) extends Reporter {
                           defaultOption = Some(2))
 
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
-    val code = args(1).getCode.asScala.map(_.text).mkString(" ")
-    val cmdArgs = args.slice(2, args.length).map(_.get)
+    val code = ModelRunner.buildCode(args(1).getCode)
+    val cmdArgs = ModelRunner.extractArgs(args, 2)
     val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
-    val results = ls.toModelList(args(0)).map{ (m: ChildModel) =>
-      m.of(code, lets, cmdArgs)
-    }.map(_.waitFor)
-    if (args(0).get.isInstanceOf[LogoList]) LogoList.fromVector(results.toVector) else results.head
+    args(0).get match {
+      case i: JDouble => (ls.getModel(i.toInt) match {
+        case m: HeadlessChildModel => m.tryEagerOf(code, lets, cmdArgs)
+        case m => m.of(code, lets, cmdArgs)
+      }).waitFor
+      case l: LogoList =>
+        LogoList.fromVector(
+          ModelRunner.run(ls, l, _.of(code, lets, cmdArgs), _.tryEagerOf(code, lets, cmdArgs)).map(_.waitFor).toVector)
+    }
   }
 }
 
@@ -121,21 +165,20 @@ class With(ls: LevelSpace) extends Reporter {
                           isRightAssociative = false)
 
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
-    val code = args(1).getCode.asScala.map(_.text).mkString(" ")
-    val cmdArgs = args.slice(2, args.length).map(_.get)
+    val code = ModelRunner.buildCode(args(1).getCode)
+    val cmdArgs = ModelRunner.extractArgs(args, 2)
     val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
-    val matchingModels = ls.toModelList(args(0))
-      .map((m: ChildModel) => m -> m.of(code, lets, cmdArgs))
-      .map(p => p._1 -> p._2.waitFor)
-      .filter {
-        case (_, b: java.lang.Boolean) => b
-        case (m: ChildModel, x: AnyRef) =>
-          throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
-            "ls:with", m.name, Dump.logoObject(x)))
-      }
-      .map(_._1.modelID.toDouble: java.lang.Double)
-      .toVector
-    LogoList.fromVector(matchingModels)
+    val modelList = args(0).getList
+    val results =
+      ModelRunner.run(ls, modelList, _.of(code, lets, cmdArgs), _.tryEagerOf(code, lets, cmdArgs)).map(_.waitFor)
+    LogoList.fromVector((modelList zip results).filter {
+      case (_, b: java.lang.Boolean) =>
+        b
+      case (id: AnyRef, x: AnyRef) =>
+        val m = ls.getModel(LevelSpace.castToId(id))
+        throw new ExtensionException(I18N.errorsJ.getN("org.nlogo.prim.$common.expectedBooleanValue",
+          "ls:with", m.name, Dump.logoObject(x)))
+    }.map(_._1).toVector)
   }
 }
 
