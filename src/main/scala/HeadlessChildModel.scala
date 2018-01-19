@@ -53,6 +53,8 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspaceScala, path: String,
     updateView()
   }
 
+  def isVisible: Boolean = frame.exists(_.isVisible)
+
   def updateView(): Unit = frame.foreach { f => if (f.isVisible) onEDT{ f.repaint() } }
 
   def setSpeed(d: Double): Unit = {}
@@ -61,9 +63,9 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspaceScala, path: String,
     super.ask(code, lets, args).map {r => updateView(); r}
 
   def tryEagerAsk(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
-    evaluator.command(code, lets, args, parallel = usesLevelSpace)
+    evaluator.command(code, lets, args, parallel = usesLevelSpace || isVisible)
 
   def tryEagerOf(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[AnyRef] =
-    evaluator.report(code, lets, args, parallel = usesLevelSpace)
+    evaluator.report(code, lets, args, parallel = usesLevelSpace || isVisible)
 
 }
