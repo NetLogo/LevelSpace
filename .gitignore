@@ -13,3 +13,4 @@ project/target/
 *.jar.pack.gz
 *.zip
 extensions
+.bundledFiles

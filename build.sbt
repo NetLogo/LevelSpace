@@ -41,7 +41,7 @@ moveToLsDir := {
   (packageBin in Compile).value
   val testTarget = NetLogoExtension.directoryTarget(lsDirectory.value)
   testTarget.create(NetLogoExtension.netLogoPackagedFiles.value)
-  val testResources = (baseDirectory.value / "test" ***).filter(_.isFile)
+  val testResources = ((baseDirectory.value / "test").allPaths).filter(_.isFile)
   for (file <- testResources.get)
     IO.copyFile(file, lsDirectory.value / "test" / IO.relativize(baseDirectory.value / "test", file).get)
 }
