@@ -1,66 +1,56 @@
 package org.nlogo.ls
 
+import java.io.IOException
 import java.lang.{Boolean => JBoolean, Double => JDouble}
+import java.net.MalformedURLException
 
 import org.nlogo.api.{Argument, Command, Context, Dump, ExtensionException, Reporter}
-import org.nlogo.core.{I18N, Let, LogoList, Syntax, Token}
-import org.nlogo.nvm.{Activation, ExtensionContext, Context => NvmContext}
+import org.nlogo.core.{CompilerException, I18N, LogoList, Syntax, Token}
+import org.nlogo.nvm.{Activation, Binding, ExtensionContext, HaltException, Context => NvmContext}
+import org.nlogo.workspace.AbstractWorkspace
 
-import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.collection.mutable.{Map => MMap, WeakHashMap => WeakMap}
 
 
 object CtxConverter {
   def nvm(ctx: Context): NvmContext = ctx.asInstanceOf[ExtensionContext].nvmContext
 }
 
-class ScopedVals(elems: (Activation, AnyRef)*) extends mutable.WeakHashMap[Activation, AnyRef] {
+class ScopedVals(elems: (Activation, AnyRef)*) extends WeakMap[Activation, AnyRef] {
   elems foreach { case (k, v) => this(k) = v }
 }
 
 class LetPrim extends Command {
+  /*
+  The Binding hierarchy roughly corresponds to NetLogo's scoping (except for things like `if`, which do not create new
+  Binding objects). However, we can't actually use the Binding objects to hold our bindings since Let lookup works by
+  reference rather than by name (so we end up with duplicate Lets in the case of, for instance, `repeat`; see issue
+  #116). Thus, we use maps here, scoped by Binding, that we can do by name lookup quickly in such a way that scope is
+  still mostly respected and we don't end up with duplicate bindings (corresponding to the same Binding anyway).
 
-  /**
-   * In order to ensure no LS locals collide with regular locals in the
-   * parent, we prefix with "ls ". This guarantees no collisions because
-   * NetLogo locals are cannot contain space (and don't contain lower-case
-   * letters, but I don't think that should be relied upon).
-   * - BCH 10/11/2015
-   **/
-  val LetPrefix = "ls "
+  One upshot of this is that `ls:let` can actually shadow each other. Preventing this would be a performance hit and I
+  don't really see it as a bad thing anyway.
+  -- BCH 1/20/2018
+   */
 
-  def letBindings(ctx: NvmContext): Seq[(String, AnyRef)] = {
-    ctx.activation.binding.allLets
-      .filter {
-        case (let: Let, _: AnyRef) => let.name != null && let.name.startsWith(LetPrefix)
-      }
-      .flatMap {
-        case (let: Let, value: AnyRef) => toScopedVals(value).get(ctx.activation).map(let.name.substring(LetPrefix.length) -> _)
-      }
+  def bindings(ctx: NvmContext ): Map[String, AnyRef] =
+    bindings(ctx.activation.binding)
+
+  def bindings(binding: Binding): Map[String, AnyRef] = {
+    if (binding == null)
+      Map.empty[String, AnyRef]
+    else
+      bindings(binding.parent) ++ scopedBindings.get(binding).map(_.toMap).getOrElse(Map.empty[String, AnyRef])
   }
+
+  private val scopedBindings = WeakMap[Binding, MMap[String, AnyRef]]()
 
   override def getSyntax: Syntax = Syntax.commandSyntax(List(Syntax.SymbolType, Syntax.ReadableType))
 
   override def perform(args: Array[Argument], ctx: Context): Unit = {
     val token = args(0).getSymbol
-    val let = Let(LetPrefix + token.text)
     val nvmCtx = CtxConverter.nvm(ctx)
-
-    // Note that we need to replace the value in the map if the name is bound,
-    // since different scopes can have the same Activation.
-    // `ask` is the most common instance of this. -- BCH 1/23/2016
-    try {
-      val scopedVal = nvmCtx.activation.binding.getLet(let)
-      toScopedVals(scopedVal)(nvmCtx.activation) = args(1).get
-    } catch {
-      case _: NoSuchElementException =>
-        nvmCtx.activation.binding.let(let, new ScopedVals(nvmCtx.activation -> args(1).get))
-    }
-  }
-
-  def toScopedVals(x: AnyRef): ScopedVals = x match {
-    case vba: ScopedVals => vba
-    case _ => throw new ExtensionException("Something besides an activation map was found in an LS variable. This is a bug. Please report.")
+    scopedBindings.getOrElseUpdate(nvmCtx.activation.binding, MMap.empty[String, AnyRef])(token.text) = args(1).get
   }
 }
 
@@ -108,7 +98,7 @@ class Ask(ls: LevelSpace) extends Command {
   override def perform(args: Array[Argument], ctx: Context): Unit = {
     val code = ModelRunner.buildCode(args(1).getCode)
     val cmdArgs = ModelRunner.extractArgs(args, 2)
-    val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
+    val lets = ls.letManager.bindings(CtxConverter.nvm(ctx)).toSeq
     args(0).get match {
       case i: JDouble => (ls.getModel(i.toInt) match {
         case m: HeadlessChildModel => m.tryEagerAsk(code, lets, cmdArgs)
@@ -131,7 +121,7 @@ class Report(ls: LevelSpace) extends Reporter {
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val code = ModelRunner.buildCode(args(1).getCode)
     val cmdArgs = ModelRunner.extractArgs(args, 2)
-    val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
+    val lets = ls.letManager.bindings(CtxConverter.nvm(ctx)).toSeq
     args(0).get match {
       case i: JDouble => (ls.getModel(i.toInt) match {
         case m: HeadlessChildModel => m.tryEagerOf(code, lets, cmdArgs)
@@ -167,7 +157,7 @@ class With(ls: LevelSpace) extends Reporter {
   override def report(args: Array[Argument], ctx: Context): AnyRef = {
     val code = ModelRunner.buildCode(args(1).getCode)
     val cmdArgs = ModelRunner.extractArgs(args, 2)
-    val lets = ls.letManager.letBindings(CtxConverter.nvm(ctx))
+    val lets = ls.letManager.bindings(CtxConverter.nvm(ctx)).toSeq
     val modelList = args(0).getList
     val results =
       ModelRunner.run(ls, modelList, _.of(code, lets, cmdArgs), _.tryEagerOf(code, lets, cmdArgs)).map(_.waitFor)
@@ -180,6 +170,41 @@ class With(ls: LevelSpace) extends Reporter {
           "ls:with", m.name, Dump.logoObject(x)))
     }.map(_._1).toVector)
   }
+}
+
+class CreateModels[T <: ChildModel](ls: LevelSpace, createModel: (AbstractWorkspace, String) => ChildModel) extends Command {
+  def getSyntax: Syntax = Syntax.commandSyntax(
+    right = List(Syntax.NumberType, Syntax.StringType, Syntax.CommandType | Syntax.RepeatableType),
+    defaultOption = Some(2)
+  )
+
+  def perform(args: Array[Argument], ctx: Context): Unit = {
+    val parentWS = ctx.workspace.asInstanceOf[AbstractWorkspace]
+    val modelPath = ctx.attachCurrentDirectory(args(1).getString)
+    try {
+      for (_ <- 0 until args(0).getIntValue) {
+        val model = createModel(parentWS, modelPath)
+        if (args.length > 2)
+          args(2).getCommand.perform(ctx, Array[AnyRef](Double.box(model.modelID)))
+      }
+      ls.updateModelMenu()
+    } catch {
+      case e: MalformedURLException => throw new ExtensionException(e)
+      case e: CompilerException =>
+        throw new ExtensionException(modelPath + " has an error in its code: " + e.getMessage, e)
+      case e: IOException =>
+        throw new ExtensionException("NetLogo couldn't read the file \"" + modelPath + "\". Are you sure it exists and that NetLogo has permission to read it?", e)
+      case _: InterruptedException => throw new HaltException(false)
+    }
+  }
+}
+
+class Reset(ls: LevelSpace) extends Command {
+  override def getSyntax: Syntax = Syntax.commandSyntax()
+
+  @throws[org.nlogo.api.LogoException]
+  @throws[ExtensionException]
+  override def perform(args: Array[Argument], context: Context): Unit = ls.reset()
 }
 
 class ModelCommand(ls: LevelSpace, cmd: ChildModel => Unit) extends Command {
@@ -222,6 +247,6 @@ class ModelExists(ls: LevelSpace) extends Reporter {
 class AllModels(ls: LevelSpace) extends Reporter {
   override def getSyntax: Syntax = Syntax.reporterSyntax(ret = Syntax.ListType)
   override def report(args: Array[Argument], ctx: Context): LogoList =
-    LogoList.fromVector(ls.modelList.asScala.map(id => Double.box(id.doubleValue)).toVector)
+    LogoList.fromVector(ls.modelList.map(id => Double.box(id.doubleValue)).toVector)
 }
 

@@ -104,6 +104,7 @@ to test-memory [ n ]
     ls:ask model [
       print (word j "1")
       ls:create-interactive-models 1 "LS.nlogo"
+      ls:let k 0
       ls:ask last ls:models [
         print (word k "2")
         ls:create-interactive-models 1 "LS.nlogo"
@@ -593,7 +594,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.0.2
+NetLogo 6.0.3-M3
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

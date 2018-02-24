@@ -8,11 +8,11 @@ import org.nlogo.app.App
 import org.nlogo.app.codetab.CodeTab
 import org.nlogo.workspace.AbstractWorkspaceScala
 
-import scala.collection.JavaConverters._
+import scala.collection.Map
 import scala.collection.parallel.mutable.ParHashMap
 
 trait LSModelManager extends ModelManager {
-  def updateChildModels(map: JMap[java.lang.Integer, ChildModel]): Unit = {}
+  def updateChildModels(map: Map[Integer, ChildModel]): Unit = {}
   def guiComponent: LevelSpaceMenu = null
 }
 
@@ -21,8 +21,8 @@ class BackingModelManager extends LSModelManager {
   private val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
   private var openModels    = Map.empty[String, ChildModel]
 
-  override def updateChildModels(indexedModels: JMap[java.lang.Integer, ChildModel]): Unit = {
-    val models            = indexedModels.values.asScala
+  override def updateChildModels(indexedModels: Map[Integer, ChildModel]): Unit = {
+    val models            = indexedModels.values
 
     // toSeq.distinct preserves ordering, whereas toSet does not
     val modelPaths        = models.map(_.workspace.getModelPath).toSeq.distinct
@@ -35,10 +35,10 @@ class BackingModelManager extends LSModelManager {
     guiComponent.addMenuItemsForOpenModels(modelPaths)
   }
 
-  private def replaceTabAtPath(filePath: String) =
+  private def replaceTabAtPath(filePath: String): Unit =
     guiComponent.replaceTab(backingModels(filePath)._2)
 
-  def openModelPaths = backingModels.seq.keySet
+  def openModelPaths: collection.Set[String] = backingModels.seq.keySet
 
   def existingTab(filePath: String): Option[CodeTab] =
     if (filePath == App.app.workspace.getModelPath)

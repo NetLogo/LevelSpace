@@ -7,7 +7,7 @@ netLogoExtName := "ls"
 
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
 
-scalaVersion := "2.12.0"
+scalaVersion := "2.12.4"
 
 netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
@@ -16,8 +16,6 @@ netLogoZipSources := false
 scalaSource in Compile := baseDirectory.value / "src" / "main"
 
 scalaSource in Test := baseDirectory.value / "src" / "test"
-
-javaSource in Compile := baseDirectory.value / "src" / "main"
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature")
 
