@@ -88,12 +88,6 @@ ls-with-filters
   O> foreach ls:models [ [id] -> (ls:ask id [ [num] -> crt num ] id) ]
   sort ls:models ls:with [ count turtles mod 2 = 0 ] => [0 2 4 6 8]
 
-#ls-*-descendant-works-for-one-item-list
-#  extensions [ ls ]
-#  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
-#  O> ls:ask-descendant [0] [ crt 1 ]
-#  [ count turtles ] ls:of-descendant [0] => 1
-
 ls-set-name
   extensions [ ls ]
   O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
@@ -136,11 +130,12 @@ ls-let-sees-outer-agent-scope
   O> ls:let foo 1 ask turtles [ ls:let bar 2 ls:ask 0 [ crt foo + bar ] ]
   [ count turtles ] ls:of 0 => 3
 
-ls-let-sees-outer-procedure-scope
-  extensions [ ls ]
-  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
-  O> ls:let foo 3 run [ ls:let bar 7 ls:ask 0 [ crt foo + bar ] ]
-  [ count turtles ] ls:of 0 => 10
+# https://github.com/NetLogo/LevelSpace/issues/121
+#ls-let-sees-outer-procedure-scope
+#  extensions [ ls ]
+#  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
+#  O> ls:let foo 3 run [ ls:let bar 7 ls:ask 0 [ crt foo + bar ] ]
+#  [ count turtles ] ls:of 0 => 10
 
 ls-let-respects-agent-scope
   extensions [ ls ]
@@ -159,14 +154,15 @@ ls-let-works-in-repeat
   O> let i 0 repeat 10 [ ls:let foo i ls:ask 0 [ ca crt foo ] set i i + 1 ]
   [ count turtles ] ls:of 0 => 9
 
-ls-lets-can-be-closed-over
-  extensions [ ls ]
-  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
-  to-report get-command [ x ] ls:let foo x report [ -> ls:ask 0 [ crt foo ] ] end
-  O> run (get-command 3)
-  [ count turtles ] ls:of 0 => 3
-  to-report get-reporter [ x ] ls:let foo x report [ -> [ foo ] ls:of 0 ] end
-  runresult (get-reporter 5) => 5
+# https://github.com/NetLogo/LevelSpace/issues/121
+#ls-lets-can-be-closed-over
+#  extensions [ ls ]
+#  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
+#  to-report get-command [ x ] ls:let foo x report [ -> ls:ask 0 [ crt foo ] ] end
+#  O> run (get-command 3)
+#  [ count turtles ] ls:of 0 => 3
+#  to-report get-reporter [ x ] ls:let foo x report [ -> [ foo ] ls:of 0 ] end
+#  runresult (get-reporter 5) => 5
 
 ls-gui-children-work-in-headless
   extensions [ ls ]
