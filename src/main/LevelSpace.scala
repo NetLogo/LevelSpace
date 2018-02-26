@@ -65,6 +65,7 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
     primitiveManager.addPrimitive("show-all", new ShowAll(this))
     primitiveManager.addPrimitive("hide-all", new HideAll(this))
     primitiveManager.addPrimitive("uses-level-space?", new UsesLS(this))
+    primitiveManager.addPrimitive("random-seed", new RandomSeed(this))
     // We need to actually listen for halt actions because gui child models can be running independently on their own
     // job threads if the user is interacting with them.
     haltButton.foreach(_.addActionListener(haltListener))
@@ -96,6 +97,7 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
   private def initModel(parentWS: AbstractWorkspace, model: ChildModel): Unit = {
     model.workspace.behaviorSpaceRunNumber(parentWS.behaviorSpaceRunNumber)
     model.workspace.behaviorSpaceExperimentName(parentWS.behaviorSpaceExperimentName)
+    model.workspace.mainRNG.setSeed(parentWS.mainRNG.nextInt())
     models.put(modelCounter, model)
     modelCounter += 1
   }

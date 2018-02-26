@@ -250,3 +250,18 @@ class AllModels(ls: LevelSpace) extends Reporter {
     LogoList.fromVector(ls.modelList.map(id => Double.box(id.doubleValue)).toVector)
 }
 
+class RandomSeed(ls: LevelSpace) extends Command {
+  override def getSyntax: Syntax = Syntax.commandSyntax(
+    right = List(Syntax.NumberType)
+  )
+
+  override def perform(args: Array[Argument], ctx: Context): Unit = {
+    val l = args(0).getDoubleValue.toLong
+    if (l < -2147483648 || l > 2147483647)
+      throw new ExtensionException(
+        Dump.number(l) + " is not in the allowable range for random seeds (-2147483648 to 2147483647)")
+    ctx.getRNG.setSeed(l)
+    ls.modelList.foreach(i => ls.getModel(i).seedMainRNG(ctx.getRNG.nextInt))
+  }
+}
+

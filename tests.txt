@@ -180,3 +180,38 @@ ls-gui-noops-in-headless
 ls-headless-model-old-version
   extensions [ ls ]
   O> ls:create-models 1 "extensions/ls/test/5.x.nlogo" => ERROR Extension exception: extensions/ls/test/5.x.nlogo is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.
+
+ls-syncs-rng-on-model-creation
+  extensions [ ls ]
+  globals [ glob1 glob2 ]
+  O> random-seed 0
+  O> ls:create-models 2 "extensions/ls/test/Blank.nlogo"
+  O> set glob1 [ random-float 1 ] ls:of 0
+  O> set glob2 [ random-float 1 ] ls:of 1
+  O> ls:reset
+  O> random-seed 0
+  O> ls:create-models 2 "extensions/ls/test/Blank.nlogo"
+  glob1 = [ random-float 1 ] ls:of 0 => true
+  glob2 = [ random-float 1 ] ls:of 1 => true
+  O> ls:reset
+  O> random-seed 0
+  O> ls:create-models 2 "extensions/ls/test/Blank.nlogo"
+  # This is making sure the child rng is not in the same state as the parent
+  glob1 = random-float 1 => false
+
+ls-random-seed
+  extensions [ ls ]
+  globals [ glob1 glob2 glob3 ]
+  O> ls:create-models 2 "extensions/ls/test/Blank.nlogo"
+  O> ls:random-seed 0
+  O> set glob1 random-float 1
+  O> set glob2 [ random-float 1 ] ls:of 0
+  O> set glob3 [ random-float 1 ] ls:of 1
+  O> ls:reset
+  O> ls:create-models 2 "extensions/ls/test/Blank.nlogo"
+  O> ls:random-seed 0
+  glob1 = random-float 1 => true
+  glob2 = [ random-float 1 ] ls:of 0 => true
+  glob3 = [ random-float 1 ] ls:of 1 => true
+  # This is making sure the child rng is not in the same state as the parent
+  glob1 = glob2 => false

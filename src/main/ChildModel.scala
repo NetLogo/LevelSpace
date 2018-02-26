@@ -70,6 +70,12 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
     }
   }
 
+  def seedMainRNG(seed: Long): Unit = if (usesLevelSpace) {
+    ask("ls:random-seed seed", Seq("seed" -> Double.box(seed)), Seq()).waitFor
+  } else {
+    workspace.mainRNG.setSeed(seed)
+  }
+
   /**
    * If on EDT already, runs the given function, otherwise, invokes it async on the EDT.
    * NoOps in headless.
