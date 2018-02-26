@@ -99,13 +99,14 @@ class Ask(ls: LevelSpace) extends Command {
     val code = ModelRunner.buildCode(args(1).getCode)
     val cmdArgs = ModelRunner.extractArgs(args, 2)
     val lets = ls.letManager.bindings(CtxConverter.nvm(ctx)).toSeq
+    val rng = RNG(ctx)
     args(0).get match {
       case i: JDouble => (ls.getModel(i.toInt) match {
-        case m: HeadlessChildModel => m.tryEagerAsk(code, lets, cmdArgs)
-        case m => m.ask(code, lets, cmdArgs)
+        case m: HeadlessChildModel => m.tryEagerAsk(code, lets, cmdArgs, rng)
+        case m => m.ask(code, lets, cmdArgs, rng)
       }).waitFor
       case l: LogoList =>
-        ModelRunner.run(ls, l, _.ask(code, lets, cmdArgs), _.tryEagerAsk(code, lets, cmdArgs)).foreach(_.waitFor)
+        ModelRunner.run(ls, l, _.ask(code, lets, cmdArgs, rng), _.tryEagerAsk(code, lets, cmdArgs, rng)).foreach(_.waitFor)
     }
   }
 }
@@ -122,14 +123,15 @@ class Report(ls: LevelSpace) extends Reporter {
     val code = ModelRunner.buildCode(args(1).getCode)
     val cmdArgs = ModelRunner.extractArgs(args, 2)
     val lets = ls.letManager.bindings(CtxConverter.nvm(ctx)).toSeq
+    val rng = RNG(ctx)
     args(0).get match {
       case i: JDouble => (ls.getModel(i.toInt) match {
-        case m: HeadlessChildModel => m.tryEagerOf(code, lets, cmdArgs)
-        case m => m.of(code, lets, cmdArgs)
+        case m: HeadlessChildModel => m.tryEagerOf(code, lets, cmdArgs, rng)
+        case m => m.of(code, lets, cmdArgs, RNG(ctx))
       }).waitFor
       case l: LogoList =>
         LogoList.fromVector(
-          ModelRunner.run(ls, l, _.of(code, lets, cmdArgs), _.tryEagerOf(code, lets, cmdArgs)).map(_.waitFor).toVector)
+          ModelRunner.run(ls, l, _.of(code, lets, cmdArgs, rng), _.tryEagerOf(code, lets, cmdArgs, rng)).map(_.waitFor).toVector)
     }
   }
 }
@@ -159,8 +161,9 @@ class With(ls: LevelSpace) extends Reporter {
     val cmdArgs = ModelRunner.extractArgs(args, 2)
     val lets = ls.letManager.bindings(CtxConverter.nvm(ctx)).toSeq
     val modelList = args(0).getList
+    val rng = RNG(ctx)
     val results =
-      ModelRunner.run(ls, modelList, _.of(code, lets, cmdArgs), _.tryEagerOf(code, lets, cmdArgs)).map(_.waitFor)
+      ModelRunner.run(ls, modelList, _.of(code, lets, cmdArgs, rng), _.tryEagerOf(code, lets, cmdArgs, rng)).map(_.waitFor)
     LogoList.fromVector((modelList zip results).filter {
       case (_, b: java.lang.Boolean) =>
         b
@@ -261,7 +264,7 @@ class RandomSeed(ls: LevelSpace) extends Command {
       throw new ExtensionException(
         Dump.number(l) + " is not in the allowable range for random seeds (-2147483648 to 2147483647)")
     ctx.getRNG.setSeed(l)
-    ls.modelList.foreach(i => ls.getModel(i).seedMainRNG(ctx.getRNG.nextInt))
+    ls.modelList.foreach(i => ls.getModel(i).seedRNG(RNG(ctx), ctx.getRNG.nextInt))
   }
 }
 

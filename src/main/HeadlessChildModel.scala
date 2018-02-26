@@ -59,13 +59,13 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
 
   def setSpeed(d: Double): Unit = {}
 
-  override def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
-    super.ask(code, lets, args).map {r => updateView(); r}
+  override def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG = MainRNG): Notifying[Unit] =
+    super.ask(code, lets, args, rng).map {r => updateView(); r}
 
-  def tryEagerAsk(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
-    evaluator.command(code, lets, args, parallel = usesLevelSpace || isVisible)
+  def tryEagerAsk(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG): Notifying[Unit] =
+    evaluator.command(code, lets, args, rng, parallel = usesLevelSpace || isVisible)
 
-  def tryEagerOf(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[AnyRef] =
-    evaluator.report(code, lets, args, parallel = usesLevelSpace || isVisible)
+  def tryEagerOf(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG): Notifying[AnyRef] =
+    evaluator.report(code, lets, args, rng, parallel = usesLevelSpace || isVisible)
 
 }

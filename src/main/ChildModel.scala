@@ -20,11 +20,11 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   }
   def name: String = _name.getOrElse(workspace.getModelFileName)
 
-  def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[Unit] =
-    evaluator.command(code, lets, args, parallel = true) // parallel is safe, so it's the default
+  def ask(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG): Notifying[Unit] =
+    evaluator.command(code, lets, args, rng, parallel = true) // parallel is safe, so it's the default
 
-  def of(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef]): Notifying[AnyRef] =
-    evaluator.report(code, lets, args, parallel = true) // parallel is safe, so it's the default
+  def of(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG): Notifying[AnyRef] =
+    evaluator.report(code, lets, args, rng, parallel = true) // parallel is safe, so it's the default
 
   def kill(): Unit = {
     Future {
@@ -60,20 +60,20 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   def showAll(): Unit = {
     show()
     if (usesLevelSpace) {
-      ask("ls:show-all ls:models", Seq(), Seq()).waitFor
+      ask("ls:show-all ls:models", Seq(), Seq(), AuxRNG).waitFor
     }
   }
   def hideAll(): Unit = {
     hide()
     if (usesLevelSpace) {
-      ask("ls:hide-all ls:models", Seq(), Seq()).waitFor
+      ask("ls:hide-all ls:models", Seq(), Seq(), AuxRNG).waitFor
     }
   }
 
-  def seedMainRNG(seed: Long): Unit = if (usesLevelSpace) {
-    ask("ls:random-seed seed", Seq("seed" -> Double.box(seed)), Seq()).waitFor
+  def seedRNG(rng: RNG, seed: Long): Unit = if (usesLevelSpace) {
+    ask("ls:random-seed seed", Seq("seed" -> Double.box(seed)), Seq(), rng).waitFor
   } else {
-    workspace.mainRNG.setSeed(seed)
+    rng(workspace).setSeed(seed)
   }
 
   /**

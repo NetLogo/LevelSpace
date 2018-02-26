@@ -1,15 +1,54 @@
 package org.nlogo.ls
 
 import com.google.common.cache.{CacheBuilder, CacheLoader}
-import org.nlogo.api.SimpleJobOwner
+import org.nlogo.api.{Context, MersenneTwisterFast, SimpleJobOwner, Workspace}
 import org.nlogo.core.{AgentKind, LogoList, Nobody}
 import org.nlogo.nvm.{ExclusiveJob, Procedure, Reporter}
 import org.nlogo.prim.{_constboolean, _constdouble, _constlist, _conststring, _nobody}
-import org.nlogo.workspace.AbstractWorkspaceScala
+import org.nlogo.workspace.{AbstractWorkspaceScala, Plotting}
+
+import scala.collection.mutable
+
+object RNG {
+  def apply(ctx: Context): RNG = ctx.workspace match {
+    case p: Plotting  if p.plotRNG eq ctx.getRNG => PlotRNG
+    case w: Workspace if w.mainRNG eq ctx.getRNG => MainRNG
+    case w: Workspace if w.auxRNG  eq ctx.getRNG => MainRNG
+    case _ => LocalRNG
+  }
+}
+
+sealed trait RNG {
+  def apply(ws: Workspace): MersenneTwisterFast
+}
+case object MainRNG extends RNG {
+  override def apply(ws: Workspace): MersenneTwisterFast = ws.mainRNG
+}
+case object AuxRNG extends RNG {
+  override def apply(ws: Workspace): MersenneTwisterFast = ws.auxRNG
+}
+case object PlotRNG extends RNG {
+  override def apply(ws: Workspace): MersenneTwisterFast = ws match {
+    case p: Plotting => p.plotRNG
+    case _ => ws.auxRNG
+  }
+}
+case object LocalRNG extends RNG {
+  override def apply(ws: Workspace): MersenneTwisterFast = ws.mainRNG.clone
+}
 
 class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWS: AbstractWorkspaceScala) {
 
-  val owner = new SimpleJobOwner(name, ws.world.mainRNG, AgentKind.Observer)
+  val mainOwner = new SimpleJobOwner(name, MainRNG(ws), AgentKind.Observer)
+  val auxOwner = new SimpleJobOwner(name, AuxRNG(ws), AgentKind.Observer)
+  val plotOwner = new SimpleJobOwner(name, PlotRNG(ws), AgentKind.Observer)
+
+  def owner(rng: RNG): SimpleJobOwner = rng match {
+    case MainRNG => mainOwner
+    case AuxRNG => auxOwner
+    case PlotRNG => plotOwner
+    case LocalRNG => new SimpleJobOwner(name, LocalRNG(ws), AgentKind.Observer)
+  }
 
   private val commandRunnerProc = ws.compileCommands("run []")
   private val reporterRunnerProc = ws.compileReporter("runresult [ 0 ]")
@@ -18,11 +57,11 @@ class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWS
     override def load(code: String): Reporter = compileProcedureReporter(code)
   })
 
-  def command(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], parallel: Boolean): Notifying[Unit] =
-    run(code, lets, args, "__apply", parallel, commandRunner).map(ignore)
+  def command(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG, parallel: Boolean): Notifying[Unit] =
+    run(code, lets, args, "__apply", rng, parallel, commandRunner).map(ignore)
 
-  def report(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], parallel: Boolean): Notifying[AnyRef] =
-    run(code, lets, args, "__apply-result", parallel, reporterRunner).map(checkResult)
+  def report(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG, parallel: Boolean): Notifying[AnyRef] =
+    run(code, lets, args, "__apply-result", rng, parallel, reporterRunner).map(checkResult)
 
 
   private val fullCodePrefix = "[[__lsargs "
@@ -37,6 +76,7 @@ class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWS
   def run(code: String, lets: Seq[(String, AnyRef)],
           args: Seq[AnyRef],
           apply: String,
+          rng: RNG,
           parallel: Boolean,
           runner: (Reporter, LogoList, Seq[(String, AnyRef)]) => Procedure): Notifying[AnyRef] =
     ErrorUtils.handle(modelID, name) {
@@ -53,12 +93,13 @@ class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWS
 
       val proc = runner(getLambda(fullCode), LogoList.fromVector(args.toVector), lets)
 
+      val o = owner(rng)
       val job: Notifying[AnyRef] = if (parallel) {
-        val job = new NotifyingJob(parentWS.world, ws, owner, ws.world.observers, proc)
+        val job = new NotifyingJob(parentWS.world, ws, o, ws.world.observers, proc)
         ws.jobManager.addJob(job, waitForCompletion = false)
         job
       } else {
-        val j = new ExclusiveJob(owner, ws.world.observers, proc, 0, null, ws, owner.random)
+        val j = new ExclusiveJob(o, ws.world.observers, proc, 0, null, ws, o.random)
         j.run()
         new FakeNotifier[AnyRef](j.result)
       }

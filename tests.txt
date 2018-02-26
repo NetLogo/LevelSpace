@@ -215,3 +215,15 @@ ls-random-seed
   glob3 = [ random-float 1 ] ls:of 1 => true
   # This is making sure the child rng is not in the same state as the parent
   glob1 = glob2 => false
+
+ls-uses-right-rng
+  extensions [ ls ]
+  globals [ glob1 glob2 ]
+  O> random-seed 0
+  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
+  O> with-local-randomness [ set glob1 [ random-float 1 ] ls:of 0 ]
+  glob1 = [ random-float 1 ] ls:of 0 => true
+  # This is currently broken because every time an ls call is made with a local rng
+  # a new clone of the main rng is made
+  # O> with-local-randomness [ ls:random-seed 0 set glob2 [ random-float 1 ] ls:of 0 ]
+  # glob1 = glob2 => true
