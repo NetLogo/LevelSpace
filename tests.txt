@@ -131,11 +131,11 @@ ls-let-sees-outer-agent-scope
   [ count turtles ] ls:of 0 => 3
 
 # https://github.com/NetLogo/LevelSpace/issues/121
-#ls-let-sees-outer-procedure-scope
-#  extensions [ ls ]
-#  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
-#  O> ls:let foo 3 run [ ls:let bar 7 ls:ask 0 [ crt foo + bar ] ]
-#  [ count turtles ] ls:of 0 => 10
+ls-let-sees-outer-procedure-scope
+  extensions [ ls ]
+  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
+  O> ls:let foo 3 run [ ls:let bar 7 ls:ask 0 [ crt foo + bar ] ]
+  [ count turtles ] ls:of 0 => 10
 
 ls-let-respects-agent-scope
   extensions [ ls ]
@@ -155,14 +155,14 @@ ls-let-works-in-repeat
   [ count turtles ] ls:of 0 => 9
 
 # https://github.com/NetLogo/LevelSpace/issues/121
-#ls-lets-can-be-closed-over
-#  extensions [ ls ]
-#  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
-#  to-report get-command [ x ] ls:let foo x report [ -> ls:ask 0 [ crt foo ] ] end
-#  O> run (get-command 3)
-#  [ count turtles ] ls:of 0 => 3
-#  to-report get-reporter [ x ] ls:let foo x report [ -> [ foo ] ls:of 0 ] end
-#  runresult (get-reporter 5) => 5
+ls-lets-can-be-closed-over
+  extensions [ ls ]
+  O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
+  to-report get-command [ x ] ls:let foo x report [ -> ls:ask 0 [ crt foo ] ] end
+  O> run (get-command 3)
+  [ count turtles ] ls:of 0 => 3
+  to-report get-reporter [ x ] ls:let foo x report [ -> [ foo ] ls:of 0 ] end
+  runresult (get-reporter 5) => 5
 
 ls-gui-children-work-in-headless
   extensions [ ls ]
@@ -227,3 +227,13 @@ ls-uses-right-rng
   # a new clone of the main rng is made
   # O> with-local-randomness [ ls:random-seed 0 set glob2 [ random-float 1 ] ls:of 0 ]
   # glob1 = glob2 => true
+
+ls-assign
+  extensions [ ls ]
+  globals [ glob1 ]
+  O> set glob1 5
+  O> ls:create-models 3 "extensions/ls/test/Blank.nlogo"
+  O> ls:assign 0 glob1 15
+  [ glob1 ] ls:of 0 => 15
+  O> ls:assign ls:models glob1 glob1
+  [ glob1 ] ls:of ls:models => [5 5 5]

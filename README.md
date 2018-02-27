@@ -111,6 +111,7 @@ Hjorth, A.  Head, B. & Wilensky, U. (2015). “LevelSpace NetLogo extension”. 
 [`ls:report`](#lsreport)
 [`ls:with`](#lswith)
 [`ls:let`](#lslet)
+[`ls:assign`](#lsassign)
 
 ### Logic and Control
 
@@ -351,6 +352,23 @@ ls:ask ls:models [
 ```
 
 All models will print `1`.
+
+
+
+### `ls:assign`
+
+```NetLogo
+ls:assign model-or-list-of-models global-variable value
+```
+
+
+Sets the given global variable in child model to given value. For instance
+
+```netlogo
+ls:assign ls:models glob1 count turtles
+```
+
+sets the global variable `glob1` in all models to the parent's model `count turtles`.
 
 
 

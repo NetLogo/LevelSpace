@@ -268,3 +268,20 @@ class RandomSeed(ls: LevelSpace) extends Command {
   }
 }
 
+class Assign(ls: LevelSpace) extends Command {
+  override def getSyntax: Syntax = Syntax.commandSyntax(
+    right = List(Syntax.NumberType | Syntax.ListType, Syntax.SymbolType, Syntax.WildcardType),
+    defaultOption = Some(3)
+
+  )
+
+  override def perform(args: Array[Argument], ctx: Context): Unit = {
+    val rng = RNG(ctx)
+    val globalName = args(1).getSymbol.text
+    val setString = s"__ls-assign-var -> set $globalName __ls-assign-var"
+    val setArgs = Seq(args(2).get)
+    ls.toModelList(args(0)).map { m =>
+      m.ask(setString, Seq(), setArgs, rng)
+    }.foreach(_.waitFor)
+  }
+}

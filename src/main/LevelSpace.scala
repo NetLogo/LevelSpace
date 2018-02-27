@@ -66,6 +66,7 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
     primitiveManager.addPrimitive("hide-all", new HideAll(this))
     primitiveManager.addPrimitive("uses-level-space?", new UsesLS(this))
     primitiveManager.addPrimitive("random-seed", new RandomSeed(this))
+    primitiveManager.addPrimitive("assign", new Assign(this))
     // We need to actually listen for halt actions because gui child models can be running independently on their own
     // job threads if the user is interacting with them.
     haltButton.foreach(_.addActionListener(haltListener))
