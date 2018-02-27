@@ -149,6 +149,10 @@ let model-id 0
 (ls:create-models "My-Model.nlogo" [ [id] -> set model-id id ])
 ```
 
+Child model RNGs are seeded from the parent models RNG when they are created.
+Thus, if you seed the parent's model RNG before child model before child models are created, the simulation as a whole will be reproducible.
+Use the `ls:random-seed` primitive to seed the model system's RNGs after child models have been created.
+
 
 
 ### `ls:create-interactive-models`
@@ -160,6 +164,10 @@ ls:create-interactive-models number path anonymous command
 
 
 Like `ls:create-models`, creates the specified number of instances of the given .nlogo model. Unlike `ls:create-models`, `ls:create-interactive-models` creates models that are visible by default, and have all widgets. You should use this primitive if you plan on having only a handful of instances of the given model, and would like to be able to interact with the instances through their interfaces during runtime.
+
+Child model RNGs are seeded from the parent models RNG when they are created.
+Thus, if you seed the parent's model RNG before child model before child models are created, the simulation as a whole will be reproducible.
+Use the `ls:random-seed` primitive to seed the model system's RNGs after child models have been created.
 
 
 
@@ -344,21 +352,6 @@ ls:ask ls:models [
 
 All models will print `1`.
 
-- `ls:let` does not respect the scope of `if`, `when`, and `repeat`
-
-This behavior should be considered a bug and not relied upon. It is an unfortunate consequence of the way the NetLogo engine works. Hopefully, we'll be able to correct this in a future version of NetLogo.
-
-For example, this is allowable:
-
-```NetLogo
-if true [
-  ls:let my-var 5
-]
-ls:ask child-model [ create-turtles my-var ]
-```
-
-The scope of `ask` is respected, however.
-
 
 
 ### `ls:models`
@@ -446,6 +439,18 @@ ls:model-exists? model-or-list-of-models
 
 
 Report a boolean value for whether there is a model with that model-id. This is often useful when you are dynamically generating models, and want to ensure that you are not asking models that no longer exist to do stuff.
+
+
+
+### `ls:random-seed`
+
+```NetLogo
+ls:random-seed seed
+```
+
+
+Behaves exactly like NetLogo's built-in primitive `random-seed`, except that child models have their RNGs seeded based on the given seed as well (as well their child models, and their child models' child models, and so forth).
+This primitive should almost always be used instead of NetLogo's built-in one for seeding RNG when using LevelSpace.
 
 
 
