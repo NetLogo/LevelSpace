@@ -12,7 +12,7 @@ import org.nlogo.awt.EventQueue
 import org.nlogo.core.{AgentKind, Model}
 import org.nlogo.lite.ProceduresLite
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
-import org.nlogo.window.{CompilerManager, DefaultEditorFactory, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
+import org.nlogo.window.{CompilerManager, DefaultEditorFactory, ErrorDialogManager, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
 import org.nlogo.workspace.OpenModelFromURI
 import org.nlogo.{api, fileformat}
 
@@ -27,7 +27,7 @@ with ControlSet {
   val world: World = if(Version.is3D) new World3D() else new World2D()
 
   // KioskLevel.NONE - We want a 3d button
-  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, this) {
+  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, new ErrorDialogManager(frame), this) {
     val compiler = new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
