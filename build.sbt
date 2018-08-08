@@ -13,6 +13,8 @@ netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
 netLogoZipSources := false
 
+version := "2.2.3"
+
 scalaSource in Compile := baseDirectory.value / "src" / "main"
 
 scalaSource in Test := baseDirectory.value / "src" / "test"
