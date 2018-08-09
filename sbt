@@ -83,7 +83,7 @@ make_url () {
         0.7.*) echo "http://simple-build-tool.googlecode.com/files/sbt-launch-0.7.7.jar" ;;
       0.10.* ) echo "$sbt_launch_repo/org.scala-tools.sbt/sbt-launch/$version/sbt-launch.jar" ;;
     0.11.[12]) echo "$sbt_launch_repo/org.scala-tools.sbt/sbt-launch/$version/sbt-launch.jar" ;;
-            *) echo "$sbt_launch_repo/org.scala-sbt/sbt-launch/$version/sbt-launch.jar" ;;
+            *) echo "$sbt_launch_repo/org/scala-sbt/sbt-launch/$version/sbt-launch-$version.jar" ;;
   esac
 }
 
@@ -116,7 +116,7 @@ declare -r script_name="${script_path##*/}"
 declare java_cmd="java"
 declare sbt_opts_file="$(init_default_option_file SBT_OPTS .sbtopts)"
 declare jvm_opts_file="$(init_default_option_file JVM_OPTS .jvmopts)"
-declare sbt_launch_repo="http://repo.typesafe.com/typesafe/ivy-releases"
+declare sbt_launch_repo="http://central.maven.org/maven2"
 
 # pull -J and -D options to give to java.
 declare -a residual_args
