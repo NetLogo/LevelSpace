@@ -7,7 +7,7 @@ netLogoExtName := "ls"
 
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.8"
 
 netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
