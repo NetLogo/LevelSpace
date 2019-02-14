@@ -41,7 +41,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
         ws.compiler.compileMoreCode(owner.source,
           displayName, ws.world.program,
           ws.procedures, ws.getExtensionManager,
-          ws.getCompilationEnvironment)
+          ws.getLibraryManager, ws.getCompilationEnvironment)
       results.head.init(ws)
       results.head.owner = owner
       new CompiledEvent(owner, ws.world.program, results.head, null).raise(this)
