@@ -13,7 +13,7 @@ netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
 netLogoZipSources := false
 
-version := "2.2.3"
+version := "2.2.4"
 
 scalaSource in Compile := baseDirectory.value / "src" / "main"
 
@@ -54,4 +54,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.0.4-9328ba6"
+netLogoVersion := "6.1.0-RC1"
