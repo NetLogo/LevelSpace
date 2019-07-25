@@ -15,6 +15,8 @@ netLogoZipSources := false
 
 version := "2.2.4"
 
+isSnapshot := true
+
 scalaSource in Compile := baseDirectory.value / "src" / "main"
 
 scalaSource in Test := baseDirectory.value / "src" / "test"
@@ -54,4 +56,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.1.0-RC1"
+netLogoVersion := "6.1.0"
