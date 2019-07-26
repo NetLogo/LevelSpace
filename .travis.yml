@@ -5,7 +5,7 @@
 # it didn't work for the full NetLogo build, but might work
 # for this.)
 
-jdk: oraclejdk8
+jdk: openjdk8
 language: scala
 scala: 2.11.7
 install:
