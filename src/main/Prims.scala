@@ -229,10 +229,6 @@ class Hide(ls: LevelSpace) extends ModelCommand(ls, _.hide())
 class ShowAll(ls: LevelSpace) extends ModelCommand(ls, _.showAll())
 class HideAll(ls: LevelSpace) extends ModelCommand(ls, _.hideAll())
 class Close(ls: LevelSpace) extends ModelCommand(ls, ls.closeModel)
-class UpdateView(ls: LevelSpace) extends ModelCommand(ls, {
-  case hm: HeadlessChildModel => hm.updateView()
-  case _ =>
-})
 class Name(ls: LevelSpace) extends ModelReporter(ls, Syntax.StringType, _.name)
 class Path(ls: LevelSpace) extends ModelReporter(ls, Syntax.StringType, _.path)
 class UsesLS(ls: LevelSpace) extends ModelReporter(ls, Syntax.BooleanType, (model: ChildModel) => Boolean.box(model.usesLevelSpace))
