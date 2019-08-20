@@ -87,6 +87,5 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
       else
         SwingUtilities.invokeLater(() => f)
     }
-
 }
 

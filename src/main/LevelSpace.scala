@@ -59,7 +59,6 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
     primitiveManager.addPrimitive("model-exists?", new ModelExists(this))
     primitiveManager.addPrimitive("reset", new Reset(this))
     primitiveManager.addPrimitive("path-of", new Path(this))
-    primitiveManager.addPrimitive("display", new UpdateView(this))
     primitiveManager.addPrimitive("show", new Show(this))
     primitiveManager.addPrimitive("hide", new Hide(this))
     primitiveManager.addPrimitive("show-all", new ShowAll(this))

@@ -10,8 +10,8 @@ import org.nlogo.window.Events.{AddJobEvent, CompileMoreSourceEvent, CompiledEve
 import org.nlogo.window.JobWidget
 
 class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler {
-  val viewPanel = new JPanel() {
-    override def paintComponent(g: Graphics) = {
+  private val viewPanel = new JPanel() {
+    override def paintComponent(g: Graphics): Unit = {
       ws.renderer.exportView(g.asInstanceOf[Graphics2D], ws)
     }
   }
@@ -27,11 +27,6 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
   val panel = new HeadlessPanel(ws, viewContainer)
   getContentPane.add(panel)
   pack()
-
-  new Timer(1000 / 30, (e: ActionEvent) => {
-    viewPanel.repaint()
-    new PeriodicUpdateEvent().raise(ViewFrame.this)
-  }).start()
 
   def handle(e: CompileMoreSourceEvent): Unit = {
     val owner = e.owner
