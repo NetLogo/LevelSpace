@@ -1,6 +1,7 @@
 package org.nlogo.ls
 
 import java.io.IOException
+import javax.swing.Timer
 
 import org.nlogo.agent.{CompilationManagement, OutputObject, World, World2D, World3D}
 import org.nlogo.api._
@@ -42,8 +43,25 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
       updateDisplay(false)
     }
 
+    private val minTimeBetweenRepaints: Long = 30
+    // Only the EDT will be modifying this variable, so we don't need it to be atomic. It does need to be volatile
+    // since the job thread will be reading it.
+    @volatile private var lastRepaintTime: Long = 0
+    private def timeSinceLastRepaint: Long = System.currentTimeMillis() - lastRepaintTime
+    private val scheduledRepaint: Timer = new Timer(0, { _ =>
+      lastRepaintTime = System.currentTimeMillis()
+      frame.foreach(_.repaint())
+    })
+    scheduledRepaint.setRepeats(false)
     override def updateDisplay(ignored: Boolean): Unit =
-      frame.foreach { f => if (f.isVisible) onEDT{ f.repaint() } }
+      frame.foreach { f =>
+        if (f.isVisible && !scheduledRepaint.isRunning) {
+          // Not that if we don't max(0) here, the conversion to int can underflow
+          val nextRepaint = (minTimeBetweenRepaints - timeSinceLastRepaint).max(0).toInt
+          scheduledRepaint.setDelay(nextRepaint)
+          scheduledRepaint.start()
+        }
+      }
   }
 
   try {
