@@ -12,7 +12,9 @@ import org.nlogo.render.Renderer
 
 class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler {
   private val viewPanel = new JPanel() {
-    override def paintComponent(g: Graphics): Unit = ws.renderer.paint(g.asInstanceOf[Graphics2D], ws)
+    override def paintComponent(g: Graphics): Unit = ws.world.synchronized {
+      ws.renderer.paint(g.asInstanceOf[Graphics2D], ws)
+    }
   }
 
   val viewContainer = new JPanel

@@ -35,9 +35,10 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
     }
 
     override def runtimeError(owner: JobOwner, context: Context, instruction: Instruction, ex: Exception): Unit = {
-
+      // TODO why isn't this used?
     }
 
+    // `force` is essentially ignored. Painting headless child models is always asynchronous.
     override def requestDisplayUpdate(force: Boolean): Unit = {
       super.requestDisplayUpdate(force)
       updateDisplay(false)
@@ -49,10 +50,14 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
     @volatile private var lastRepaintTime: Long = 0
     private def timeSinceLastRepaint: Long = System.currentTimeMillis() - lastRepaintTime
     private val scheduledRepaint: Timer = new Timer(0, { _ =>
-      lastRepaintTime = System.currentTimeMillis()
       frame.foreach(_.repaint())
+      // This should happen after the repaint, as the repaint locks the world, and thus, the repaint call may take time
+      // before the repaint actually takes place.
+      lastRepaintTime = System.currentTimeMillis()
     })
+
     scheduledRepaint.setRepeats(false)
+    // Since we never block on painting child models, we don't care if we have a world lock or not.
     override def updateDisplay(ignored: Boolean): Unit =
       frame.foreach { f =>
         if (f.isVisible && !scheduledRepaint.isRunning) {
