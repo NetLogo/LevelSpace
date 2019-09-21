@@ -33,7 +33,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     f.setLocationByPlatform(true)
     f.setVisible(true)
     currentlyFocused.toFront()
-    component.open(path)
+    openModelWithoutGenerator(component.open, path)
     f.pack()
     f.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
     f.addWindowListener(new GUIWindowAdapter)
