@@ -58,7 +58,7 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
 
     scheduledRepaint.setRepeats(false)
     // Since we never block on painting child models, we don't care if we have a world lock or not.
-    override def updateDisplay(ignored: Boolean): Unit =
+    override def updateDisplay(ignored: Boolean): Unit = {
       frame.foreach { f =>
         if (f.isVisible && !scheduledRepaint.isRunning) {
           // Not that if we don't max(0) here, the conversion to int can underflow
@@ -67,16 +67,10 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
           scheduledRepaint.start()
         }
       }
+    }
   }
 
-  try {
-    workspace.open(path)
-  } catch {
-    case e: IllegalStateException =>
-      throw new ExtensionException(
-        s"$path is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.", e
-      )
-  }
+  openModelWithoutGenerator(workspace.open(_), path)
 
   override def show(): Unit = onEDT {
     val f = frame.getOrElse { new ViewFrame(workspace) }
