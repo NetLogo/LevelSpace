@@ -141,7 +141,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
     } catch {
       case e: IllegalStateException =>
         throw new ExtensionException(
-          s"$path is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.", e
+          s"$modelPath is from an incompatible version of NetLogo. Try opening it in NetLogo to convert it.", e
         )
     } finally {
       Version.synchronized {
