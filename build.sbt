@@ -13,7 +13,7 @@ netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
 netLogoZipSources := false
 
-version := "2.2.4"
+version := "2.3.0"
 
 isSnapshot := true
 
@@ -56,4 +56,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.1.0"
+netLogoVersion := "6.1.1-3ea64fc"
