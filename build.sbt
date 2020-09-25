@@ -7,7 +7,7 @@ netLogoExtName := "ls"
 
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.12"
 
 netLogoTarget := NetLogoExtension.directoryTarget(baseDirectory.value)
 
@@ -56,4 +56,4 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-netLogoVersion := "6.1.1-3ea64fc"
+netLogoVersion := "6.1.1-c82c397"
