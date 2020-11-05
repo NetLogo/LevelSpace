@@ -136,8 +136,8 @@ Hjorth, A.  Head, B. & Wilensky, U. (2015). “LevelSpace NetLogo extension”. 
 ### `ls:create-models`
 
 ```NetLogo
-ls:create-models number path
-ls:create-models number path anonymous command
+ls:create-models *number* *path*
+(ls:create-models *number* *path* *anonymous-command*)
 ```
 
 
@@ -159,8 +159,8 @@ Use the `ls:random-seed` primitive to seed the model system's RNGs after child m
 ### `ls:create-interactive-models`
 
 ```NetLogo
-ls:create-interactive-models number path
-ls:create-interactive-models number path anonymous command
+ls:create-interactive-models *number* *path*
+(ls:create-interactive-models *number* *path* *anonymous-command*)
 ```
 
 
@@ -175,7 +175,7 @@ Use the `ls:random-seed` primitive to seed the model system's RNGs after child m
 ### `ls:close`
 
 ```NetLogo
-ls:close model-or-list-of-models
+ls:close *model-or-list-of-models*
 ```
 
 
@@ -199,7 +199,7 @@ Note that `clear-all` does *not* close LevelSpace models.
 ### `ls:ask`
 
 ```NetLogo
-ls:ask model-or-list-of-models command argument
+ls:ask *model-or-list-of-models* *command* *argument*
 ```
 
 
@@ -230,7 +230,7 @@ Note that the commands cannot access variables in the parent model directly. You
 ### `ls:of`
 
 ```NetLogo
-ls:of reporter model-or-list-of-models
+ls:of *reporter* *model-or-list-of-models*
 ```
 
 
@@ -247,7 +247,7 @@ Run the given reporter in the given model and report the result.
 ### `ls:report`
 
 ```NetLogo
-ls:report model-or-list-of-models reporter argument
+ls:report *model-or-list-of-models* *reporter* *argument*
 ```
 
 
@@ -263,7 +263,7 @@ let turtle-id 0
 ### `ls:with`
 
 ```NetLogo
-ls:with list-of-models reporter
+ls:with *list-of-models* *reporter*
 ```
 
 
@@ -278,7 +278,7 @@ ls:models ls:with [ count turtles > 100 ]
 ### `ls:let`
 
 ```NetLogo
-ls:let variable-name value
+ls:let *variable-name* *value*
 ```
 
 
@@ -358,7 +358,7 @@ All models will print `1`.
 ### `ls:assign`
 
 ```NetLogo
-ls:assign model-or-list-of-models global-variable value
+ls:assign *model-or-list-of-models* *global-variable* *value*
 ```
 
 
@@ -386,7 +386,7 @@ Report a list of model-ids for all existing models.
 ### `ls:show`
 
 ```NetLogo
-ls:show model-or-list-of-models
+ls:show *model-or-list-of-models*
 ```
 
 
@@ -397,7 +397,7 @@ Makes all of the given models visible.
 ### `ls:show-all`
 
 ```NetLogo
-ls:show-all model-or-list-of-models
+ls:show-all *model-or-list-of-models*
 ```
 
 
@@ -408,7 +408,7 @@ Makes all of the given models *and their descendents* visible.
 ### `ls:hide`
 
 ```NetLogo
-ls:hide model-or-list-of-models
+ls:hide *model-or-list-of-models*
 ```
 
 
@@ -419,7 +419,7 @@ Hide all of the given models. Hiding models is a good way of making your simulat
 ### `ls:hide-all`
 
 ```NetLogo
-ls:hide-all model-or-list-of-models
+ls:hide-all *model-or-list-of-models*
 ```
 
 
@@ -430,7 +430,7 @@ Hide all of the given models *and their descendents*. Hiding models is a good wa
 ### `ls:path-of`
 
 ```NetLogo
-ls:path-of model-or-list-of-models
+ls:path-of *model-or-list-of-models*
 ```
 
 
@@ -441,7 +441,7 @@ Report the full path, including the .nlogo file name, of the model. If a list of
 ### `ls:name-of`
 
 ```NetLogo
-ls:name-of model-or-list-of-models
+ls:name-of *model-or-list-of-models*
 ```
 
 
@@ -452,7 +452,7 @@ Reports the name of the .nlogo file of the model. This is the name of the window
 ### `ls:model-exists?`
 
 ```NetLogo
-ls:model-exists? model-or-list-of-models
+ls:model-exists? *model-or-list-of-models*
 ```
 
 
@@ -463,7 +463,7 @@ Report a boolean value for whether there is a model with that model-id. This is 
 ### `ls:random-seed`
 
 ```NetLogo
-ls:random-seed seed
+ls:random-seed *seed*
 ```
 
 
