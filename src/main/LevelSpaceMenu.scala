@@ -30,6 +30,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
 
   import LevelSpaceMenu._
 
+  val tabManager   = tabs.getTabManager
   val selectModel  = new SelectModelAction("Open Model in Code Tab", backingModelManager)
   val openModels   = new JMenu("Edit Open Models...")
   val newModel     = new NewModelAction("Create new LevelSpace Model", backingModelManager)
@@ -62,14 +63,14 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
     }
 
   private def replaceSwingTab(oldTab: ModelCodeTab, newTab: ModelCodeTab): Unit = {
-    val i = tabs.getIndexOfComponent(oldTab)
-    tabs.setComponentAt(i, newTab)
+    tabManager.replaceTab(oldTab,  newTab)
   }
 }
 
   object LevelSpaceMenu {
     abstract class NewTabAction(name: String, modelManager: ModelManager) extends AbstractAction(name) {
       val tabs = App.app.tabs
+      val tabManager   = tabs.getTabManager
 
       def filePath: Option[String]
 
@@ -82,13 +83,13 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
       private def createNewTab(path: String): Option[CodeTab] = {
         modelManager.registerTab(path) { workspace =>
           val tab = new ModelCodeTab(workspace, tabs, modelManager)
-          tabs.addTab(tab.tabName, tab)
+          tabManager.addNewTab(tab, tab.tabName)
           tab
         }
       }
 
       override def actionPerformed(actionEvent: ActionEvent): Unit =
-        actingTab.foreach(tabs.setSelectedComponent)
+        actingTab.foreach(tabManager.setPanelsSelectedComponent)
     }
 
     class OpenModelAction(fileName: String, modelManager: ModelManager)

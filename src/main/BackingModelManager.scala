@@ -42,7 +42,7 @@ class BackingModelManager extends LSModelManager {
 
   def existingTab(filePath: String): Option[CodeTab] =
     if (filePath == App.app.workspace.getModelPath)
-      Some(App.app.tabs.codeTab)
+      Some(App.app.tabs.mainCodeTab)
     else
       backingModels.get(filePath).map(_._2)
 

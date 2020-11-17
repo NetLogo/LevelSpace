@@ -64,6 +64,8 @@ with ModelSavedEvent.Handler {
     }
   }
 
+
+  val tabManager   = tabs.getTabManager
   protected var isDirty  = false
 
   override def getAdditionalToolBarComponents = Seq(new ToolBarActionButton(FileCloseAction))
@@ -72,7 +74,7 @@ with ModelSavedEvent.Handler {
     try {
       if (dirty && userWantsToSaveFile())
         save()
-      tabs.remove(this)
+      tabManager.removeTab(this)
       modelManager.removeTab(this)
     } catch {
       case e: UserCancelException =>
