@@ -30,10 +30,10 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
 
   import LevelSpaceMenu._
 
-  val tabManager   = tabs.getTabManager
-  val selectModel  = new SelectModelAction("Open Model in Code Tab", backingModelManager)
-  val openModels   = new JMenu("Edit Open Models...")
-  val newModel     = new NewModelAction("Create new LevelSpace Model", backingModelManager)
+  val tabManager  = tabs.getTabManager
+  val selectModel = new SelectModelAction("Open Model in Code Tab", backingModelManager)
+  val openModels  = new JMenu("Edit Open Models...")
+  val newModel    = new NewModelAction("Create new LevelSpace Model", backingModelManager)
 
   add(selectModel)
   add(openModels)
@@ -63,14 +63,14 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
     }
 
   private def replaceSwingTab(oldTab: ModelCodeTab, newTab: ModelCodeTab): Unit = {
-    tabManager.replaceTab(oldTab,  newTab)
+    tabManager.replaceTab(oldTab, newTab)
   }
 }
 
   object LevelSpaceMenu {
     abstract class NewTabAction(name: String, modelManager: ModelManager) extends AbstractAction(name) {
-      val tabs = App.app.tabs
-      val tabManager   = tabs.getTabManager
+      val tabs       = App.app.tabs
+      val tabManager = tabs.getTabManager
 
       def filePath: Option[String]
 

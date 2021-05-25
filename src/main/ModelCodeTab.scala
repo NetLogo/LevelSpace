@@ -21,10 +21,10 @@ import java.nio.file.Paths
 class ModelCodeTab(workspace: AbstractWorkspaceScala, tabs: Tabs, modelManager: ModelManager)
 extends CodeTab(workspace, tabs)
 with ModelSavedEvent.Handler {
-  val tabName            = workspace.getModelFileName
-  val filePath           = workspace.getModelPath
-  var modelSource        = ""
-  var currentModel       = Option.empty[Model]
+  val tabName      = workspace.getModelFileName
+  val filePath     = workspace.getModelPath
+  var modelSource  = ""
+  var currentModel = Option.empty[Model]
 
   setIndenter(true)
 
@@ -65,7 +65,7 @@ with ModelSavedEvent.Handler {
   }
 
 
-  val tabManager   = tabs.getTabManager
+  val tabManager         = tabs.getTabManager
   protected var isDirty  = false
 
   override def getAdditionalToolBarComponents = Seq(new ToolBarActionButton(FileCloseAction))

@@ -17,7 +17,7 @@ trait LSModelManager extends ModelManager {
 }
 
 class BackingModelManager extends LSModelManager {
-  override val guiComponent  = new LevelSpaceMenu(App.app.tabs, this)
+  override val guiComponent = new LevelSpaceMenu(App.app.tabs, this)
   private val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
   private var openModels    = Map.empty[String, ChildModel]
 

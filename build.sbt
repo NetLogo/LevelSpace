@@ -24,14 +24,14 @@ scalaSource in Test := baseDirectory.value / "src" / "test"
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature")
 
 libraryDependencies ++= Seq(
-  "org.scalatest" %% "scalatest" % "3.0.0" % "test",
-  "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
-  "org.parboiled" %% "parboiled" % "2.1.3",
-  "com.typesafe" % "config" % "1.3.1" % "test",
-  "org.ow2.asm" % "asm-all" % "5.0.3" % "test",
-  "commons-codec" % "commons-codec" % "1.10" % "test",
-  "com.google.guava"  % "guava"         % "18.0",
-  "com.google.code.findbugs" % "jsr305" % "3.0.0"
+  "com.google.guava"          % "guava"         % "18.0"
+, "com.google.code.findbugs"  % "jsr305"        % "3.0.0"
+, "org.parboiled"            %% "parboiled"     % "2.1.3"
+, "org.scalatest"            %% "scalatest"     % "3.0.0"  % "test"
+, "org.picocontainer"         % "picocontainer" % "2.13.6" % "test"
+, "com.typesafe"              % "config"        % "1.3.1"  % "test"
+, "org.ow2.asm"               % "asm-all"       % "5.0.3"  % "test"
+, "commons-codec"             % "commons-codec" % "1.10"   % "test"
 )
 
 val moveToLsDir = taskKey[Unit]("add all resources to LS directory")
@@ -56,5 +56,6 @@ test in Test := {
   IO.delete(lsDirectory.value)
 }
 
-resolvers      += "netlogo" at "https://dl.cloudsmith.io/public/netlogo/netlogo/maven/"
+resolvers += "netlogo" at "https://dl.cloudsmith.io/public/netlogo/netlogo/maven/"
+
 netLogoVersion := "6.2.0-d27b502"
