@@ -120,15 +120,15 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
     })
 
   def createGUIModel(parentWS: AbstractWorkspace, path: String): ChildModel =
-    createModel(parentWS, path, { (pws, p) =>
-      if (LevelSpace.isHeadless || parentWS.behaviorSpaceRunNumber != 0)
-        createHeadlessModel(pws, p)
-      else {
+    if (LevelSpace.isHeadless || parentWS.behaviorSpaceRunNumber != 0) {
+      createHeadlessModel(parentWS, path)
+    } else {
+      createModel(parentWS, path, { (pws, p) =>
         val model = new GUIChildModel(this, parentWS, path, modelCounter)
         model.setSpeed(App.app.workspace.updateManager.speed)
         model
-      }
-    })
+      })
+    }
 
   def updateModelMenu(): Unit = {
     EventQueue.invokeLater { () =>

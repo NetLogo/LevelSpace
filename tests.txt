@@ -237,3 +237,26 @@ ls-assign
   [ glob1 ] ls:of 0 => 15
   O> ls:assign ls:models glob1 glob1
   [ glob1 ] ls:of ls:models => [5 5 5]
+
+# This setup code is take from the Model Interactions Example to diagnose an issue found in the
+# models library automated tests.  It's probably not actually necessary to have the Climate Change
+# and Wolf Sheep models copied in for the test, but it can't hurt and makes things more "real world".
+# Names of the models are changed to avoid confusion. -Jeremy B June 2021
+model-interactions-inline
+  extensions [ ls ]
+  globals [ climate-change-model wolf-sheep-predation-model ]
+  O> ls:reset
+  O> clear-all
+  O> set climate-change-model -1
+  O> set wolf-sheep-predation-model -1
+  O> (ls:create-interactive-models 1 "extensions/ls/test/ClimateChangeLSTest.nlogo" [ id -> (set climate-change-model id) (ls:hide climate-change-model) ])
+  ls:models => [0]
+  O> (ls:create-interactive-models 1 "extensions/ls/test/WolfSheepPredationLSTest.nlogo" [ id -> (set wolf-sheep-predation-model id) (ls:ask wolf-sheep-predation-model [ set model-version "sheep-wolves-grass" ]) ])
+  O> if wolf-sheep-predation-model = -1 or climate-change-model = -1 [ error "Model setup not complete, what's the point of continuing?" ]
+  O> ls:ask ls:models [ setup ]
+  O> ls:ask climate-change-model [ (repeat 2 [ add-cloud ]) (repeat 10 [ add-co2 ]) (repeat 7000 [ go ]) ]
+  O> ls:show climate-change-model
+  O> reset-ticks
+  ls:models => [0 1]
+  O> ls:reset
+  ls:models => []
