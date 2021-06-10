@@ -81,7 +81,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
    * NoOps in headless.
    **/
   def onEDT(f: => Unit): Unit =
-    if (!GraphicsEnvironment.isHeadless) {
+    if (!LevelSpace.isHeadless) {
       if (SwingUtilities.isEventDispatchThread)
         f
       else
@@ -155,4 +155,3 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
     }
   }
 }
-
