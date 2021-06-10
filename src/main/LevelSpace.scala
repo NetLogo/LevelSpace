@@ -8,7 +8,16 @@ import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.JMenuItem
 
-import org.nlogo.api.{Argument, DefaultClassManager, ExtensionException, ExtensionManager, ImportErrorHandler, LogoException, PrimitiveManager}
+import org.nlogo.api.{
+  Argument
+, DefaultClassManager
+, ExtensionException
+, ExtensionManager
+, ImportErrorHandler
+, LogoException
+, PrimitiveManager
+, Version
+}
 import org.nlogo.app.{App, ToolsMenu}
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.LogoList
@@ -26,9 +35,32 @@ object LevelSpace {
     case number: Number => number.intValue
     case _ => throw new ExtensionException("Expected a model ID but got: " + id)
   }
+
+  def checkSupportNetLogoVersion(): Unit = {
+    // Due to changes in the tabs "API" of NetLogo desktop, LevelSpace will only work
+    // with NetLogo 6.2.0 and newer.  But we want to release updates to the extensions
+    // library that will include users on NetLogo 6.1.1 and 6.1.0, for whom this newer
+    // LS will *not* work.  So we'll warn them they need to upgrade NetLogo or downgrade
+    // LS, rather than just blowing up.  -Jeremy B June 2021
+    val versionErrorMessage =
+      """This version of LevelSpace can only be used with NetLogo version 6.2.0 or newer.
+      If you updated LevelSpace through the extensions manager, you can use it to uninstall
+      the LevelSpace update and go back to the version that came with your NetLogo
+      installation.  You can also upgrade NetLogo to the latest version to use this updated
+      LevelSpace by going to the CCL website, https://ccl.northwestern.edu/netlogo."""
+    def makeVersion(v: String): String = s"NetLogo${if (Version.is3D) " 3D " else " " }$v"
+    val minSupportedVersion = Version.numericValue(makeVersion("6.2.0"))
+    val minErrorVersion     = Version.numericValue(makeVersion("6.1.0"))
+    val currentVersion      = Version.numericValue(Version.version)
+    if (minErrorVersion < currentVersion && currentVersion < minSupportedVersion) {
+      throw new ExtensionException(versionErrorMessage)
+    }
+  }
 }
 
 class LevelSpace extends DefaultClassManager { // This can be accessed by both the JobThread and EDT (when halting)
+  LevelSpace.checkSupportNetLogoVersion()
+
   final private val models = new ConcurrentHashMap[Integer, ChildModel].asScala
   // counter for keeping track of new models
   private var modelCounter = 0
