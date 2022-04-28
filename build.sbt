@@ -1,7 +1,6 @@
 import org.nlogo.build.{ ExtensionDocumentationPlugin, NetLogoExtension }
 
-enablePlugins(NetLogoExtension)
-enablePlugins(ExtensionDocumentationPlugin)
+enablePlugins(NetLogoExtension, ExtensionDocumentationPlugin)
 
 scalaVersion := "2.12.12"
 
@@ -11,7 +10,6 @@ isSnapshot := true
 
 netLogoExtName      := "ls"
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
-netLogoTarget       := NetLogoExtension.directoryTarget(baseDirectory.value)
 netLogoZipSources   := false
 netLogoVersion      := "6.2.2"
 netLogoTestExtras   += (baseDirectory.value / "test")
