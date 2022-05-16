@@ -39,7 +39,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     f.addWindowListener(new GUIWindowAdapter)
     val newMenuBar = new JMenuBar()
     val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
-    newMenuBar.add(zoomMenuClass.newInstance().asInstanceOf[org.nlogo.swing.Menu])
+    newMenuBar.add(zoomMenuClass.getDeclaredConstructor().newInstance().asInstanceOf[org.nlogo.swing.Menu])
     f.setJMenuBar(newMenuBar)
     (component, panel)
   }) match {
