@@ -1,8 +1,8 @@
 package org.nlogo.ls
 
 import java.awt.GraphicsEnvironment
-import java.awt.event.{ActionEvent, ActionListener}
-import java.lang.{Double => JDouble}
+import java.awt.event.{ ActionEvent, ActionListener }
+import java.lang.{ Double => JDouble }
 import java.util
 import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
@@ -18,17 +18,18 @@ import org.nlogo.api.{
 , PrimitiveManager
 , Version
 }
-import org.nlogo.app.{App, ToolsMenu}
+import org.nlogo.app.{ App, ToolsMenu }
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.LogoList
 import org.nlogo.nvm.HaltException
-import org.nlogo.workspace.AbstractWorkspace
+import org.nlogo.workspace.{ AbstractWorkspace, ExtensionManager => WorkspaceExtensionManager }
 
 import scala.collection.JavaConverters._
 
 object LevelSpace {
+  private var isHeadlessWorkspace = false
   def isHeadless: Boolean =
-    GraphicsEnvironment.isHeadless || Objects.equals(System.getProperty("org.nlogo.preferHeadless"), "true")
+    isHeadlessWorkspace || GraphicsEnvironment.isHeadless || Objects.equals(System.getProperty("org.nlogo.preferHeadless"), "true")
 
   @throws[ExtensionException]
   def castToId(id: Any): Int = id match {
@@ -72,8 +73,7 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
     App.app.frame.getJMenuBar.getSubElements.collectFirst{case tm: ToolsMenu => tm.getItem(0)}
 
   private val haltListener: ActionListener = (_: ActionEvent) => haltChildModels()
-  private val modelManager = if (LevelSpace.isHeadless) new HeadlessBackingModelManager
-  else new BackingModelManager
+  private var modelManager: LSModelManager = new HeadlessBackingModelManager
 
   @throws[ExtensionException]
   override def load(primitiveManager: PrimitiveManager): Unit = {
@@ -117,7 +117,9 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
 
   @throws[ExtensionException]
   override def unload(em: ExtensionManager): Unit = {
-    if (!LevelSpace.isHeadless && isMainModel(em)) App.app.frame.getJMenuBar.remove(modelManager.guiComponent)
+    if (!LevelSpace.isHeadless && isMainModel(em)) {
+      App.app.frame.getJMenuBar.remove(modelManager.guiComponent)
+    }
     haltButton.foreach(_.removeActionListener(haltListener))
     try reset()
     catch {
@@ -201,10 +203,22 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
 
   @throws[ExtensionException]
   override def runOnce(em: ExtensionManager): Unit = {
+    // "Can't we just check the `org.nlogo.preferHeadless` property?"  Well, kind-of, but
+    // it turns out that doesn't get set automatically and there are a lot of ways to run
+    // NetLogo models headlessly that "forget" to do it.  It's safer to check if the
+    // workspace we're using is headless in addition to checking the property.  -Jeremy B
+    // July 2022
+    LevelSpace.isHeadlessWorkspace = em.isInstanceOf[WorkspaceExtensionManager] &&
+      em.asInstanceOf[WorkspaceExtensionManager].workspace.isInstanceOf[AbstractWorkspace] &&
+      em.asInstanceOf[WorkspaceExtensionManager].workspace.asInstanceOf[AbstractWorkspace].isHeadless
+
+    if (!LevelSpace.isHeadless) { modelManager = new BackingModelManager }
     modelManager.updateChildModels(models)
     if (!LevelSpace.isHeadless && isMainModel(em)) {
       val menuBar = App.app.frame.getJMenuBar
-      if (menuBar.getComponentIndex(modelManager.guiComponent) == -1) menuBar.add(modelManager.guiComponent)
+      if (menuBar.getComponentIndex(modelManager.guiComponent) == -1) {
+        menuBar.add(modelManager.guiComponent)
+      }
     }
   }
 
