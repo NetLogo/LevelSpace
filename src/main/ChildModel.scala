@@ -46,7 +46,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
   def frameTitle = s"$name (LevelSpace model #$modelID)"
   def frame: Option[JFrame]
 
-  def setSpeed(d: Double)
+  def setSpeed(d: Double): Unit
   def workspace: AbstractWorkspaceScala
 
   // can't change once model is loaded

@@ -2,9 +2,16 @@ package org.nlogo.ls
 
 import org.nlogo.api.ExtensionException
 import org.nlogo.nvm.HaltException
+import org.nlogo.nvm.EngineException
 
 object ErrorUtils {
   def wrap(modelID: Int, name: String, e: Exception): ExtensionException = e match {
+    case e: EngineException => new ExtensionException(
+      s"""Model $modelID ($name) encountered an error${e.responsibleInstruction.map(instr => s" at expression '${instr.fullSource}'").getOrElse("")}:
+          |
+          |${e.runtimeErrorMessage}""".stripMargin
+    , e)
+
     case h: HaltException => throw h
     case e: Exception => new ExtensionException(s"Model $modelID ($name) encountered an error: ${e.getMessage}", e)
   }
