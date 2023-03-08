@@ -10,12 +10,11 @@ isSnapshot := true
 
 netLogoExtName      := "ls"
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
-netLogoZipSources   := false
-netLogoVersion      := "6.2.2"
+netLogoVersion      := "6.3.0"
 netLogoTestExtras   += (baseDirectory.value / "test")
 
-scalaSource in Compile := baseDirectory.value / "src" / "main"
-scalaSource in Test    := baseDirectory.value / "src" / "test"
+Compile / scalaSource := baseDirectory.value / "src" / "main"
+Test / scalaSource    := baseDirectory.value / "src" / "test"
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature", "-release", "11")
 
 libraryDependencies ++= Seq(
