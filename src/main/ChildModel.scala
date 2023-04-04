@@ -90,7 +90,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int)  {
 
   private val modelsLoadingKey = "org.nlogo.ls.modelsLoading"
   private val noGeneratorKey = "org.nlogo.noGenerator"
-  private val oldNoGeneratorKey = "org.nlogo.noGenerator"
+  private val oldNoGeneratorKey = "org.nlogo.ls.oldNoGenerator"
 
   /**
     * Opens the model specified by the given path with the bytecode generator disabled.
