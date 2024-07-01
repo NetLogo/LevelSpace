@@ -9,7 +9,7 @@ import javax.swing._
 import org.nlogo.api.ModelSections.ModelSaveable
 import org.nlogo.api.{ExtensionException, ModelSections, Version, Exceptions}
 import org.nlogo.core.{CompilerException, Shape, ShapeParser}
-import org.nlogo.app.{ModelSaver, App, Tabs}
+import org.nlogo.app.{ModelSaver, App, TabManager}
 import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.fileformat
@@ -25,12 +25,11 @@ trait ModelManager {
                  (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab]
 }
 
-class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
+class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManager)
   extends JMenu("LevelSpace") {
 
   import LevelSpaceMenu._
 
-  val tabManager  = tabs.getTabManager
   val selectModel = new SelectModelAction("Open Model in Code Tab", backingModelManager)
   val openModels  = new JMenu("Edit Open Models...")
   val newModel    = new NewModelAction("Create new LevelSpace Model", backingModelManager)
@@ -59,7 +58,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
 
   private def newHeadlessBackedTab(filePath: String): Option[ModelCodeTab] =
     backingModelManager.registerTab(filePath) { workspace =>
-      new ModelCodeTab(workspace, tabs, backingModelManager)
+      new ModelCodeTab(workspace, tabManager, backingModelManager)
     }
 
   private def replaceSwingTab(oldTab: ModelCodeTab, newTab: ModelCodeTab): Unit = {
@@ -69,8 +68,7 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
 
   object LevelSpaceMenu {
     abstract class NewTabAction(name: String, modelManager: ModelManager) extends AbstractAction(name) {
-      val tabs       = App.app.tabs
-      val tabManager = tabs.getTabManager
+      val tabManager = App.app.tabManager
 
       def filePath: Option[String]
 
@@ -82,14 +80,14 @@ class LevelSpaceMenu(tabs: Tabs, val backingModelManager: ModelManager)
 
       private def createNewTab(path: String): Option[CodeTab] = {
         modelManager.registerTab(path) { workspace =>
-          val tab = new ModelCodeTab(workspace, tabs, modelManager)
+          val tab = new ModelCodeTab(workspace, tabManager, modelManager)
           tabManager.addNewTab(tab, tab.tabName)
           tab
         }
       }
 
       override def actionPerformed(actionEvent: ActionEvent): Unit =
-        actingTab.foreach(tabManager.setPanelsSelectedComponent)
+        actingTab.foreach(tabManager.setSelectedTab)
     }
 
     class OpenModelAction(fileName: String, modelManager: ModelManager)
