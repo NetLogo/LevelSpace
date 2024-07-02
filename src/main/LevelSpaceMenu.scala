@@ -81,7 +81,7 @@ class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManag
       private def createNewTab(path: String): Option[CodeTab] = {
         modelManager.registerTab(path) { workspace =>
           val tab = new ModelCodeTab(workspace, tabManager, modelManager)
-          tabManager.addNewTab(tab, tab.tabName)
+          tabManager.addTab(tab, tab.tabName)
           tab
         }
       }
