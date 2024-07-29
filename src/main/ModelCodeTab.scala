@@ -6,7 +6,7 @@ import java.net.URI
 import javax.swing.{ AbstractAction, JButton, JOptionPane }
 
 import org.nlogo.api.{ ExtensionException, ModelReader, ModelSection, ModelType, Version }
-import org.nlogo.app.{ Tabs, App }
+import org.nlogo.app.{ App, TabManager }
 import org.nlogo.app.codetab.{ ProceduresMenu, CodeTab }
 import org.nlogo.awt.UserCancelException
 import org.nlogo.core.{ I18N, Model }
@@ -18,8 +18,8 @@ import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelTracker, OpenModel, Op
 
 import java.nio.file.Paths
 
-class ModelCodeTab(workspace: AbstractWorkspaceScala, tabs: Tabs, modelManager: ModelManager)
-extends CodeTab(workspace, tabs)
+class ModelCodeTab(workspace: AbstractWorkspaceScala, tabManager: TabManager, modelManager: ModelManager)
+extends CodeTab(workspace, tabManager)
 with ModelSavedEvent.Handler {
   val tabName      = workspace.getModelFileName
   val filePath     = workspace.getModelPath
@@ -65,7 +65,6 @@ with ModelSavedEvent.Handler {
   }
 
 
-  val tabManager         = tabs.getTabManager
   protected var isDirty  = false
 
   override def getAdditionalToolBarComponents = Seq(new ToolBarActionButton(FileCloseAction))

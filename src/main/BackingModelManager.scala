@@ -17,7 +17,7 @@ trait LSModelManager extends ModelManager {
 }
 
 class BackingModelManager extends LSModelManager {
-  override val guiComponent = new LevelSpaceMenu(App.app.tabs, this)
+  override val guiComponent = new LevelSpaceMenu(App.app.tabManager, this)
   private val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
   private var openModels    = Map.empty[String, ChildModel]
 
@@ -42,7 +42,7 @@ class BackingModelManager extends LSModelManager {
 
   def existingTab(filePath: String): Option[CodeTab] =
     if (filePath == App.app.workspace.getModelPath)
-      Some(App.app.tabs.mainCodeTab)
+      Some(App.app.tabManager.mainCodeTab)
     else
       backingModels.get(filePath).map(_._2)
 
