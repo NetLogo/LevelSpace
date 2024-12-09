@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
 import org.nlogo.agent.{Agent, CompilationManagement, World, World2D, World3D}
-import org.nlogo.api.{ControlSet, ModelType, NetLogoLegacyDialect, NetLogoThreeDDialect, Version}
+import org.nlogo.api.{ Agent => APIAgent, ControlSet, ModelType, NetLogoLegacyDialect, NetLogoThreeDDialect, Version}
 import org.nlogo.app.codetab.ExternalFileManager
 import org.nlogo.app.tools.AgentMonitorManager
 import org.nlogo.awt.EventQueue
@@ -14,7 +14,7 @@ import org.nlogo.lite.ProceduresLite
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
 import org.nlogo.window.{CompilerManager, DefaultEditorFactory, ErrorDialogManager, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
 import org.nlogo.workspace.OpenModelFromURI
-import org.nlogo.{api, fileformat}
+import org.nlogo.fileformat.FileFormat
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -39,7 +39,7 @@ with ControlSet {
     val aggregateManager = new org.nlogo.sdm.AggregateManagerLite
 
 
-    override def inspectAgent(agent: api.Agent, radius: Double) = {
+    override def inspectAgent(agent: APIAgent, radius: Double) = {
       val a = agent.asInstanceOf[Agent]
       monitorManager.inspect(a.kind, a, radius)
     }
@@ -87,8 +87,8 @@ with ControlSet {
     val uri = Paths.get(path).toUri
     interfacePanel.reset()
     val controller = new FileController(this, workspace)
-    val loader = fileformat.basicLoader
-    val modelOpt = OpenModelFromURI(uri, controller, loader, fileformat.defaultConverter, Version)
+    val loader = FileFormat.basicLoader
+    val modelOpt = OpenModelFromURI(uri, controller, loader, FileFormat.defaultConverter, Version)
     modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
   }
 

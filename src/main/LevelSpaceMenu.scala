@@ -12,7 +12,7 @@ import org.nlogo.core.{CompilerException, Shape, ShapeParser}
 import org.nlogo.app.{ModelSaver, App, TabManager}
 import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
-import org.nlogo.fileformat
+import org.nlogo.fileformat.FileFormat
 import org.nlogo.swing.FileDialog
 import org.nlogo.workspace.{AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel}
 
@@ -145,7 +145,7 @@ class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManag
         FileDialog.setDirectory(App.app.workspace.getModelDir)
 
         val ws = App.app.workspace
-        val loader = fileformat.basicLoader
+        val loader = FileFormat.basicLoader
         val controller = new SaveModel.Controller {
           def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
             try {

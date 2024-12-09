@@ -10,7 +10,7 @@ import org.nlogo.app.{ App, TabManager }
 import org.nlogo.app.codetab.{ ProceduresMenu, CodeTab }
 import org.nlogo.awt.UserCancelException
 import org.nlogo.core.{ I18N, Model }
-import org.nlogo.fileformat
+import org.nlogo.fileformat.{ FailedConversionResult, FileFormat }
 import org.nlogo.swing.{ ToolBar, ToolBarActionButton, OptionDialog }, ToolBar.Separator
 import org.nlogo.util.Utils
 import org.nlogo.window.Events.ModelSavedEvent
@@ -29,7 +29,7 @@ with ModelSavedEvent.Handler {
   setIndenter(true)
 
   locally {
-    val loader = fileformat.basicLoader
+    val loader = FileFormat.basicLoader
     val controller = new OpenModel.Controller {
       def errorOpeningURI(uri: URI, exception: Exception): Unit = {
         throw new ExtensionException("Levelspace encountered an error while opening: " + Paths.get(uri).toString + ". " + exception.toString)
@@ -40,12 +40,12 @@ with ModelSavedEvent.Handler {
       def invalidModelVersion(uri: URI, version: String): Unit = {
         throw new ExtensionException("Levelspace couldn't open invalid NetLogo model: " + Paths.get(uri).toString)
       }
-      def errorAutoconvertingModel(failure: fileformat.FailedConversionResult): Option[Model] = None
+      def errorAutoconvertingModel(failure: FailedConversionResult): Option[Model] = None
       def shouldOpenModelOfDifferingArity(arity: Int, version: String): Boolean = false
       def shouldOpenModelOfLegacyVersion(version: String): Boolean = true
       def shouldOpenModelOfUnknownVersion(version: String): Boolean = true
     }
-    OpenModelFromURI(Paths.get(filePath).toUri, controller, loader, fileformat.defaultConverter, Version).foreach { model =>
+    OpenModelFromURI(Paths.get(filePath).toUri, controller, loader, FileFormat.defaultConverter, Version).foreach { model =>
       currentModel = Some(model)
       innerSource = model.code
     }
@@ -103,7 +103,7 @@ with ModelSavedEvent.Handler {
     save()
 
   def save(): Unit = {
-    val loader = fileformat.basicLoader
+    val loader = FileFormat.basicLoader
     val controller = new SaveModel.Controller {
       def chooseFilePath(modelType: ModelType): Option[URI] = {
         Some(Paths.get(workspace.getModelPath).toUri)
