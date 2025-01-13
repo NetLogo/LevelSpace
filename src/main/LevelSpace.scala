@@ -22,6 +22,7 @@ import org.nlogo.app.{ App, ToolsMenu }
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.LogoList
 import org.nlogo.nvm.HaltException
+import org.nlogo.theme.ThemeSync
 import org.nlogo.workspace.{ AbstractWorkspace, ExtensionManager => WorkspaceExtensionManager }
 
 import scala.collection.JavaConverters._
@@ -59,7 +60,7 @@ object LevelSpace {
   }
 }
 
-class LevelSpace extends DefaultClassManager { // This can be accessed by both the JobThread and EDT (when halting)
+class LevelSpace extends DefaultClassManager with ThemeSync { // This can be accessed by both the JobThread and EDT (when halting)
   LevelSpace.checkSupportNetLogoVersion()
 
   final private val models = new ConcurrentHashMap[Integer, ChildModel].asScala
@@ -101,6 +102,8 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
     // We need to actually listen for halt actions because gui child models can be running independently on their own
     // job threads if the user is interacting with them.
     haltButton.foreach(_.addActionListener(haltListener))
+
+    App.app.addSyncComponent(this)
   }
 
   def isMainModel(myEM: ExtensionManager): Boolean = myEM eq App.app.workspace.getExtensionManager
@@ -126,6 +129,7 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
       case _: HaltException =>
       // we can ignore this
     }
+    App.app.removeSyncComponent(this)
   }
 
   private def initModel(parentWS: AbstractWorkspace, model: ChildModel): Unit = {
@@ -223,4 +227,8 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
   }
 
   private def haltChildModels(): Unit = models.values.foreach(_.halt())
+
+  def syncTheme() {
+    modelManager.syncTheme()
+  }
 }

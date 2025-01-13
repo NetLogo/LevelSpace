@@ -6,11 +6,14 @@ import javax.swing.{BoxLayout, JFrame, JPanel, Timer}
 
 import org.nlogo.core.CompilerException
 import org.nlogo.headless.HeadlessWorkspace
+import org.nlogo.theme.{ InterfaceColors, ThemeSync }
 import org.nlogo.window.Events.{AddJobEvent, CompileMoreSourceEvent, CompiledEvent, PeriodicUpdateEvent}
 import org.nlogo.window.JobWidget
 import org.nlogo.render.Renderer
 
-class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler {
+class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler
+                                       with ThemeSync {
+
   private val viewPanel = new JPanel() {
     override def paintComponent(g: Graphics): Unit = ws.world.synchronized {
       ws.renderer.paint(g.asInstanceOf[Graphics2D], ws)
@@ -27,7 +30,9 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
 
   val panel = new HeadlessPanel(ws, viewContainer)
   getContentPane.add(panel)
+  panel.packSplitPane()
   pack()
+  panel.resetCommandCenter()
 
   def handle(e: CompileMoreSourceEvent): Unit = {
     val owner = e.owner
@@ -52,6 +57,9 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
     ws.jobManager.addJob(e.owner, agents, ws, e.procedure)
   }
 
+  def syncTheme() {
+    viewContainer.setBackground(InterfaceColors.INTERFACE_BACKGROUND)
+
+    panel.syncTheme()
+  }
 }
-
-
