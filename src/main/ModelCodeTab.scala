@@ -1,20 +1,17 @@
 package org.nlogo.ls.gui
 
-import java.awt.event.ActionEvent
-import java.io.{FileReader, FileWriter}
 import java.net.URI
-import javax.swing.{ AbstractAction, JButton, JOptionPane }
+import javax.swing.JOptionPane
 
-import org.nlogo.api.{ ExtensionException, ModelReader, ModelSection, ModelType, Version }
+import org.nlogo.api.{ ExtensionException, ModelType, Version }
 import org.nlogo.app.{ App, TabManager }
-import org.nlogo.app.codetab.{ ProceduresMenu, CodeTab }
+import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.core.{ I18N, Model }
 import org.nlogo.fileformat.{ FailedConversionResult, FileFormat }
-import org.nlogo.swing.{ ToolBar, ToolBarActionButton, OptionDialog }, ToolBar.Separator
-import org.nlogo.util.Utils
+import org.nlogo.swing.OptionDialog
 import org.nlogo.window.Events.ModelSavedEvent
-import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelTracker, OpenModel, OpenModelFromURI, SaveModel, ModelsLibrary }
+import org.nlogo.workspace.{ AbstractWorkspaceScala, OpenModel, OpenModelFromURI, SaveModel, ModelsLibrary }
 
 import java.nio.file.Paths
 
@@ -67,9 +64,7 @@ with ModelSavedEvent.Handler {
 
   protected var isDirty  = false
 
-  override def getAdditionalToolBarComponents = Seq(new ToolBarActionButton(FileCloseAction))
-
-  def close(): Unit = {
+  override def close() {
     try {
       if (dirty && userWantsToSaveFile())
         save()
@@ -91,10 +86,6 @@ with ModelSavedEvent.Handler {
       case 1 => false
       case _ => throw new UserCancelException
     }
-  }
-
-  private object FileCloseAction extends AbstractAction("Close") {
-    override def actionPerformed(actionEvent: ActionEvent): Unit = close()
   }
 
   val originalModelSource = modelSource
