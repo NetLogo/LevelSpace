@@ -104,8 +104,6 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
     // We need to actually listen for halt actions because gui child models can be running independently on their own
     // job threads if the user is interacting with them.
     haltButton.foreach(_.addActionListener(haltListener))
-
-    App.app.addSyncComponent(this)
   }
 
   def isMainModel(myEM: ExtensionManager): Boolean = myEM eq App.app.workspace.getExtensionManager
@@ -124,6 +122,7 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
   override def unload(em: ExtensionManager): Unit = {
     if (!LevelSpace.isHeadless && isMainModel(em)) {
       App.app.frame.getJMenuBar.remove(modelManager.guiComponent)
+      App.app.removeSyncComponent(this)
     }
     haltButton.foreach(_.removeActionListener(haltListener))
     try reset()
@@ -131,7 +130,6 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
       case _: HaltException =>
       // we can ignore this
     }
-    App.app.removeSyncComponent(this)
   }
 
   private def initModel(parentWS: AbstractWorkspace, model: ChildModel): Unit = {
@@ -225,6 +223,7 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
       if (menuBar.getComponentIndex(modelManager.guiComponent) == -1) {
         menuBar.add(modelManager.guiComponent)
       }
+      App.app.addSyncComponent(this)
     }
   }
 
