@@ -13,7 +13,7 @@ import org.nlogo.app.{ModelSaver, App, TabManager}
 import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.fileformat.FileFormat
-import org.nlogo.swing.FileDialog
+import org.nlogo.swing.{ FileDialog, Menu, MenuItem }
 import org.nlogo.workspace.{AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel}
 
 import scala.collection.JavaConversions._
@@ -26,13 +26,13 @@ trait ModelManager {
 }
 
 class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManager)
-  extends JMenu("LevelSpace") {
+  extends Menu("LevelSpace") {
 
   import LevelSpaceMenu._
 
-  val selectModel = new SelectModelAction("Open Model in Code Tab", backingModelManager)
-  val openModels  = new JMenu("Edit Open Models...")
-  val newModel    = new NewModelAction("Create new LevelSpace Model", backingModelManager)
+  val selectModel = new MenuItem(new SelectModelAction("Open Model in Code Tab", backingModelManager))
+  val openModels  = new Menu("Edit Open Models...")
+  val newModel    = new MenuItem(new NewModelAction("Create new LevelSpace Model", backingModelManager))
 
   add(selectModel)
   add(openModels)
@@ -53,7 +53,7 @@ class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManag
     }
 
   private def addModelAction(menu: JMenu, filePath: String): Unit = {
-    menu.add(new OpenModelAction(filePath, backingModelManager))
+    menu.add(new MenuItem(new OpenModelAction(filePath, backingModelManager)))
   }
 
   private def newHeadlessBackedTab(filePath: String): Option[ModelCodeTab] =

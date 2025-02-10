@@ -3,14 +3,19 @@ package org.nlogo.ls.gui
 import java.awt.EventQueue.isDispatchThread
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
+import javax.swing.{ JFrame, JPanel }
 
 import org.nlogo.agent.{Agent, CompilationManagement, World, World2D, World3D}
 import org.nlogo.api.{ Agent => APIAgent, ControlSet, ModelType, NetLogoLegacyDialect, NetLogoThreeDDialect, Version}
 import org.nlogo.app.codetab.ExternalFileManager
 import org.nlogo.app.tools.AgentMonitorManager
 import org.nlogo.awt.EventQueue
+import org.nlogo.compile.Compiler
 import org.nlogo.core.{AgentKind, Model}
+import org.nlogo.gl.view.ViewManager
 import org.nlogo.lite.ProceduresLite
+import org.nlogo.sdm.AggregateManagerLite
+import org.nlogo.theme.{ InterfaceColors, ThemeSync }
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
 import org.nlogo.window.{CompilerManager, DefaultEditorFactory, ErrorDialogManager, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
 import org.nlogo.workspace.OpenModelFromURI
@@ -19,16 +24,17 @@ import org.nlogo.fileformat.FileFormat
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
-abstract class InterfaceComponent(frame: javax.swing.JFrame) extends javax.swing.JPanel
+abstract class InterfaceComponent(frame: JFrame) extends JPanel
 with Event.LinkParent
 with LinkRoot
-with ControlSet {
+with ControlSet
+with ThemeSync {
   val listenerManager = new NetLogoListenerManager
   val world: World = if(Version.is3D) new World3D() else new World2D()
 
   // KioskLevel.NONE - We want a 3d button
   val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, new ErrorDialogManager(frame), this) {
-    val compiler = new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
+    val compiler = new Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
       override def defaultFrameRate = workspace.frameRate
@@ -36,7 +42,7 @@ with ControlSet {
       override def updateMode = workspace.updateMode()
     }
 
-    val aggregateManager = new org.nlogo.sdm.AggregateManagerLite
+    val aggregateManager = new AggregateManagerLite
 
 
     override def inspectAgent(agent: APIAgent, radius: Double) = {
@@ -55,7 +61,7 @@ with ControlSet {
   val monitorManager = new AgentMonitorManager(workspace)
   addLinkComponent(monitorManager)
 
-  val viewManager = new org.nlogo.gl.view.ViewManager(workspace, frame, new java.awt.event.KeyAdapter{})
+  val viewManager = new ViewManager(workspace, frame, new java.awt.event.KeyAdapter{})
   workspace.init(viewManager)
   addLinkComponent(viewManager)
 
@@ -122,5 +128,14 @@ with ControlSet {
       }
       promise.future
     }
+  }
+
+  def syncTheme() {
+    setBackground(InterfaceColors.INTERFACE_BACKGROUND)
+
+    interfacePanel.syncTheme()
+    monitorManager.syncTheme()
+    viewManager.syncTheme()
+    viewManager.repaint()
   }
 }

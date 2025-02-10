@@ -76,6 +76,7 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
     val f = frame.getOrElse { new ViewFrame(workspace) }
     frame = Some(f)
     updateFrameTitle()
+    syncTheme()
     super.show()
     workspace.requestDisplayUpdate(false)
   }
@@ -89,4 +90,8 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
 
   def tryEagerOf(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG): Notifying[AnyRef] =
     evaluator.report(code, lets, args, rng, parallel = usesLevelSpace || isVisible)
+
+  def syncTheme() {
+    frame.foreach(_.syncTheme())
+  }
 }

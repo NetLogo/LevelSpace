@@ -6,12 +6,13 @@ import java.util.{ Map => JMap }
 
 import org.nlogo.app.App
 import org.nlogo.app.codetab.CodeTab
+import org.nlogo.theme.ThemeSync
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 import scala.collection.Map
 import scala.collection.parallel.mutable.ParHashMap
 
-trait LSModelManager extends ModelManager {
+trait LSModelManager extends ModelManager with ThemeSync {
   def updateChildModels(map: Map[Integer, ChildModel]): Unit = {}
   def guiComponent: LevelSpaceMenu = null
 }
@@ -20,12 +21,13 @@ class BackingModelManager extends LSModelManager {
   override val guiComponent = new LevelSpaceMenu(App.app.tabManager, this)
   private val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
   private var openModels    = Map.empty[String, ChildModel]
+  private var models  = Seq[ChildModel]()
 
   override def updateChildModels(indexedModels: Map[Integer, ChildModel]): Unit = {
-    val models            = indexedModels.values
+    models                = indexedModels.values.toSeq
 
     // toSeq.distinct preserves ordering, whereas toSet does not
-    val modelPaths        = models.map(_.workspace.getModelPath).toSeq.distinct
+    val modelPaths        = models.map(_.workspace.getModelPath).distinct
 
     val closedModelsPaths = (openModels.values.toSet &~ models.toSet).map(_.workspace.getModelPath)
     val newlyOpenedPaths  = (models.toSet &~ openModels.values.toSet).map(_.workspace.getModelPath)
@@ -73,6 +75,12 @@ class BackingModelManager extends LSModelManager {
       registerTab(filePath, newModel)(f)
     }
   }
+
+  def syncTheme() {
+    guiComponent.syncTheme()
+    models.foreach(_.syncTheme())
+    backingModels.values.foreach(_._2.syncTheme())
+  }
 }
 
 // this is an example of the
@@ -81,4 +89,5 @@ class HeadlessBackingModelManager extends LSModelManager {
   def existingTab(filePath: String): Option[ModelCodeTab] = None
   def registerTab(filePath: String)
                  (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab] = None
+  def syncTheme() {}
 }
