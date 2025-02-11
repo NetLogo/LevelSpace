@@ -131,7 +131,7 @@ with ThemeSync {
   }
 
   def syncTheme() {
-    setBackground(InterfaceColors.INTERFACE_BACKGROUND)
+    setBackground(InterfaceColors.interfaceBackground)
 
     interfacePanel.syncTheme()
     monitorManager.syncTheme()

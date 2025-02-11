@@ -59,7 +59,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
   }
 
   def syncTheme() {
-    viewContainer.setBackground(InterfaceColors.INTERFACE_BACKGROUND)
+    viewContainer.setBackground(InterfaceColors.interfaceBackground)
 
     panel.syncTheme()
   }
