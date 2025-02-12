@@ -110,7 +110,7 @@ class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManag
             throw new ExtensionException(filePath + " did not compile properly. There is probably something wrong " +
               "with its code. Exception said" + e.getMessage);
             case e: IOException =>
-              throw new ExtensionException("There was no .nlogo file at the path: \"" + filePath + "\"")
+              throw new ExtensionException("There was no model file at the path: \"" + filePath + "\"")
         }
 
 
@@ -152,7 +152,7 @@ class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManag
               val userEntry = FileDialog.showFiles(App.app.frame, "Select a path for new Model...", SAVEFILE)
               // we basically need to write an empty NetLogo model in before we read...
               val fileName =
-                if (userEntry.endsWith(".nlogo")) userEntry else userEntry + ".nlogo"
+                if (userEntry.endsWith(".nlogo") || userEntry.endsWith(".nlogox")) userEntry else userEntry + ".nlogox"
               val path = Paths.get(fileName)
               if (Files.exists(path)) {
                 val fileAlreadyExists = s"The file $fileName already exists. Please choose a different name"
