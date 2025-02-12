@@ -6,18 +6,18 @@ Asking and reporting in LevelSpace is conceptually pretty straight forward: You 
 
 In general, the LevelSpace syntax has been designed to align with existing NetLogo primitives whenever possible.
 
-### Headless and Interactive Models 
+### Headless and Interactive Models
 
-LevelSpace has two different child model types; headless models and interactive models. They each have their strengths and weaknesses: 
+LevelSpace has two different child model types; headless models and interactive models. They each have their strengths and weaknesses:
 
-Interactive models 
+Interactive models
 * are full-fledged models that give full access to their interface and widgets,
 * run a bit slower, and use more memory
 * are visible by default
 
 Headless Models
-* only give you access to their view and command center 
-* are faster and use less memory than interactive models. 
+* only give you access to their view and command center
+* are faster and use less memory than interactive models.
 * are hidden by default
 
 Typically you will want to use headless models when you are running a large number of models, or if you simply want to run them faster. Interactive models are good if you run a small amount of models, if you are writing a LevelSpace model and need to be able to debug, or if you need access to widgets during runtime.
@@ -40,7 +40,7 @@ A simple thing we can do is to open up some models, run them concurrently, and c
 to setup
   ls:reset
   ca
-  ls:create-models 30 "Wolf Sheep Predation.nlogo"
+  ls:create-models 30 "Wolf Sheep Predation.nlogox"
   ls:ask ls:models [ set grass? true setup ]
   reset-ticks
 end
@@ -57,7 +57,7 @@ end
 
 This use case is based on the Model Interactions Example-model from the NetLogo Models Library.
 
-Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`, and a Climate Change model called `CC`. Now let's imagine that we want the regrowth time in the wSP model to depend on the temperature in the CC model. Using LevelSpace's primitives, we could do something like this: 
+Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`, and a Climate Change model called `CC`. Now let's imagine that we want the regrowth time in the wSP model to depend on the temperature in the CC model. Using LevelSpace's primitives, we could do something like this:
 
 ```
   ; save new regrowth time in a temporary LevelSpace let-variable
@@ -70,7 +70,7 @@ Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`
 
   ; finally ask both models to go
   ls:ask ls:models [ go ]
-``` 
+```
 
 ### A general Usecase: Tidying up "Dead" Child Models
 
@@ -82,7 +82,7 @@ to-report remove-dead-models [list-of-models]
 end
 ```
 
-We then reassign each list of models with this, e.g. 
+We then reassign each list of models with this, e.g.
 
 ```
 

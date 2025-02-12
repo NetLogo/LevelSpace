@@ -6,9 +6,11 @@ import javax.swing.{JFrame, JMenuBar, WindowConstants}
 import java.io.IOException
 
 import org.nlogo.api._
-import org.nlogo.app.App
+import org.nlogo.app.{ App, ZoomMenu }
 import org.nlogo.ls.gui.{GUIPanel, InterfaceComponent, ZoomableInterfaceComponent}
 import org.nlogo.nvm.HaltException
+import org.nlogo.swing.{ Menu, NetLogoIcon, Utils }
+import org.nlogo.theme.{ InterfaceColors, ThemeSync }
 import org.nlogo.window.GUIWorkspace
 
 import scala.util.{Failure, Try}
@@ -18,11 +20,13 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   extends ChildModel(parentWorkspace, modelID) {
 
   val (component, panel, frame) = UnlockAndBlock.onEDT(parentWorkspace.world) {
-    val f = new JFrame()
+    val f = new JFrame with NetLogoIcon
     val component: InterfaceComponent = new ZoomableInterfaceComponent(f)
     val panel = new GUIPanel(component.workspace, component)
     (component, panel, Some(f))
   }
+
+  var menuBar = new SyncedMenuBar()
 
   UnlockAndBlock.onEDT(parentWorkspace.world) (Try {
     val f = frame.get
@@ -34,19 +38,19 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     f.setVisible(true)
     currentlyFocused.toFront()
     openModelWithoutGenerator(component.open, path)
+    panel.packSplitPane()
     f.pack()
+    panel.resetCommandCenter()
     f.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
     f.addWindowListener(new GUIWindowAdapter)
-    val newMenuBar = new JMenuBar()
-    val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
-    newMenuBar.add(zoomMenuClass.getDeclaredConstructor().newInstance().asInstanceOf[org.nlogo.swing.Menu])
-    f.setJMenuBar(newMenuBar)
+    f.setJMenuBar(menuBar)
     (component, panel)
   }) match {
     case Failure(_) => kill()
     case _ =>
   }
   updateFrameTitle()
+  syncTheme()
 
   class GUIWindowAdapter extends WindowAdapter {
     override def windowClosing(windowEvent: WindowEvent): Unit = hide()
@@ -73,8 +77,43 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 
   override def show(): Unit = {
     workspace.updateManager().speed = panel.speedSlider.getValue / 2.0
+    syncTheme()
     super.show()
   }
 
   def workspace: GUIWorkspace = component.workspace
+
+  def syncTheme() {
+    menuBar.syncTheme()
+    panel.syncTheme()
+
+    frame.foreach(_.repaint())
+  }
+}
+
+class SyncedMenuBar extends JMenuBar with ThemeSync {
+  // val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
+  // add(zoomMenuClass.getDeclaredConstructor().newInstance().asInstanceOf[Menu])
+
+  private val zoomMenu = new ZoomMenu
+
+  add(zoomMenu)
+
+  override def paintComponent(g: Graphics) {
+    val g2d = Utils.initGraphics2D(g)
+
+    g2d.setColor(InterfaceColors.menuBackground)
+    g2d.fillRect(0, 0, getWidth, getHeight)
+  }
+
+  override def paintBorder(g: Graphics) {
+    val g2d = Utils.initGraphics2D(g)
+
+    g2d.setColor(InterfaceColors.menuBarBorder)
+    g2d.drawLine(0, getHeight - 1, getWidth, getHeight - 1)
+  }
+
+  def syncTheme() {
+    zoomMenu.syncTheme()
+  }
 }

@@ -11,18 +11,18 @@ Asking and reporting in LevelSpace is conceptually pretty straight forward: You 
 
 In general, the LevelSpace syntax has been designed to align with existing NetLogo primitives whenever possible.
 
-### Headless and Interactive Models 
+### Headless and Interactive Models
 
-LevelSpace has two different child model types; headless models and interactive models. They each have their strengths and weaknesses: 
+LevelSpace has two different child model types; headless models and interactive models. They each have their strengths and weaknesses:
 
-Interactive models 
+Interactive models
 * are full-fledged models that give full access to their interface and widgets,
 * run a bit slower, and use more memory
 * are visible by default
 
 Headless Models
-* only give you access to their view and command center 
-* are faster and use less memory than interactive models. 
+* only give you access to their view and command center
+* are faster and use less memory than interactive models.
 * are hidden by default
 
 Typically you will want to use headless models when you are running a large number of models, or if you simply want to run them faster. Interactive models are good if you run a small amount of models, if you are writing a LevelSpace model and need to be able to debug, or if you need access to widgets during runtime.
@@ -45,7 +45,7 @@ A simple thing we can do is to open up some models, run them concurrently, and c
 to setup
   ls:reset
   ca
-  ls:create-models 30 "Wolf Sheep Predation.nlogo"
+  ls:create-models 30 "Wolf Sheep Predation.nlogox"
   ls:ask ls:models [ set grass? true setup ]
   reset-ticks
 end
@@ -62,7 +62,7 @@ end
 
 This use case is based on the Model Interactions Example-model from the NetLogo Models Library.
 
-Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`, and a Climate Change model called `CC`. Now let's imagine that we want the regrowth time in the wSP model to depend on the temperature in the CC model. Using LevelSpace's primitives, we could do something like this: 
+Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`, and a Climate Change model called `CC`. Now let's imagine that we want the regrowth time in the wSP model to depend on the temperature in the CC model. Using LevelSpace's primitives, we could do something like this:
 
 ```
   ; save new regrowth time in a temporary LevelSpace let-variable
@@ -75,7 +75,7 @@ Let's imagine that we have two models: a Wolf Sheep Predation-model called `WSP`
 
   ; finally ask both models to go
   ls:ask ls:models [ go ]
-``` 
+```
 
 ### A general Usecase: Tidying up "Dead" Child Models
 
@@ -87,7 +87,7 @@ to-report remove-dead-models [list-of-models]
 end
 ```
 
-We then reassign each list of models with this, e.g. 
+We then reassign each list of models with this, e.g.
 
 ```
 
@@ -141,13 +141,13 @@ ls:create-models *number* *path*
 ```
 
 
-Create the specified number of instances of the given .nlogo model.  The path can be absolute, or relative to the main model. Compared with `ls:create-interactive-models`, this primitive creates lightweight models that are hidden by default. You should use this primitive if you plan on having many instances of the given model. The models may be shown using `ls:show`; when visible, they will have a view and command center, but no other widgets, e.g. plots or monitors.
+Create the specified number of instances of the given model.  The path can be absolute, or relative to the main model. Compared with `ls:create-interactive-models`, this primitive creates lightweight models that are hidden by default. You should use this primitive if you plan on having many instances of the given model. The models may be shown using `ls:show`; when visible, they will have a view and command center, but no other widgets, e.g. plots or monitors.
 
 If given a command, LevelSpace will call the command after loading each instance of the model with the `model-id` as the argument. This allows you to easily store model ids in a variable or list when loading models, or do other initialization. For example, to store a model id in a variable, you can do:
 
 ```NetLogo
 let model-id 0
-(ls:create-models "My-Model.nlogo" [ [id] -> set model-id id ])
+(ls:create-models "My-Model.nlogox" [ [id] -> set model-id id ])
 ```
 
 Child model RNGs are seeded from the parent models RNG when they are created.
@@ -164,7 +164,7 @@ ls:create-interactive-models *number* *path*
 ```
 
 
-Like `ls:create-models`, creates the specified number of instances of the given .nlogo model. Unlike `ls:create-models`, `ls:create-interactive-models` creates models that are visible by default, and have all widgets. You should use this primitive if you plan on having only a handful of instances of the given model, and would like to be able to interact with the instances through their interfaces during runtime.
+Like `ls:create-models`, creates the specified number of instances of the given model. Unlike `ls:create-models`, `ls:create-interactive-models` creates models that are visible by default, and have all widgets. You should use this primitive if you plan on having only a handful of instances of the given model, and would like to be able to interact with the instances through their interfaces during runtime.
 
 Child model RNGs are seeded from the parent models RNG when they are created.
 Thus, if you seed the parent's model RNG before child model before child models are created, the simulation as a whole will be reproducible.
@@ -434,7 +434,7 @@ ls:path-of *model-or-list-of-models*
 ```
 
 
-Report the full path, including the .nlogo file name, of the model. If a list of models is given, a list of paths is reported.
+Report the full path, including the file name of the model. If a list of models is given, a list of paths is reported.
 
 
 
@@ -445,7 +445,7 @@ ls:name-of *model-or-list-of-models*
 ```
 
 
-Reports the name of the .nlogo file of the model. This is the name of the window in which the model appears when visible. If a list of models is given, a list of names is reported.
+Reports the name of the model file. This is the name of the window in which the model appears when visible. If a list of models is given, a list of names is reported.
 
 
 

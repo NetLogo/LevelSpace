@@ -22,6 +22,7 @@ import org.nlogo.app.{ App, ToolsMenu }
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.LogoList
 import org.nlogo.nvm.HaltException
+import org.nlogo.theme.ThemeSync
 import org.nlogo.workspace.{ AbstractWorkspace, ExtensionManager => WorkspaceExtensionManager }
 
 import scala.collection.JavaConverters._
@@ -43,15 +44,17 @@ object LevelSpace {
     // library that will include users on NetLogo 6.1.1 and 6.1.0, for whom this newer
     // LS will *not* work.  So we'll warn them they need to upgrade NetLogo or downgrade
     // LS, rather than just blowing up.  -Jeremy B June 2021
+    // This has now been incremented to 7.0.0, due to API changes required for the GUI
+    // redesign. (Isaac B 1/25/25)
     val versionErrorMessage =
-      """This version of LevelSpace can only be used with NetLogo version 6.2.0 or newer.
+      """This version of LevelSpace can only be used with NetLogo version 7.0.0 or newer.
       If you updated LevelSpace through the extensions manager, you can use it to uninstall
       the LevelSpace update and go back to the version that came with your NetLogo
       installation.  You can also upgrade NetLogo to the latest version to use this updated
       LevelSpace by going to the CCL website, https://ccl.northwestern.edu/netlogo."""
     def makeVersion(v: String): String = s"NetLogo${if (Version.is3D) " 3D " else " " }$v"
-    val minSupportedVersion = Version.numericValue(makeVersion("6.2.0"))
-    val minErrorVersion     = Version.numericValue(makeVersion("6.1.0"))
+    val minSupportedVersion = Version.numericValue(makeVersion("7.0.0"))
+    val minErrorVersion     = Version.numericValue(makeVersion("6.4.0"))
     val currentVersion      = Version.numericValue(Version.version)
     if (minErrorVersion < currentVersion && currentVersion < minSupportedVersion) {
       throw new ExtensionException(versionErrorMessage)
@@ -59,7 +62,7 @@ object LevelSpace {
   }
 }
 
-class LevelSpace extends DefaultClassManager { // This can be accessed by both the JobThread and EDT (when halting)
+class LevelSpace extends DefaultClassManager with ThemeSync { // This can be accessed by both the JobThread and EDT (when halting)
   LevelSpace.checkSupportNetLogoVersion()
 
   final private val models = new ConcurrentHashMap[Integer, ChildModel].asScala
@@ -119,6 +122,7 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
   override def unload(em: ExtensionManager): Unit = {
     if (!LevelSpace.isHeadless && isMainModel(em)) {
       App.app.frame.getJMenuBar.remove(modelManager.guiComponent)
+      App.app.removeSyncComponent(this)
     }
     haltButton.foreach(_.removeActionListener(haltListener))
     try reset()
@@ -219,8 +223,13 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
       if (menuBar.getComponentIndex(modelManager.guiComponent) == -1) {
         menuBar.add(modelManager.guiComponent)
       }
+      App.app.addSyncComponent(this)
     }
   }
 
   private def haltChildModels(): Unit = models.values.foreach(_.halt())
+
+  def syncTheme() {
+    modelManager.syncTheme()
+  }
 }
