@@ -23,8 +23,6 @@ with ModelSavedEvent.Handler {
   var modelSource  = ""
   var currentModel = Option.empty[Model]
 
-  setIndenter(true)
-
   locally {
     val loader = FileFormat.basicLoader
     val controller = new OpenModel.Controller {
