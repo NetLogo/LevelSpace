@@ -53,7 +53,7 @@ object LevelSpace {
       installation.  You can also upgrade NetLogo to the latest version to use this updated
       LevelSpace by going to the CCL website, https://ccl.northwestern.edu/netlogo."""
     def makeVersion(v: String): String = s"NetLogo${if (Version.is3D) " 3D " else " " }$v"
-    val minSupportedVersion = Version.numericValue(makeVersion("7.0.0"))
+    val minSupportedVersion = Version.numericValue(makeVersion("7.0.0-internal1"))
     val minErrorVersion     = Version.numericValue(makeVersion("6.4.0"))
     val currentVersion      = Version.numericValue(Version.version)
     if (minErrorVersion < currentVersion && currentVersion < minSupportedVersion) {
