@@ -58,7 +58,7 @@ class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEven
     ws.jobManager.addJob(e.owner, agents, ws, e.procedure)
   }
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     viewContainer.setBackground(InterfaceColors.interfaceBackground)
 
     panel.syncTheme()

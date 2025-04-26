@@ -25,7 +25,8 @@ import org.nlogo.nvm.HaltException
 import org.nlogo.theme.ThemeSync
 import org.nlogo.workspace.{ AbstractWorkspace, ExtensionManager => WorkspaceExtensionManager }
 
-import scala.collection.JavaConverters._
+import scala.collection.immutable.ArraySeq
+import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
 
 object LevelSpace {
   private var isHeadlessWorkspace = false
@@ -114,7 +115,7 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
 
   def containsModel(id: Int): Boolean = models.contains(id)
 
-  def modelList: Seq[Integer] = models.keys.toArray.sorted
+  def modelList: Seq[Integer] = Seq(ArraySeq.unsafeWrapArray(models.keys.toArray.sorted): _*)
 
   def numModels: Integer = models.size
 
@@ -229,7 +230,7 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
 
   private def haltChildModels(): Unit = models.values.foreach(_.halt())
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     modelManager.syncTheme()
   }
 }

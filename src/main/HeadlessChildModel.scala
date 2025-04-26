@@ -10,10 +10,6 @@ import org.nlogo.headless.HeadlessWorkspace
 import org.nlogo.ls.gui.ViewFrame
 import org.nlogo.workspace.{AbstractWorkspace, AbstractWorkspaceScala}
 
-@throws(classOf[InterruptedException])
-@throws(classOf[ExtensionException])
-@throws(classOf[HaltException])
-@throws(classOf[IOException])
 class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
 
@@ -91,7 +87,7 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
   def tryEagerOf(code: String, lets: Seq[(String, AnyRef)], args: Seq[AnyRef], rng: RNG): Notifying[AnyRef] =
     evaluator.report(code, lets, args, rng, parallel = usesLevelSpace || isVisible)
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     frame.foreach(_.syncTheme())
   }
 }

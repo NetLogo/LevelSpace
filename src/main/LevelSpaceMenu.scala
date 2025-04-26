@@ -16,7 +16,7 @@ import org.nlogo.fileformat.FileFormat
 import org.nlogo.swing.{ FileDialog, Menu, MenuItem }
 import org.nlogo.workspace.{AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel}
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters.SeqHasAsJava
 
 trait ModelManager {
   def removeTab(tab: ModelCodeTab): Unit
@@ -107,10 +107,10 @@ class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManag
           case e: CompilerException =>
             // we shouldn't have to raise an exception here, we should just be able to open it, but
             // in order to do that, we'll need to change child models not to compile in their constructors
-            throw new ExtensionException(filePath + " did not compile properly. There is probably something wrong " +
-              "with its code. Exception said" + e.getMessage);
-            case e: IOException =>
-              throw new ExtensionException("There was no model file at the path: \"" + filePath + "\"")
+            throw new ExtensionException(s"$filePath did not compile properly. There is probably something wrong " +
+              s"with its code. Exception said ${e.getMessage}")
+          case e: IOException =>
+            throw new ExtensionException(s"There was no model file at the path: \"$filePath\"")
         }
 
 

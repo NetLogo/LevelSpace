@@ -9,8 +9,8 @@ import org.nlogo.core.{CompilerException, I18N, LogoList, Syntax, Token}
 import org.nlogo.nvm.{Activation, Binding, ExtensionContext, HaltException, Context => NvmContext}
 import org.nlogo.workspace.AbstractWorkspace
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable.{Map => MMap, WeakHashMap => WeakMap}
-
 
 object CtxConverter {
   def nvm(ctx: Context): NvmContext = ctx.asInstanceOf[ExtensionContext].nvmContext
@@ -84,7 +84,7 @@ object ModelRunner {
       }
       i += 1
     }
-    results
+    Seq(ArraySeq.unsafeWrapArray(results): _*)
   }
 
 }
@@ -258,7 +258,7 @@ class RandomSeed(ls: LevelSpace) extends Command {
     val l = args(0).getDoubleValue.toLong
     if (l < -2147483648 || l > 2147483647)
       throw new ExtensionException(
-        Dump.number(l) + " is not in the allowable range for random seeds (-2147483648 to 2147483647)")
+        Dump.number(l.toDouble) + " is not in the allowable range for random seeds (-2147483648 to 2147483647)")
     ctx.getRNG.setSeed(l)
     ls.modelList.foreach(i => ls.getModel(i).seedRNG(RNG(ctx), ctx.getRNG.nextInt))
   }

@@ -54,7 +54,7 @@ with ThemeSync {
     override def stopInspectingAgent(agent: Agent): Unit = monitorManager.stopInspecting(agent)
     override def stopInspectingDeadAgents(): Unit = monitorManager.stopInspectingDeadAgents()
     override def closeAgentMonitors() = monitorManager.closeAll()
-    override def newRenderer = new org.nlogo.render.Renderer(world)
+    override def newRenderer = new org.nlogo.render.Renderer(this.world)
     override def updateModel(m: Model): Model = m
   }
 
@@ -74,12 +74,12 @@ with ThemeSync {
   addLinkComponent(procedures)
   addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World with CompilationManagement], procedures))
   addLinkComponent(new CompiledEvent.Handler {
-    override def handle(e: CompiledEvent) {
+    override def handle(e: CompiledEvent): Unit = {
       if (e.error != null)
         throw e.error
   }})
   addLinkComponent(new LoadModelEvent.Handler {
-    override def handle(e: LoadModelEvent) {
+    override def handle(e: LoadModelEvent): Unit = {
       workspace.aggregateManager.load(e.model, workspace)
   }})
   addLinkComponent(listenerManager)
@@ -130,7 +130,7 @@ with ThemeSync {
     }
   }
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     setBackground(InterfaceColors.interfaceBackground)
 
     interfacePanel.syncTheme()

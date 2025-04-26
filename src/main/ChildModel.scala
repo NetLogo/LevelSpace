@@ -7,9 +7,9 @@ import org.nlogo.api.{CommandRunnable, ExtensionException, Version, Workspace}
 import org.nlogo.theme.ThemeSync
 import org.nlogo.workspace.AbstractWorkspaceScala
 
-import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.jdk.CollectionConverters.IterableHasAsScala
 
 abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int) extends ThemeSync {
   lazy val evaluator = new Evaluator(modelID, name, workspace, parentWorkspace.asInstanceOf[AbstractWorkspaceScala])
@@ -72,7 +72,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int) exte
   }
 
   def seedRNG(rng: RNG, seed: Long): Unit = if (usesLevelSpace) {
-    ask("ls:random-seed seed", Seq("seed" -> Double.box(seed)), Seq(), rng).waitFor
+    ask("ls:random-seed seed", Seq("seed" -> Double.box(seed.toDouble)), Seq(), rng).waitFor
   } else {
     rng(workspace).setSeed(seed)
   }

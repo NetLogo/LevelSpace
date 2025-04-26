@@ -63,7 +63,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
     // Wakes up the workspace if the speed slider is super low.
     // Makes it so there's not a long pause after increasing
     // the speed slider from a low position. BCH 6/18/2016
-    workspace.updateManager().nudgeSleeper
+    workspace.updateManager().nudgeSleeper()
     onEDT {
       panel.speedSlider.setValue((d * 2).intValue)
     }
@@ -71,7 +71,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 
   override def hide(): Unit = {
     workspace.updateManager().speed = 50
-    workspace.updateManager().nudgeSleeper
+    workspace.updateManager().nudgeSleeper()
     super.hide()
   }
 
@@ -83,7 +83,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 
   def workspace: GUIWorkspace = component.workspace
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     menuBar.syncTheme()
     panel.syncTheme()
 
@@ -99,21 +99,21 @@ class SyncedMenuBar extends JMenuBar with ThemeSync {
 
   add(zoomMenu)
 
-  override def paintComponent(g: Graphics) {
+  override def paintComponent(g: Graphics): Unit = {
     val g2d = Utils.initGraphics2D(g)
 
     g2d.setColor(InterfaceColors.menuBackground)
     g2d.fillRect(0, 0, getWidth, getHeight)
   }
 
-  override def paintBorder(g: Graphics) {
+  override def paintBorder(g: Graphics): Unit = {
     val g2d = Utils.initGraphics2D(g)
 
     g2d.setColor(InterfaceColors.menuBarBorder)
     g2d.drawLine(0, getHeight - 1, getWidth, getHeight - 1)
   }
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     zoomMenu.syncTheme()
   }
 }

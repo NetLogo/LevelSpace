@@ -76,7 +76,7 @@ class BackingModelManager extends LSModelManager {
     }
   }
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     guiComponent.syncTheme()
     models.foreach(_.syncTheme())
     backingModels.values.foreach(_._2.syncTheme())
@@ -89,5 +89,5 @@ class HeadlessBackingModelManager extends LSModelManager {
   def existingTab(filePath: String): Option[ModelCodeTab] = None
   def registerTab(filePath: String)
                  (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab] = None
-  def syncTheme() {}
+  def syncTheme(): Unit = {}
 }

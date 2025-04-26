@@ -9,7 +9,7 @@ import org.nlogo.api.{CompilerServices, RandomServices}
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window._
 
-import scala.collection.mutable.{HashMap => MMap, MutableList => MList}
+import scala.collection.mutable.{ HashMap => MMap, ListBuffer => MList }
 
 import scala.language.implicitConversions
 

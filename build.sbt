@@ -2,7 +2,7 @@ import org.nlogo.build.{ ExtensionDocumentationPlugin, NetLogoExtension }
 
 enablePlugins(NetLogoExtension, ExtensionDocumentationPlugin)
 
-scalaVersion := "2.12.12"
+scalaVersion := "2.13.16"
 
 name       := "LevelSpace"
 version    := "2.3.4"
@@ -18,5 +18,6 @@ Test / scalaSource    := baseDirectory.value / "src" / "test"
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature", "-release", "11")
 
 libraryDependencies ++= Seq(
-  "com.google.guava" % "guava" % "18.0"
+  "com.google.guava" % "guava" % "18.0",
+  "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0"
 )

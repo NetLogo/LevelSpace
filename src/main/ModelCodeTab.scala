@@ -62,7 +62,7 @@ with ModelSavedEvent.Handler {
 
   protected var isDirty  = false
 
-  override def close() {
+  override def close(): Unit = {
     try {
       if (dirty && userWantsToSaveFile())
         save()

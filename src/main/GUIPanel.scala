@@ -36,7 +36,7 @@ extends JPanel with Events.OutputEvent.Handler with ThemeSync {
       cc.output.append(outputEvent.outputObject, outputEvent.wrapLines)
   }
 
-  def packSplitPane() {
+  def packSplitPane(): Unit = {
     splitPane.setPreferredSize(
       splitPane.getOrientation match {
         case JSplitPane.HORIZONTAL_SPLIT =>
@@ -51,11 +51,11 @@ extends JPanel with Events.OutputEvent.Handler with ThemeSync {
     resetCommandCenter()
   }
 
-  def resetCommandCenter() {
+  def resetCommandCenter(): Unit = {
     splitPane.resetToPreferredSizes()
   }
 
-  def syncTheme() {
+  def syncTheme(): Unit = {
     controlStrip.setBackground(InterfaceColors.toolbarBackground)
     scrollPane.setBackground(InterfaceColors.interfaceBackground)
 
@@ -77,12 +77,12 @@ extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) 
   val speedSlider = new JSlider(-110, 112, ws.speedSliderPosition().toInt)
   speedSlider.addChangeListener((_: ChangeEvent) => {
     ws.speedSliderPosition(speedSlider.getValue / 2)
-    ws.updateManager().nudgeSleeper
+    ws.updateManager().nudgeSleeper()
   })
   speedSliderPanel.add(speedSlider)
   controlStrip.add(speedSliderPanel, BorderLayout.CENTER)
 
-  override def syncTheme() {
+  override def syncTheme(): Unit = {
     super.syncTheme()
 
     label.setForeground(InterfaceColors.toolbarText)
