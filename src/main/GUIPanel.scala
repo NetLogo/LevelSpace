@@ -56,8 +56,8 @@ extends JPanel with Events.OutputEvent.Handler with ThemeSync {
   }
 
   def syncTheme(): Unit = {
-    controlStrip.setBackground(InterfaceColors.toolbarBackground)
-    scrollPane.setBackground(InterfaceColors.interfaceBackground)
+    controlStrip.setBackground(InterfaceColors.toolbarBackground())
+    scrollPane.setBackground(InterfaceColors.interfaceBackground())
 
     tickCounterLabel.syncTheme()
     cc.syncTheme()
@@ -85,7 +85,7 @@ extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) 
   override def syncTheme(): Unit = {
     super.syncTheme()
 
-    label.setForeground(InterfaceColors.toolbarText)
+    label.setForeground(InterfaceColors.toolbarText())
   }
 }
 
