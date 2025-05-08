@@ -8,16 +8,8 @@ import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.JMenuItem
 
-import org.nlogo.api.{
-  Argument
-, DefaultClassManager
-, ExtensionException
-, ExtensionManager
-, ImportErrorHandler
-, LogoException
-, PrimitiveManager
-, Version
-}
+import org.nlogo.api.{ Argument, DefaultClassManager, ExtensionException, ExtensionManager, ImportErrorHandler,
+                       LogoException, PrimitiveManager, Version }
 import org.nlogo.app.{ App, ToolsMenu }
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.LogoList
@@ -115,7 +107,7 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
 
   def containsModel(id: Int): Boolean = models.contains(id)
 
-  def modelList: Seq[Integer] = Seq(ArraySeq.unsafeWrapArray(models.keys.toArray.sorted): _*)
+  def modelList: Seq[Integer] = Seq(ArraySeq.unsafeWrapArray(models.keys.toArray.sorted)*)
 
   def numModels: Integer = models.size
 

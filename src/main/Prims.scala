@@ -84,7 +84,7 @@ object ModelRunner {
       }
       i += 1
     }
-    Seq(ArraySeq.unsafeWrapArray(results): _*)
+    Seq(ArraySeq.unsafeWrapArray(results)*)
   }
 
 }

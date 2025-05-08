@@ -53,7 +53,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int) exte
   // can't change once model is loaded
   lazy val usesLevelSpace: Boolean =
     workspace.getExtensionManager.loadedExtensions.asScala.exists(
-      _.getClass.toString equals classOf[LevelSpace].toString
+      _.getClass.toString == classOf[LevelSpace].toString
     )
 
   def show(): Unit = frame.foreach { f => onEDT { f.setVisible(true) } }

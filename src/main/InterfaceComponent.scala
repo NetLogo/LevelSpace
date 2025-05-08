@@ -32,8 +32,8 @@ with ThemeSync {
   val listenerManager = new NetLogoListenerManager
   val world: World = if(Version.is3D) new World3D() else new World2D()
 
-  // KioskLevel.NONE - We want a 3d button
-  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.NONE, frame, frame, null, new ExternalFileManager, listenerManager, new ErrorDialogManager(frame), this) {
+  // KioskLevel.None - We want a 3d button
+  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.None, frame, frame, null, new ExternalFileManager, listenerManager, new ErrorDialogManager(frame), this) {
     val compiler = new Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
@@ -72,7 +72,7 @@ with ThemeSync {
   addLinkComponent(workspace.aggregateManager)
   addLinkComponent(workspace)
   addLinkComponent(procedures)
-  addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World with CompilationManagement], procedures))
+  addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World & CompilationManagement], procedures))
   addLinkComponent(new CompiledEvent.Handler {
     override def handle(e: CompiledEvent): Unit = {
       if (e.error != null)

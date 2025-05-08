@@ -13,7 +13,7 @@ import org.nlogo.workspace.{AbstractWorkspace, AbstractWorkspaceScala}
 class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
 
-  val world: World with CompilationManagement = if(Version.is3D) new World3D() else new World2D()
+  val world: World & CompilationManagement = if(Version.is3D) new World3D() else new World2D()
 
   var frame: Option[ViewFrame] = None
 

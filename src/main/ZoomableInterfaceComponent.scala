@@ -49,7 +49,7 @@ trait ZoomableContainer
     _zoomFactor = (_zoomFactor + (step * 0.1)) max zoomMin
 
   private def registerScalableAttributes(c: Component): Unit = {
-    unitAttributes += c -> (c.scalableAttributes scale unitScaleFactor)
+    unitAttributes += c -> (c.scalableAttributes.scale(unitScaleFactor))
     c.addComponentListener(this)
     c match {
       case container: Container => container.addContainerListener(this)
@@ -75,7 +75,7 @@ trait ZoomableContainer
   def zoomComponent(c: Component): Unit =
     recursively(c, { (com: Component) =>
       com.removeComponentListener(this)
-      com.scaleTo(unitAttributes(c) scale zoomFactor)
+      com.scaleTo(unitAttributes(c).scale(zoomFactor))
       com.invalidate()
       com.validate()
       com.addComponentListener(this)
@@ -96,12 +96,12 @@ trait ZoomableContainer
 
   override def componentMoved(componentEvent: ComponentEvent): Unit = {
     val component = componentEvent.getComponent
-    unitAttributes(component) = component.scalableAttributes scale unitScaleFactor
+    unitAttributes(component) = component.scalableAttributes.scale(unitScaleFactor)
   }
 
   override def componentResized(componentEvent: ComponentEvent): Unit = {
     val component = componentEvent.getComponent
-    unitAttributes(component) = component.scalableAttributes scale unitScaleFactor
+    unitAttributes(component) = component.scalableAttributes.scale(unitScaleFactor)
   }
 
   override def componentAdded(containerEvent: ContainerEvent): Unit =

@@ -59,24 +59,24 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   def setSpeed(d: Double): Unit = {
     // Note the panel will update and store the speed even if the frame is not visible. The thing is, we don't want
     // to slow the model down if it's not visible
-    workspace.updateManager().speed = d
+    workspace.updateManager.speed = d
     // Wakes up the workspace if the speed slider is super low.
     // Makes it so there's not a long pause after increasing
     // the speed slider from a low position. BCH 6/18/2016
-    workspace.updateManager().nudgeSleeper()
+    workspace.updateManager.nudgeSleeper()
     onEDT {
       panel.speedSlider.setValue((d * 2).intValue)
     }
   }
 
   override def hide(): Unit = {
-    workspace.updateManager().speed = 50
-    workspace.updateManager().nudgeSleeper()
+    workspace.updateManager.speed = 50
+    workspace.updateManager.nudgeSleeper()
     super.hide()
   }
 
   override def show(): Unit = {
-    workspace.updateManager().speed = panel.speedSlider.getValue / 2.0
+    workspace.updateManager.speed = panel.speedSlider.getValue / 2.0
     syncTheme()
     super.show()
   }

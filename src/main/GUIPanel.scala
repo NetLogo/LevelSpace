@@ -77,7 +77,7 @@ extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) 
   val speedSlider = new JSlider(-110, 112, ws.speedSliderPosition().toInt)
   speedSlider.addChangeListener((_: ChangeEvent) => {
     ws.speedSliderPosition(speedSlider.getValue / 2)
-    ws.updateManager().nudgeSleeper()
+    ws.updateManager.nudgeSleeper()
   })
   speedSliderPanel.add(speedSlider)
   controlStrip.add(speedSliderPanel, BorderLayout.CENTER)

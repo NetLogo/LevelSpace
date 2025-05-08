@@ -66,115 +66,109 @@ class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManag
   }
 }
 
-  object LevelSpaceMenu {
-    abstract class NewTabAction(name: String, modelManager: ModelManager) extends AbstractAction(name) {
-      val tabManager = App.app.tabManager
+object LevelSpaceMenu {
+  abstract class NewTabAction(name: String, modelManager: ModelManager) extends AbstractAction(name) {
+    val tabManager = App.app.tabManager
 
-      def filePath: Option[String]
+    def filePath: Option[String]
 
-      def actingTab: Option[CodeTab] =
-        filePath.flatMap(path => locateExistingTab(path) orElse createNewTab(path))
+    def actingTab: Option[CodeTab] =
+      filePath.flatMap(path => locateExistingTab(path) orElse createNewTab(path))
 
-      private def locateExistingTab(path: String): Option[CodeTab] =
-        modelManager.existingTab(path)
+    private def locateExistingTab(path: String): Option[CodeTab] =
+      modelManager.existingTab(path)
 
-      private def createNewTab(path: String): Option[CodeTab] = {
-        modelManager.registerTab(path) { workspace =>
-          val tab = new ModelCodeTab(workspace, tabManager, modelManager)
-          tabManager.addTab(tab, tab.tabName)
-          tab
-        }
+    private def createNewTab(path: String): Option[CodeTab] = {
+      modelManager.registerTab(path) { workspace =>
+        val tab = new ModelCodeTab(workspace, tabManager, modelManager)
+        tabManager.addTab(tab, tab.tabName)
+        tab
+      }
+    }
+
+    override def actionPerformed(actionEvent: ActionEvent): Unit =
+      actingTab.foreach(tabManager.setSelectedTab)
+  }
+
+  class OpenModelAction(fileName: String, modelManager: ModelManager) extends NewTabAction(fileName, modelManager) {
+    override def filePath: Option[String] = Some(fileName)
+  }
+
+  class SelectModelAction(name: String, modelManager: ModelManager) extends NewTabAction(name, modelManager) {
+    override def filePath: Option[String] = selectFile
+
+    override def actingTab: Option[CodeTab] =
+      try {
+        super.actingTab
+      } catch {
+        case e: CompilerException =>
+          // we shouldn't have to raise an exception here, we should just be able to open it, but
+          // in order to do that, we'll need to change child models not to compile in their constructors
+          throw new ExtensionException(s"$filePath did not compile properly. There is probably something wrong " +
+            s"with its code. Exception said ${e.getMessage}")
+        case e: IOException =>
+          throw new ExtensionException(s"There was no model file at the path: \"$filePath\"")
       }
 
-      override def actionPerformed(actionEvent: ActionEvent): Unit =
-        actingTab.foreach(tabManager.setSelectedTab)
-    }
+    private def selectFile: Option[String] =
+      showLoadSelection.flatMap(path =>
+        if (ModelsLibrary.getModelPaths.contains(path)) {
+          showLibraryModelErrorMessage()
+          None
+        } else
+          Some(path))
 
-    class OpenModelAction(fileName: String, modelManager: ModelManager)
-    extends NewTabAction(fileName, modelManager) {
-      override def filePath: Option[String] = Some(fileName)
-    }
+    private def showLoadSelection: Option[String] =
+      try {
+        Some(FileDialog.showFiles(App.app.frame, "Load a LevelSpace Model...", LOADFILE))
+      } catch {
+        case e: UserCancelException =>
+          Exceptions.ignore(e)
+          None
+      }
 
-    class SelectModelAction(name: String, modelManager: ModelManager)
-    extends NewTabAction(name, modelManager) {
+    private def showLibraryModelErrorMessage(): Unit =
+      JOptionPane.showMessageDialog(
+        App.app.frame,
+        """|The model you selected is a library model, which cannot be opened in a LevelSpace code tab.
+        |Please save the model elsewhere and try re-opening""".stripMargin)
+  }
 
-      override def filePath: Option[String] = selectFile
+  class NewModelAction(name: String, modelManager: ModelManager) extends NewTabAction(name, modelManager) {
+    override def filePath: Option[String] = {
+      FileDialog.setDirectory(App.app.workspace.getModelDir)
 
-      override def actingTab: Option[CodeTab] =
-        try {
-          super.actingTab
-        } catch {
-          case e: CompilerException =>
-            // we shouldn't have to raise an exception here, we should just be able to open it, but
-            // in order to do that, we'll need to change child models not to compile in their constructors
-            throw new ExtensionException(s"$filePath did not compile properly. There is probably something wrong " +
-              s"with its code. Exception said ${e.getMessage}")
-          case e: IOException =>
-            throw new ExtensionException(s"There was no model file at the path: \"$filePath\"")
-        }
-
-
-        private def selectFile: Option[String] =
-          showLoadSelection.flatMap(path =>
-              if (ModelsLibrary.getModelPaths.contains(path)) {
-                showLibraryModelErrorMessage()
-                None
-              } else
-                Some(path))
-
-        private def showLoadSelection: Option[String] =
+      val ws = App.app.workspace
+      val loader = FileFormat.basicLoader
+      val controller = new SaveModel.Controller {
+        def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
           try {
-            Some(FileDialog.showFiles(App.app.frame, "Load a LevelSpace Model...", LOADFILE))
+            val userEntry = FileDialog.showFiles(App.app.frame, "Select a path for new Model...", SAVEFILE)
+            // we basically need to write an empty NetLogo model in before we read...
+            val fileName =
+              if (userEntry.endsWith(".nlogo") || userEntry.endsWith(".nlogox")) userEntry else userEntry + ".nlogox"
+            val path = Paths.get(fileName)
+            if (Files.exists(path)) {
+              val fileAlreadyExists = s"The file $fileName already exists. Please choose a different name"
+              throw new ExtensionException(fileAlreadyExists)
+            }
+            Some(path.toUri)
           } catch {
             case e: UserCancelException =>
               Exceptions.ignore(e)
               None
           }
-
-          private def showLibraryModelErrorMessage(): Unit =
-            JOptionPane.showMessageDialog(
-              App.app.frame,
-              """|The model you selected is a library model, which cannot be opened in a LevelSpace code tab.
-              |Please save the model elsewhere and try re-opening""".stripMargin)
-    }
-
-    class NewModelAction(name: String, modelManager: ModelManager)
-    extends NewTabAction(name, modelManager) {
-
-      override def filePath: Option[String] = {
-        FileDialog.setDirectory(App.app.workspace.getModelDir)
-
-        val ws = App.app.workspace
-        val loader = FileFormat.basicLoader
-        val controller = new SaveModel.Controller {
-          def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
-            try {
-              val userEntry = FileDialog.showFiles(App.app.frame, "Select a path for new Model...", SAVEFILE)
-              // we basically need to write an empty NetLogo model in before we read...
-              val fileName =
-                if (userEntry.endsWith(".nlogo") || userEntry.endsWith(".nlogox")) userEntry else userEntry + ".nlogox"
-              val path = Paths.get(fileName)
-              if (Files.exists(path)) {
-                val fileAlreadyExists = s"The file $fileName already exists. Please choose a different name"
-                throw new ExtensionException(fileAlreadyExists)
-              }
-              Some(path.toUri)
-            } catch {
-              case e: UserCancelException =>
-                Exceptions.ignore(e)
-                None
-            }
-          }
-          def shouldSaveModelOfDifferingVersion(version: String): Boolean = true
-          def warnInvalidFileFormat(format: String): Unit = {
-            // we force users to save in NetLogo, so this doesn't happen
-          }
         }
-        val modelTracker = new ModelTracker {
-          def compiler = App.app.workspace.compiler
-          def getExtensionManager() = App.app.workspace.getExtensionManager
+        def shouldSaveModelOfDifferingVersion(version: String): Boolean = true
+        def warnInvalidFileFormat(format: String): Unit = {
+          // we force users to save in NetLogo, so this doesn't happen
         }
-        SaveModel(org.nlogo.core.Model(), loader, controller, modelTracker, Version).flatMap(_.apply().toOption.map(uri => Paths.get(uri).toString))
       }
+      val modelTracker = new ModelTracker {
+        def compiler = App.app.workspace.compiler
+        def getExtensionManager() = App.app.workspace.getExtensionManager
+      }
+      SaveModel(org.nlogo.core.Model(), loader, controller, modelTracker, Version).flatMap(_.apply().toOption.map(uri => Paths.get(uri).toString))
     }
   }
+}
