@@ -139,7 +139,7 @@ object LevelSpaceMenu {
       FileDialog.setDirectory(App.app.workspace.getModelDir)
 
       val ws = App.app.workspace
-      val loader = FileFormat.basicLoader
+      val loader = FileFormat.standardAnyLoader(false, ws.compiler.utilities)
       val controller = new SaveModel.Controller {
         def chooseFilePath(modelType: org.nlogo.api.ModelType): Option[java.net.URI] = {
           try {

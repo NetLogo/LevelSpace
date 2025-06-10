@@ -24,7 +24,7 @@ with ModelSavedEvent.Handler {
   var currentModel = Option.empty[Model]
 
   locally {
-    val loader = FileFormat.basicLoader
+    val loader = FileFormat.standardAnyLoader(false, workspace.compiler.utilities)
     val controller = new OpenModel.Controller {
       def errorOpeningURI(uri: URI, exception: Exception): Unit = {
         throw new ExtensionException("Levelspace encountered an error while opening: " + Paths.get(uri).toString + ". " + exception.toString)
@@ -92,7 +92,7 @@ with ModelSavedEvent.Handler {
     save()
 
   def save(): Unit = {
-    val loader = FileFormat.basicLoader
+    val loader = FileFormat.standardAnyLoader(false, workspace.compiler.utilities)
     val controller = new SaveModel.Controller {
       def chooseFilePath(modelType: ModelType): Option[URI] = {
         Some(Paths.get(workspace.getModelPath).toUri)

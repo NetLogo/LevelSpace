@@ -93,7 +93,7 @@ with ThemeSync {
     val uri = Paths.get(path).toUri
     interfacePanel.reset()
     val controller = new FileController(this, workspace)
-    val loader = FileFormat.basicLoader
+    val loader = FileFormat.standardAnyLoader(false, workspace.compiler.utilities)
     val modelOpt = OpenModelFromURI(uri, controller, loader, FileFormat.defaultConverter, Version)
     modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
   }
