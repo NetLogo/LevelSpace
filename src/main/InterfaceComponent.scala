@@ -84,7 +84,6 @@ with ThemeSync {
   }})
   addLinkComponent(listenerManager)
 
-  workspace.setWidgetContainer(interfacePanel)
   setBackground(java.awt.Color.WHITE)
   add(interfacePanel)
 
