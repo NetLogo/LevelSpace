@@ -26,7 +26,7 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
 
     override def sendOutput(oo: OutputObject, toOutputArea: Boolean): Unit = {
       frame.foreach { f => onEDT {
-        new org.nlogo.window.Events.OutputEvent(false, oo, false, !toOutputArea).raise(f)
+        new org.nlogo.window.Events.OutputEvent(false, oo, false, !toOutputArea, System.currentTimeMillis).raise(f)
       }}
     }
 
