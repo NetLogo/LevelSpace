@@ -9,7 +9,7 @@ import org.nlogo.api._
 import org.nlogo.app.{ App, ZoomMenu }
 import org.nlogo.ls.gui.{GUIPanel, InterfaceComponent, ZoomableInterfaceComponent}
 import org.nlogo.nvm.HaltException
-import org.nlogo.swing.{ Menu, NetLogoIcon, Utils }
+import org.nlogo.swing.{ Menu, ModalProgress, NetLogoIcon, Utils }
 import org.nlogo.theme.{ InterfaceColors, ThemeSync }
 import org.nlogo.window.GUIWorkspace
 
@@ -20,7 +20,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   extends ChildModel(parentWorkspace, modelID) {
 
   val (component, panel, frame) = UnlockAndBlock.onEDT(parentWorkspace.world) {
-    val f = new JFrame with NetLogoIcon
+    val f = new JFrame with NetLogoIcon with ModalProgress
     val component: InterfaceComponent = new ZoomableInterfaceComponent(f)
     val panel = new GUIPanel(component.workspace, component)
     (component, panel, Some(f))

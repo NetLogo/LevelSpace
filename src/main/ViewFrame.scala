@@ -6,14 +6,14 @@ import javax.swing.{BoxLayout, JFrame, JPanel, Timer}
 
 import org.nlogo.core.CompilerException
 import org.nlogo.headless.HeadlessWorkspace
-import org.nlogo.swing.NetLogoIcon
+import org.nlogo.swing.{ ModalProgress, NetLogoIcon }
 import org.nlogo.theme.{ InterfaceColors, ThemeSync }
 import org.nlogo.window.Events.{AddJobEvent, CompileMoreSourceEvent, CompiledEvent, PeriodicUpdateEvent}
 import org.nlogo.window.JobWidget
 import org.nlogo.render.Renderer
 
 class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler
-                                       with ThemeSync with NetLogoIcon {
+                                       with ThemeSync with NetLogoIcon with ModalProgress {
 
   private val viewPanel = new JPanel() {
     override def paintComponent(g: Graphics): Unit = ws.world.synchronized {

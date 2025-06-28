@@ -22,8 +22,7 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
       new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect),
       new org.nlogo.render.Renderer(world),
       new org.nlogo.sdm.AggregateManagerLite,
-      null,
-      Option(parentWorkspace)) {
+      null) {
 
     override def sendOutput(oo: OutputObject, toOutputArea: Boolean): Unit = {
       frame.foreach { f => onEDT {

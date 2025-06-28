@@ -6,7 +6,8 @@ import java.nio.file.Paths
 import javax.swing.{ JFrame, JPanel }
 
 import org.nlogo.agent.{Agent, CompilationManagement, World, World2D, World3D}
-import org.nlogo.api.{ Agent => APIAgent, ControlSet, ModelType, NetLogoLegacyDialect, NetLogoThreeDDialect, Version}
+import org.nlogo.api.{ Agent => APIAgent, ControlSet, LabProtocol, ModelType, NetLogoLegacyDialect,
+                       NetLogoThreeDDialect, Version }
 import org.nlogo.app.codetab.ExternalFileManager
 import org.nlogo.app.tools.AgentMonitorManager
 import org.nlogo.awt.EventQueue
@@ -14,6 +15,7 @@ import org.nlogo.compile.Compiler
 import org.nlogo.core.{AgentKind, Model}
 import org.nlogo.gl.view.ViewManager
 import org.nlogo.lite.ProceduresLite
+import org.nlogo.nvm.WorkspaceMirror
 import org.nlogo.sdm.AggregateManagerLite
 import org.nlogo.theme.{ InterfaceColors, ThemeSync }
 import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
@@ -44,6 +46,8 @@ with ThemeSync {
 
     val aggregateManager = new AggregateManagerLite
 
+    override def getPrimaryWorkspace: Option[WorkspaceMirror] =
+      Option(this)
 
     override def inspectAgent(agent: APIAgent, radius: Double) = {
       val a = agent.asInstanceOf[Agent]
@@ -94,7 +98,12 @@ with ThemeSync {
     val controller = new FileController(this, workspace)
     val loader = FileFormat.standardAnyLoader(false, workspace.compiler.utilities)
     val modelOpt = OpenModelFromURI(uri, controller, loader, FileFormat.defaultConverter, Version)
-    modelOpt.foreach(model => ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace))
+    val protocols = modelOpt.flatMap(model => {
+      ReconfigureWorkspaceUI(this, uri, ModelType.Library, model, workspace)
+
+      model.optionalSectionValue[Seq[LabProtocol]]("org.nlogo.modelsection.behaviorspace")
+    }).getOrElse(Seq[LabProtocol]())
+    workspace.setBehaviorSpaceExperiments(protocols)
   }
 
   protected def createInterfacePanel(workspace: GUIWorkspace): InterfacePanelLite
