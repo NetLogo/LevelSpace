@@ -99,7 +99,7 @@ with ThemeSync {
 
       model.optionalSectionValue[Seq[LabProtocol]]("org.nlogo.modelsection.behaviorspace")
     }).getOrElse(Seq[LabProtocol]())
-    workspace.setBehaviorSpaceExperiments(protocols)
+    workspace.getExperimentManager.setGUIExperiments(protocols)
   }
 
   protected def createInterfacePanel(workspace: GUIWorkspace): InterfacePanelLite
