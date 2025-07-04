@@ -101,34 +101,34 @@ ls-path-of
   member? "extensions/ls/test/Blank.nlogo" ls:path-of 0 => true
   member? "extensions/ls/test/Blank.nlogo" first ls:path-of [0] => true
 
-*ls-errors-propogate
+*ls-errors-propagate
   extensions [ ls ]
   O> ls:create-models 1 "extensions/ls/test/Blank.nlogo"
 
-  O> ls:ask 0 [ error "hi" ] => STACKTRACE Extension exception: Model 0 (Blank.nlogo) encountered an error at expression 'error "hi"':\
-  \
-  hi\
-  error while observer running ERROR\
-    called by (anonymous command: [ error "hi" ])\
-    called by (anonymous command: [ [__lsargs] -> __apply [ error "hi" ] __lsargs ])\
-    called by procedure __EVALUATOR\
-  error while observer running LS:ASK\
+  O> ls:ask 0 [ error "hi" ] => STACKTRACE Extension exception: Model 0 (Blank.nlogo) encountered an error at expression 'error "hi"': /
+  /
+  hi /
+  error while observer running ERROR /
+    called by (anonymous command: [ error "hi" ]) /
+    called by (anonymous command: [ [__lsargs] -> __apply [ error "hi" ] __lsargs ]) /
+    called by procedure __EVALUATOR /
+  error while observer running LS:ASK /
     called by procedure __EVALUATOR
 
-  [ 1 / count turtles ] ls:of 0 => STACKTRACE Extension exception: Model 0 (Blank.nlogo) encountered an error at expression '1 / count turtles':\
-  \
-  Division by zero.\
-  error while observer running /\
-    called by procedure __EVALUATOR\
-  error while observer running LS:OF\
+  [ 1 / count turtles ] ls:of 0 => STACKTRACE Extension exception: Model 0 (Blank.nlogo) encountered an error at expression '1 / count turtles': /
+  /
+  Division by zero. /
+  error while observer running //
+    called by procedure __EVALUATOR /
+  error while observer running LS:OF /
     called by procedure __EVALUATOR
 
-  ls:report 0 [ 1 / count turtles ] => STACKTRACE Extension exception: Model 0 (Blank.nlogo) encountered an error at expression '1 / count turtles':\
-  \
-  Division by zero.\
-  error while observer running /\
-    called by procedure __EVALUATOR\
-  error while observer running LS:REPORT\
+  ls:report 0 [ 1 / count turtles ] => STACKTRACE Extension exception: Model 0 (Blank.nlogo) encountered an error at expression '1 / count turtles': /
+  /
+  Division by zero. /
+  error while observer running //
+    called by procedure __EVALUATOR /
+  error while observer running LS:REPORT /
     called by procedure __EVALUATOR
 
 
