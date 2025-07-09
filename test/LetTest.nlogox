@@ -4,7 +4,7 @@
 
 to setup
   ls:reset
-  ls:create-interactive-models 1 "Blank.nlogo"
+  ls:create-interactive-models 1 "Blank.nlogox"
 end
 
 to test

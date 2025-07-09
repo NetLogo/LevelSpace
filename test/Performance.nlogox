@@ -30,7 +30,7 @@ end
 
 to test-overhead [ n ]
   ls:reset
-  ls:create-models 1 "Blank.nlogo"
+  ls:create-models 1 "Blank.nlogox"
   ls:ask 0 [ crt 1 ]
   reset-timer
   repeat n * 100 [
@@ -48,7 +48,7 @@ end
 
 to test-headless-performance [ n ]
   ls:reset
-  ls:create-models n "Blank.nlogo"
+  ls:create-models n "Blank.nlogox"
   ls:ask ls:models [ crt 300 ]
   reset-timer
   test-models
@@ -57,7 +57,7 @@ end
 
 to test-gui-performance [ n ]
   ls:reset
-  (ls:create-interactive-models n "Blank.nlogo" [ [id] -> ls:hide id ])
+  (ls:create-interactive-models n "Blank.nlogox" [ [id] -> ls:hide id ])
   ls:ask ls:models [ crt 300 ]
   reset-timer
   test-models
@@ -68,9 +68,9 @@ to test-model-loading [ n headless? ]
   ls:reset
   reset-timer
   ifelse headless? [
-    ls:create-models n "Blank.nlogo"
+    ls:create-models n "Blank.nlogox"
   ] [
-    (ls:create-interactive-models n "Blank.nlogo" [ [id] -> ls:hide id ])
+    (ls:create-interactive-models n "Blank.nlogox" [ [id] -> ls:hide id ])
   ]
   print (word "headless: " headless? " loading " n " models: " timer)
 end
@@ -100,16 +100,16 @@ end
 
 to test-memory [ n ]
   ls:reset
-  (ls:create-interactive-models n "LS.nlogo" [ [model] ->
+  (ls:create-interactive-models n "LS.nlogox" [ [model] ->
     show model
     ls:let j model
     ls:ask model [
       print (word j "1")
-      ls:create-interactive-models 1 "LS.nlogo"
+      ls:create-interactive-models 1 "LS.nlogox"
       ls:let k 0
       ls:ask last ls:models [
         print (word k "2")
-        ls:create-interactive-models 1 "LS.nlogo"
+        ls:create-interactive-models 1 "LS.nlogox"
       ]
     ]
     ls:close model
@@ -119,9 +119,9 @@ end
 
 to test-load-close [ n ]
   ls:reset
-  (ls:create-interactive-models n "LS.nlogo" [ [model] ->
+  (ls:create-interactive-models n "LS.nlogox" [ [model] ->
     ls:ask last ls:models [
-      ls:create-interactive-models 1 "LS.nlogo"
+      ls:create-interactive-models 1 "LS.nlogox"
     ]
     ls:close model
   ])
@@ -130,7 +130,7 @@ end
 
 to test-empty [ n k ]
   ls:reset
-  ls:create-models k "Blank.nlogo"
+  ls:create-models k "Blank.nlogox"
   reset-timer
   repeat n * k [
     let foo 0
