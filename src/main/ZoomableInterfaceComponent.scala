@@ -5,7 +5,7 @@ import java.awt.event.{ComponentEvent, ComponentListener, ContainerEvent, Contai
 import javax.swing.{ JFrame, JLayeredPane }
 
 import org.nlogo.core.{ Widget => CoreWidget }
-import org.nlogo.api.{CompilerServices, RandomServices}
+import org.nlogo.api.{ CompilerServices, ExtensionManager, RandomServices }
 import org.nlogo.window.Events.ZoomedEvent
 import org.nlogo.window._
 
@@ -155,8 +155,9 @@ class ZoomableInterfacePanel(viewWidget: ViewWidgetInterface,
                              compiler: CompilerServices,
                              random: RandomServices,
                              plotManager: org.nlogo.plot.PlotManager,
-                             editorFactory: EditorFactory)
-  extends InterfacePanelLite(viewWidget, compiler, random, plotManager, editorFactory)
+                             editorFactory: EditorFactory,
+                             extensionManager: ExtensionManager)
+  extends InterfacePanelLite(viewWidget, compiler, random, plotManager, editorFactory, extensionManager)
   with Events.ZoomedEvent.Handler
   with ZoomableContainer {
 
@@ -180,6 +181,6 @@ class ZoomableInterfacePanel(viewWidget: ViewWidgetInterface,
 class ZoomableInterfaceComponent(frame: JFrame) extends InterfaceComponent(frame) {
   override protected def createInterfacePanel(workspace: GUIWorkspace) = {
     new ZoomableInterfacePanel(workspace.viewWidget, workspace, workspace,
-      workspace.plotManager, liteEditorFactory)
+      workspace.plotManager, liteEditorFactory, workspace.getExtensionManager)
   }
 }
