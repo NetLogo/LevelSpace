@@ -9,7 +9,7 @@ import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.core.{ I18N, Model }
 import org.nlogo.fileformat.{ FailedConversionResult, FileFormat }
-import org.nlogo.swing.OptionDialog
+import org.nlogo.swing.OptionPane
 import org.nlogo.window.Events.ModelSavedEvent
 import org.nlogo.workspace.{ AbstractWorkspaceScala, OpenModel, OpenModelFromURI, SaveModel, ModelsLibrary }
 
@@ -74,12 +74,12 @@ with ModelSavedEvent.Handler {
   }
 
   private def userWantsToSaveFile(): Boolean = {
-    val options = Array[AnyRef](
+    val options = Array(
       I18N.gui.get("common.buttons.save"),
       "Discard",
       I18N.gui.get("common.buttons.cancel"))
     val message = "Do you want to save the changes you made to " + filePath + "?"
-    OptionDialog.showMessage(this, I18N.gui.get("common.messages.warning"), message, options) match {
+    new OptionPane(this, I18N.gui.get("common.messages.warning"), message, options.toSeq).getSelectedIndex match {
       case 0 => true
       case 1 => false
       case _ => throw new UserCancelException
