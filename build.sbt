@@ -5,7 +5,7 @@ enablePlugins(NetLogoExtension, ExtensionDocumentationPlugin)
 scalaVersion := "3.7.0"
 
 name       := "LevelSpace"
-version    := "2.3.4"
+version    := "2.4.0"
 isSnapshot := true
 
 netLogoExtName      := "ls"
