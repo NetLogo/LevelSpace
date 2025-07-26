@@ -63,7 +63,9 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
   private var modelCounter = 0
   var letManager = new LetPrim
   // These need to be cleaned up on unload
-  private lazy val haltButton: Option[JMenuItem] = if (LevelSpace.isHeadless)
+  // ideally this would check isHeadless, but that is determined in runOnce, which isn't called
+  // when the workspace is in testing mode and is therefore headless (Isaac B 7/25/25)
+  private lazy val haltButton: Option[JMenuItem] = if (App.app == null)
     None
   else
     App.app.frame.getJMenuBar.getSubElements.collectFirst{case tm: ToolsMenu => tm.getItem(0)}
