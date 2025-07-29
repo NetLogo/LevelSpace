@@ -136,8 +136,6 @@ object LevelSpaceMenu {
 
   class NewModelAction(name: String, modelManager: ModelManager) extends NewTabAction(name, modelManager) {
     override def filePath: Option[String] = {
-      FileDialog.setDirectory(App.app.workspace.getModelDir)
-
       val ws = App.app.workspace
       val loader = FileFormat.standardAnyLoader(false, ws.compiler.utilities)
       val controller = new SaveModel.Controller {
