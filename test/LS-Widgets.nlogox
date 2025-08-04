@@ -7,18 +7,13 @@
     <slider x="14" step="1" y="136" max="100" display="foo" height="33" min="0" direction="Horizontal" default="50.0" variable="foo" width="172" sizeVersion="0"></slider>
     <slider x="11" step="1" y="175" max="foo" display="bar" height="33" min="0" direction="Horizontal" default="15.0" variable="bar" width="172" sizeVersion="0"></slider>
     <slider x="13" step="(foo - bar) / 100" y="215" max="foo" display="baz" height="33" min="bar" direction="Horizontal" default="37.4" variable="baz" width="200" sizeVersion="0"></slider>
-    <note x="38" y="97" height="18" backgroundDark="0" fontSize="11" width="150" markdown="false" textColorLight="-16777216" backgroundLight="0">hi there!</note>
+    <note x="38" y="97" backgroundDark="0" fontSize="11" width="150" markdown="false" height="18" textColorDark="-1" textColorLight="-16777216" backgroundLight="0">hi there!</note>
     <switch x="33" y="277" height="33" on="false" variable="foo?" display="foo?" width="103" sizeVersion="0"></switch>
     <chooser x="18" y="314" height="45" variable="foos" current="0" display="foos" width="147" sizeVersion="0">
       <choice type="string" value="a"></choice>
       <choice type="double" value="2.0"></choice>
       <choice type="boolean" value="false"></choice>
-      <choice type="list">
-        <value value="a"></value>
-        <value value="2.0"></value>
-        <value value="false"></value>
-        <value value="[true]"></value>
-      </choice>
+      <choice type="list">["a" 2 false true]</choice>
     </chooser>
     <monitor x="25" precision="17" y="394" height="45" fontSize="11" width="111" sizeVersion="0">foo + bar + baz</monitor>
     <plot x="23" autoPlotX="true" yMax="10.0" autoPlotY="true" y="459" xMin="0.0" height="150" legend="false" xMax="10.0" yMin="0.0" display="plot 1" width="200" sizeVersion="0">
