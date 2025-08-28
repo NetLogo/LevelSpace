@@ -6,12 +6,12 @@ import javax.swing.event.ChangeEvent
 
 import org.nlogo.app.interfacetab.CommandCenter
 import org.nlogo.swing.{ ScrollPane, SplitPane, Transparent }
-import org.nlogo.theme.{ InterfaceColors, ThemeSync }
+import org.nlogo.theme.InterfaceColors
 import org.nlogo.window.{ Events, GUIWorkspace, TickCounterLabel }
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 abstract class ModelPanel(ws: AbstractWorkspaceScala, panel: JPanel, verticalScroll: Int, resizeWeight: Int)
-extends JPanel with Events.OutputEvent.Handler with ThemeSync {
+extends JPanel with Events.OutputEvent.Handler {
   setLayout(new BorderLayout)
 
   val controlStrip = new JPanel
@@ -63,7 +63,9 @@ extends JPanel with Events.OutputEvent.Handler with ThemeSync {
     cc.syncTheme()
 
     panel match {
-      case ts: ThemeSync => ts.syncTheme()
+      case component: InterfaceComponent =>
+        component.syncTheme()
+
       case _ =>
     }
   }

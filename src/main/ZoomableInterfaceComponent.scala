@@ -2,7 +2,7 @@ package org.nlogo.ls.gui
 
 import java.awt._
 import java.awt.event.{ComponentEvent, ComponentListener, ContainerEvent, ContainerListener}
-import javax.swing.{ JFrame, JLayeredPane }
+import javax.swing.JFrame
 
 import org.nlogo.core.{ Widget => CoreWidget }
 import org.nlogo.api.{ CompilerServices, ExtensionManager, RandomServices }

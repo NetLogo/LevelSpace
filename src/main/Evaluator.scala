@@ -1,13 +1,12 @@
 package org.nlogo.ls
 
-import com.google.common.cache.{CacheBuilder, CacheLoader}
-import org.nlogo.api.{Context, MersenneTwisterFast, SimpleJobOwner, Workspace}
-import org.nlogo.core.{AgentKind, LogoList, Nobody}
-import org.nlogo.nvm.{ExclusiveJob, Procedure, Reporter}
-import org.nlogo.prim.{_constboolean, _constdouble, _constlist, _conststring, _nobody}
-import org.nlogo.workspace.{AbstractWorkspaceScala, Plotting}
+import com.google.common.cache.{ CacheBuilder, CacheLoader }
 
-import scala.collection.mutable
+import org.nlogo.api.{ Context, MersenneTwisterFast, SimpleJobOwner, Workspace }
+import org.nlogo.core.{ AgentKind, LogoList, Nobody }
+import org.nlogo.nvm.{ ExclusiveJob, Procedure, Reporter }
+import org.nlogo.prim.{ _constboolean, _constdouble, _constlist, _conststring, _nobody }
+import org.nlogo.workspace.{ AbstractWorkspaceScala, Plotting }
 
 object RNG {
   def apply(ctx: Context): RNG = ctx.workspace match {

@@ -1,19 +1,19 @@
 package org.nlogo.ls
 
 import java.awt._
-import java.awt.event.{WindowAdapter, WindowEvent}
-import javax.swing.{JFrame, JMenuBar, WindowConstants}
+import java.awt.event.{ WindowAdapter, WindowEvent }
+import javax.swing.{ JFrame, JMenuBar, WindowConstants }
 import java.io.IOException
 
 import org.nlogo.api._
 import org.nlogo.app.{ App, ZoomMenu }
-import org.nlogo.ls.gui.{GUIPanel, InterfaceComponent, ZoomableInterfaceComponent}
+import org.nlogo.ls.gui.{ GUIPanel, InterfaceComponent, ZoomableInterfaceComponent }
 import org.nlogo.nvm.HaltException
-import org.nlogo.swing.{ Menu, ModalProgress, NetLogoIcon, Utils }
-import org.nlogo.theme.{ InterfaceColors, ThemeSync }
+import org.nlogo.swing.{ ModalProgress, NetLogoIcon, Utils }
+import org.nlogo.theme.InterfaceColors
 import org.nlogo.window.GUIWorkspace
 
-import scala.util.{Failure, Try}
+import scala.util.{ Failure, Try }
 
 class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException])
 (ls: LevelSpace, parentWorkspace: Workspace, path: String, modelID: Int)
@@ -91,7 +91,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
   }
 }
 
-class SyncedMenuBar extends JMenuBar with ThemeSync {
+class SyncedMenuBar extends JMenuBar {
   // val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
   // add(zoomMenuClass.getDeclaredConstructor().newInstance().asInstanceOf[Menu])
 

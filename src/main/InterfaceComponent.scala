@@ -5,31 +5,32 @@ import java.awt.image.BufferedImage
 import java.nio.file.Paths
 import javax.swing.{ JFrame, JPanel }
 
-import org.nlogo.agent.{Agent, CompilationManagement, World, World2D, World3D}
+import org.nlogo.agent.{ Agent, CompilationManagement, World, World2D, World3D }
 import org.nlogo.api.{ Agent => APIAgent, ControlSet, LabProtocol, ModelType, NetLogoLegacyDialect,
                        NetLogoThreeDDialect, Version }
 import org.nlogo.app.codetab.ExternalFileManager
 import org.nlogo.app.tools.AgentMonitorManager
 import org.nlogo.awt.EventQueue
 import org.nlogo.compile.Compiler
-import org.nlogo.core.{AgentKind, Model}
+import org.nlogo.core.{ AgentKind, Model }
 import org.nlogo.gl.view.ViewManager
 import org.nlogo.lite.ProceduresLite
 import org.nlogo.sdm.AggregateManagerLite
-import org.nlogo.theme.{ InterfaceColors, ThemeSync }
-import org.nlogo.window.Events.{CompiledEvent, LoadModelEvent}
-import org.nlogo.window.{CompilerManager, DefaultEditorFactory, ErrorDialogManager, Event, FileController, GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget, ReconfigureWorkspaceUI, UpdateManager}
+import org.nlogo.theme.InterfaceColors
+import org.nlogo.window.Events.{ CompiledEvent, LoadModelEvent }
+import org.nlogo.window.{ CompilerManager, DefaultEditorFactory, ErrorDialogManager, Event, FileController,
+                          GUIWorkspace, InterfacePanelLite, LinkRoot, NetLogoListenerManager, OutputWidget,
+                          ReconfigureWorkspaceUI, UpdateManager }
 import org.nlogo.workspace.OpenModelFromURI
 import org.nlogo.fileformat.FileFormat
 
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ Future, Promise }
 import scala.util.Try
 
 abstract class InterfaceComponent(frame: JFrame) extends JPanel
 with Event.LinkParent
 with LinkRoot
-with ControlSet
-with ThemeSync {
+with ControlSet {
   val listenerManager = new NetLogoListenerManager
   val world: World = if(Version.is3D) new World3D() else new World2D()
 

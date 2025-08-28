@@ -1,24 +1,21 @@
 package org.nlogo.ls
 
-import org.nlogo.ls.gui.{ModelCodeTab, LevelSpaceMenu, ModelManager}
-
-import java.util.{ Map => JMap }
+import org.nlogo.ls.gui.{ GUILevelSpaceMenu, LevelSpaceMenu, ModelCodeTab, ModelManager }
 
 import org.nlogo.app.App
 import org.nlogo.app.codetab.CodeTab
-import org.nlogo.theme.ThemeSync
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 import scala.collection.Map
 import scala.collection.parallel.mutable.ParHashMap
 
-trait LSModelManager extends ModelManager with ThemeSync {
+trait LSModelManager extends ModelManager {
   def updateChildModels(map: Map[Integer, ChildModel]): Unit = {}
   def guiComponent: LevelSpaceMenu = null
 }
 
 class BackingModelManager extends LSModelManager {
-  override val guiComponent = new LevelSpaceMenu(App.app.tabManager, this)
+  override val guiComponent: GUILevelSpaceMenu = new GUILevelSpaceMenu(App.app.tabManager, this)
   private val backingModels = ParHashMap.empty[String, (ChildModel, ModelCodeTab)]
   private var openModels    = Map.empty[String, ChildModel]
   private var models  = Seq[ChildModel]()
@@ -78,7 +75,15 @@ class BackingModelManager extends LSModelManager {
 
   def syncTheme(): Unit = {
     guiComponent.syncTheme()
-    models.foreach(_.syncTheme())
+
+    models.foreach(_ match {
+      case model: GUIChildModel =>
+        model.syncTheme()
+
+      case model: HeadlessChildModel =>
+        model.syncTheme()
+    })
+
     backingModels.values.foreach(_._2.syncTheme())
   }
 }
@@ -89,5 +94,4 @@ class HeadlessBackingModelManager extends LSModelManager {
   def existingTab(filePath: String): Option[ModelCodeTab] = None
   def registerTab(filePath: String)
                  (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab] = None
-  def syncTheme(): Unit = {}
 }

@@ -14,7 +14,6 @@ import org.nlogo.app.{ App, ToolsMenu }
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.LogoList
 import org.nlogo.nvm.HaltException
-import org.nlogo.theme.ThemeSync
 import org.nlogo.workspace.{ AbstractWorkspace, ExtensionManager => WorkspaceExtensionManager }
 
 import scala.collection.immutable.ArraySeq
@@ -55,8 +54,14 @@ object LevelSpace {
   }
 }
 
-class LevelSpace extends DefaultClassManager with ThemeSync { // This can be accessed by both the JobThread and EDT (when halting)
+class LevelSpace extends DefaultClassManager { // This can be accessed by both the JobThread and EDT (when halting)
   LevelSpace.checkSupportNetLogoVersion()
+
+  private var functionID: Option[Long] = None
+
+  private def addSyncFunction(): Unit = {
+    functionID = Some(App.app.addSyncFunction(() => syncTheme()))
+  }
 
   final private val models = new ConcurrentHashMap[Integer, ChildModel].asScala
   // counter for keeping track of new models
@@ -96,9 +101,6 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
     primitiveManager.addPrimitive("uses-level-space?", new UsesLS(this))
     primitiveManager.addPrimitive("random-seed", new RandomSeed(this))
     primitiveManager.addPrimitive("assign", new Assign(this))
-    // We need to actually listen for halt actions because gui child models can be running independently on their own
-    // job threads if the user is interacting with them.
-    haltButton.foreach(_.addActionListener(haltListener))
   }
 
   def isMainModel(myEM: ExtensionManager): Boolean = myEM eq App.app.workspace.getExtensionManager
@@ -115,11 +117,14 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
 
   @throws[ExtensionException]
   override def unload(em: ExtensionManager): Unit = {
-    if (!LevelSpace.isHeadless && isMainModel(em)) {
-      App.app.frame.getJMenuBar.remove(modelManager.guiComponent)
-      App.app.removeSyncComponent(this)
+    if (!LevelSpace.isHeadless) {
+      if (isMainModel(em)) {
+        App.app.frame.getJMenuBar.remove(modelManager.guiComponent)
+        functionID.foreach(App.app.removeSyncFunction)
+      }
+
+      haltButton.foreach(_.removeActionListener(haltListener))
     }
-    haltButton.foreach(_.removeActionListener(haltListener))
     try reset()
     catch {
       case _: HaltException =>
@@ -211,20 +216,30 @@ class LevelSpace extends DefaultClassManager with ThemeSync { // This can be acc
       em.asInstanceOf[WorkspaceExtensionManager].workspace.isInstanceOf[AbstractWorkspace] &&
       em.asInstanceOf[WorkspaceExtensionManager].workspace.asInstanceOf[AbstractWorkspace].isHeadless
 
-    if (!LevelSpace.isHeadless) { modelManager = new BackingModelManager }
+    if (!LevelSpace.isHeadless) {
+      modelManager = new BackingModelManager
+      // We need to actually listen for halt actions because gui child models can be running independently on their own
+      // job threads if the user is interacting with them.
+      haltButton.foreach(_.addActionListener(haltListener))
+    }
     modelManager.updateChildModels(models)
     if (!LevelSpace.isHeadless && isMainModel(em)) {
       val menuBar = App.app.frame.getJMenuBar
       if (menuBar.getComponentIndex(modelManager.guiComponent) == -1) {
         menuBar.add(modelManager.guiComponent)
       }
-      App.app.addSyncComponent(this)
+      addSyncFunction()
     }
   }
 
   private def haltChildModels(): Unit = models.values.foreach(_.halt())
 
   def syncTheme(): Unit = {
-    modelManager.syncTheme()
+    modelManager match {
+      case guiManager: BackingModelManager =>
+        guiManager.syncTheme()
+
+      case _ =>
+    }
   }
 }

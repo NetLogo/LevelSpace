@@ -1,16 +1,14 @@
 package org.nlogo.ls.gui
 
-import java.awt.event.ActionEvent
-import java.awt.{Dimension, Graphics, Graphics2D}
-import javax.swing.{BoxLayout, JFrame, JPanel, Timer}
+import java.awt.{ Dimension, Graphics, Graphics2D }
+import javax.swing.{ BoxLayout, JFrame, JPanel }
 
 import org.nlogo.core.CompilerException
 import org.nlogo.headless.HeadlessWorkspace
 import org.nlogo.swing.{ ModalProgress, NetLogoIcon }
 import org.nlogo.theme.{ InterfaceColors, ThemeSync }
-import org.nlogo.window.Events.{AddJobEvent, CompileMoreSourceEvent, CompiledEvent, PeriodicUpdateEvent}
+import org.nlogo.window.Events.{ AddJobEvent, CompileMoreSourceEvent, CompiledEvent }
 import org.nlogo.window.JobWidget
-import org.nlogo.render.Renderer
 
 class ViewFrame(ws: HeadlessWorkspace) extends JFrame with CompileMoreSourceEvent.Handler with AddJobEvent.Handler
                                        with ThemeSync with NetLogoIcon with ModalProgress {

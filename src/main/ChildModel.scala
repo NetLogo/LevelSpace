@@ -1,17 +1,15 @@
 package org.nlogo.ls
 
-import java.awt.GraphicsEnvironment
+import javax.swing.{ JFrame, SwingUtilities }
 
-import javax.swing.{JFrame, SwingUtilities}
-import org.nlogo.api.{CommandRunnable, ExtensionException, Version, Workspace}
-import org.nlogo.theme.ThemeSync
+import org.nlogo.api.{ CommandRunnable, ExtensionException, Version, Workspace }
 import org.nlogo.workspace.AbstractWorkspaceScala
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.IterableHasAsScala
 
-abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int) extends ThemeSync {
+abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int) {
   lazy val evaluator = new Evaluator(modelID, name, workspace, parentWorkspace.asInstanceOf[AbstractWorkspaceScala])
 
   private var _name: Option[String] = None

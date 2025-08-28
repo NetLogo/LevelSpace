@@ -1,22 +1,19 @@
 package org.nlogo.ls.gui
 
-import java.awt.FileDialog.{LOAD => LOADFILE, SAVE => SAVEFILE}
+import java.awt.FileDialog.{ LOAD => LOADFILE, SAVE => SAVEFILE }
 import java.awt.event.ActionEvent
 import java.nio.file.{ Paths, Files }
-import java.io.{File, FileWriter, IOException}
+import java.io.IOException
 import javax.swing._
 
-import org.nlogo.api.ModelSections.ModelSaveable
-import org.nlogo.api.{ExtensionException, ModelSections, Version, Exceptions}
-import org.nlogo.core.{CompilerException, Shape, ShapeParser}
-import org.nlogo.app.{ModelSaver, App, TabManager}
+import org.nlogo.api.{ Exceptions, ExtensionException, Version }
+import org.nlogo.core.CompilerException
+import org.nlogo.app.{ App, TabManager }
 import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.fileformat.FileFormat
 import org.nlogo.swing.{ FileDialog, Menu, MenuItem }
-import org.nlogo.workspace.{AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel}
-
-import scala.jdk.CollectionConverters.SeqHasAsJava
+import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel }
 
 trait ModelManager {
   def removeTab(tab: ModelCodeTab): Unit
@@ -25,8 +22,10 @@ trait ModelManager {
                  (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab]
 }
 
-class LevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManager)
-  extends Menu("LevelSpace") {
+trait LevelSpaceMenu extends JMenu
+
+class GUILevelSpaceMenu(tabManager: TabManager, val backingModelManager: ModelManager)
+  extends Menu("LevelSpace") with LevelSpaceMenu {
 
   import LevelSpaceMenu._
 

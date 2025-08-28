@@ -1,14 +1,13 @@
 package org.nlogo.ls
 
-import java.io.IOException
 import javax.swing.Timer
 
-import org.nlogo.agent.{CompilationManagement, OutputObject, World, World2D, World3D}
+import org.nlogo.agent.{ CompilationManagement, OutputObject, World, World2D, World3D }
 import org.nlogo.api._
-import org.nlogo.nvm.{Context, HaltException, Instruction}
+import org.nlogo.nvm.{ Context, Instruction }
 import org.nlogo.headless.HeadlessWorkspace
 import org.nlogo.ls.gui.ViewFrame
-import org.nlogo.workspace.{AbstractWorkspace, AbstractWorkspaceScala}
+import org.nlogo.workspace.AbstractWorkspace
 
 class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
