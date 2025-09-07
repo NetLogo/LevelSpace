@@ -98,8 +98,8 @@ ls-set-name
 ls-path-of
   extensions [ ls ]
   O> ls:create-models 1 "extensions/ls/test/Blank.nlogox"
-  member? "extensions/ls/test/Blank.nlogox" ls:path-of 0 => true
-  member? "extensions/ls/test/Blank.nlogox" first ls:path-of [0] => true
+  member? "extensions/ls/test/Blank.nlogox" ls:path-of 0 or member? "extensions\\ls\\test\\Blank.nlogox" ls:path-of 0 => true
+  member? "extensions/ls/test/Blank.nlogox" first ls:path-of [0] or member? "extensions\\ls\\test\\Blank.nlogox" first ls:path-of [0] => true
 
 *ls-errors-propagate
   extensions [ ls ]

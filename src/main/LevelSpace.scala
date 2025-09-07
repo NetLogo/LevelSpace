@@ -1,10 +1,8 @@
 package org.nlogo.ls
 
-import java.awt.GraphicsEnvironment
 import java.awt.event.{ ActionEvent, ActionListener }
 import java.lang.{ Double => JDouble }
 import java.util
-import java.util.Objects
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.JMenuItem
 
@@ -14,15 +12,13 @@ import org.nlogo.app.{ App, ToolsMenu }
 import org.nlogo.awt.EventQueue
 import org.nlogo.core.LogoList
 import org.nlogo.nvm.HaltException
-import org.nlogo.workspace.{ AbstractWorkspace, ExtensionManager => WorkspaceExtensionManager }
+import org.nlogo.workspace.AbstractWorkspace
 
 import scala.collection.immutable.ArraySeq
 import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
 
 object LevelSpace {
-  private var isHeadlessWorkspace = false
-  def isHeadless: Boolean =
-    isHeadlessWorkspace || GraphicsEnvironment.isHeadless || Objects.equals(System.getProperty("org.nlogo.preferHeadless"), "true")
+  var isHeadless = true
 
   @throws[ExtensionException]
   def castToId(id: Any): Int = id match {
@@ -207,14 +203,7 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
 
   @throws[ExtensionException]
   override def runOnce(em: ExtensionManager): Unit = {
-    // "Can't we just check the `org.nlogo.preferHeadless` property?"  Well, kind-of, but
-    // it turns out that doesn't get set automatically and there are a lot of ways to run
-    // NetLogo models headlessly that "forget" to do it.  It's safer to check if the
-    // workspace we're using is headless in addition to checking the property.  -Jeremy B
-    // July 2022
-    LevelSpace.isHeadlessWorkspace = em.isInstanceOf[WorkspaceExtensionManager] &&
-      em.asInstanceOf[WorkspaceExtensionManager].workspace.isInstanceOf[AbstractWorkspace] &&
-      em.asInstanceOf[WorkspaceExtensionManager].workspace.asInstanceOf[AbstractWorkspace].isHeadless
+    LevelSpace.isHeadless = !em.workspaceContext.workspaceGUI
 
     if (!LevelSpace.isHeadless) {
       modelManager = new BackingModelManager
