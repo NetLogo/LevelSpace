@@ -17,6 +17,8 @@ Compile / scalaSource := baseDirectory.value / "src" / "main"
 Test / scalaSource    := baseDirectory.value / "src" / "test"
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature", "-release", "11", "-Wunused:linted")
 
+resolvers += "jitpack" at "https://jitpack.io"
+
 libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "18.0",
   "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0"
