@@ -20,13 +20,16 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
       world,
       new org.nlogo.compile.Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect),
       new org.nlogo.render.Renderer(world),
-      new org.nlogo.sdm.AggregateManagerLite,
-      null) {
+      new org.nlogo.sdm.AggregateManagerLite) {
 
     override def sendOutput(oo: OutputObject, toOutputArea: Boolean): Unit = {
-      frame.foreach { f => onEDT {
-        new org.nlogo.window.Events.OutputEvent(false, oo, false, !toOutputArea, System.currentTimeMillis).raise(f)
-      }}
+      if (LevelSpace.isHeadless) {
+        workspace.sendOutput(oo, toOutputArea)
+      } else {
+        frame.foreach { f => onEDT {
+          new org.nlogo.window.Events.OutputEvent(false, oo, false, !toOutputArea, System.currentTimeMillis).raise(f)
+        }}
+      }
     }
 
     override def runtimeError(owner: JobOwner, context: Context, instruction: Instruction, ex: Exception): Unit = {
@@ -54,12 +57,14 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
     scheduledRepaint.setRepeats(false)
     // Since we never block on painting child models, we don't care if we have a world lock or not.
     override def updateDisplay(ignored: Boolean): Unit = {
-      frame.foreach { f =>
-        if (f.isVisible && !scheduledRepaint.isRunning) {
-          // Not that if we don't max(0) here, the conversion to int can underflow
-          val nextRepaint = (minTimeBetweenRepaints - timeSinceLastRepaint).max(0).toInt
-          scheduledRepaint.setDelay(nextRepaint)
-          scheduledRepaint.start()
+      if (!LevelSpace.isHeadless) {
+        frame.foreach { f =>
+          if (f.isVisible && !scheduledRepaint.isRunning) {
+            // Not that if we don't max(0) here, the conversion to int can underflow
+            val nextRepaint = (minTimeBetweenRepaints - timeSinceLastRepaint).max(0).toInt
+            scheduledRepaint.setDelay(nextRepaint)
+            scheduledRepaint.start()
+          }
         }
       }
     }
@@ -76,7 +81,8 @@ class HeadlessChildModel (parentWorkspace: AbstractWorkspace, path: String, mode
     workspace.requestDisplayUpdate(false)
   }
 
-  def isVisible: Boolean = frame.exists(_.isVisible)
+  def isVisible: Boolean =
+    !LevelSpace.isHeadless && frame.exists(_.isVisible)
 
   def setSpeed(d: Double): Unit = {}
 

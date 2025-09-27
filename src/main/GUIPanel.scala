@@ -8,9 +8,9 @@ import org.nlogo.app.interfacetab.CommandCenter
 import org.nlogo.swing.{ ScrollPane, SplitPane, Transparent }
 import org.nlogo.theme.InterfaceColors
 import org.nlogo.window.{ Events, GUIWorkspace, TickCounterLabel }
-import org.nlogo.workspace.AbstractWorkspaceScala
+import org.nlogo.workspace.AbstractWorkspace
 
-abstract class ModelPanel(ws: AbstractWorkspaceScala, panel: JPanel, verticalScroll: Int, resizeWeight: Int)
+abstract class ModelPanel(ws: AbstractWorkspace, panel: JPanel, verticalScroll: Int, resizeWeight: Int)
 extends JPanel with Events.OutputEvent.Handler {
   setLayout(new BorderLayout)
 
@@ -91,5 +91,5 @@ extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) 
   }
 }
 
-class HeadlessPanel(ws: AbstractWorkspaceScala, panel: JPanel)
+class HeadlessPanel(ws: AbstractWorkspace, panel: JPanel)
 extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER, 0)

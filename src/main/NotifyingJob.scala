@@ -3,10 +3,10 @@ package org.nlogo.ls
 import org.nlogo.agent.AgentSet
 import org.nlogo.api.JobOwner
 import org.nlogo.nvm.{ConcurrentJob, HaltException, Job, Procedure}
-import org.nlogo.workspace.AbstractWorkspaceScala
+import org.nlogo.workspace.AbstractWorkspace
 
 class NotifyingJob(override val notifyObject: AnyRef,
-                   workspace: AbstractWorkspaceScala,
+                   workspace: AbstractWorkspace,
                    owner: JobOwner,
                    agentSet: AgentSet,
                    procedure: Procedure)

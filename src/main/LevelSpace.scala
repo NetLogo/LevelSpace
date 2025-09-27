@@ -165,8 +165,10 @@ class LevelSpace extends DefaultClassManager { // This can be accessed by both t
     }
 
   def updateModelMenu(): Unit = {
-    EventQueue.invokeLater { () =>
-      modelManager.updateChildModels(models)
+    if (!LevelSpace.isHeadless) {
+      EventQueue.invokeLater { () =>
+        modelManager.updateChildModels(models)
+      }
     }
   }
 
