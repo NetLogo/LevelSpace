@@ -6,14 +6,24 @@ import org.nlogo.api.{ Context, MersenneTwisterFast, SimpleJobOwner, Workspace }
 import org.nlogo.core.{ AgentKind, LogoList, Nobody }
 import org.nlogo.nvm.{ ExclusiveJob, Procedure, Reporter }
 import org.nlogo.prim.{ _constboolean, _constdouble, _constlist, _conststring, _nobody }
-import org.nlogo.workspace.{ AbstractWorkspaceScala, Plotting }
+import org.nlogo.workspace.{ AbstractWorkspace, Plotting }
 
 object RNG {
-  def apply(ctx: Context): RNG = ctx.workspace match {
-    case p: Plotting  if p.plotRNG eq ctx.getRNG => PlotRNG
-    case w: Workspace if w.mainRNG eq ctx.getRNG => MainRNG
-    case w: Workspace if w.auxRNG  eq ctx.getRNG => MainRNG
-    case _ => LocalRNG
+  def apply(ctx: Context): RNG = {
+    if (ctx.workspace.workspaceContext.workspaceGUI) {
+      ctx.workspace match {
+        case p: Plotting  if p.plotRNG eq ctx.getRNG => PlotRNG
+        case w: Workspace if w.mainRNG eq ctx.getRNG => MainRNG
+        case w: Workspace if w.auxRNG  eq ctx.getRNG => MainRNG
+        case _ => LocalRNG
+      }
+    } else {
+      ctx.workspace match {
+        case w: Workspace if w.mainRNG eq ctx.getRNG => MainRNG
+        case w: Workspace if w.auxRNG  eq ctx.getRNG => MainRNG
+        case _ => LocalRNG
+      }
+    }
   }
 }
 
@@ -27,16 +37,22 @@ case object AuxRNG extends RNG {
   override def apply(ws: Workspace): MersenneTwisterFast = ws.auxRNG
 }
 case object PlotRNG extends RNG {
-  override def apply(ws: Workspace): MersenneTwisterFast = ws match {
-    case p: Plotting => p.plotRNG
-    case _ => ws.auxRNG
+  override def apply(ws: Workspace): MersenneTwisterFast = {
+    if (ws.workspaceContext.workspaceGUI) {
+      ws match {
+        case p: Plotting => p.plotRNG
+        case _ => ws.auxRNG
+      }
+    } else {
+      ws.auxRNG
+    }
   }
 }
 case object LocalRNG extends RNG {
   override def apply(ws: Workspace): MersenneTwisterFast = ws.mainRNG.clone
 }
 
-class Evaluator(modelID: Int, name: String, ws: AbstractWorkspaceScala, parentWS: AbstractWorkspaceScala) {
+class Evaluator(modelID: Int, name: String, ws: AbstractWorkspace, parentWS: AbstractWorkspace) {
 
   val mainOwner = new SimpleJobOwner(name, MainRNG(ws), AgentKind.Observer)
   val auxOwner = new SimpleJobOwner(name, AuxRNG(ws), AgentKind.Observer)

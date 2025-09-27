@@ -4,7 +4,7 @@ import org.nlogo.ls.gui.{ GUILevelSpaceMenu, LevelSpaceMenu, ModelCodeTab, Model
 
 import org.nlogo.app.App
 import org.nlogo.app.codetab.CodeTab
-import org.nlogo.workspace.AbstractWorkspaceScala
+import org.nlogo.workspace.AbstractWorkspace
 
 import scala.collection.Map
 import scala.collection.parallel.mutable.ParHashMap
@@ -52,7 +52,7 @@ class BackingModelManager extends LSModelManager {
   }
 
   def registerTab(filePath: String, model: ChildModel)
-                 (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab] = {
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab] = {
     if (backingModels.get(filePath).isDefined) {
       None
     } else {
@@ -63,7 +63,7 @@ class BackingModelManager extends LSModelManager {
   }
 
   def registerTab(filePath: String)
-                 (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab] = {
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab] = {
     if (backingModels.get(filePath).isDefined) {
       None
     } else {
@@ -93,5 +93,5 @@ class HeadlessBackingModelManager extends LSModelManager {
   def removeTab(tab: ModelCodeTab): Unit = {}
   def existingTab(filePath: String): Option[ModelCodeTab] = None
   def registerTab(filePath: String)
-                 (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab] = None
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab] = None
 }

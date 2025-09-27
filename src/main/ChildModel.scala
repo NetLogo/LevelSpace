@@ -3,14 +3,14 @@ package org.nlogo.ls
 import javax.swing.{ JFrame, SwingUtilities }
 
 import org.nlogo.api.{ CommandRunnable, ExtensionException, Version, Workspace }
-import org.nlogo.workspace.AbstractWorkspaceScala
+import org.nlogo.workspace.AbstractWorkspace
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters.IterableHasAsScala
 
 abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int) {
-  lazy val evaluator = new Evaluator(modelID, name, workspace, parentWorkspace.asInstanceOf[AbstractWorkspaceScala])
+  lazy val evaluator = new Evaluator(modelID, name, workspace, parentWorkspace.asInstanceOf[AbstractWorkspace])
 
   private var _name: Option[String] = None
   def name_= (newName: String): Unit = {
@@ -46,7 +46,7 @@ abstract class ChildModel(val parentWorkspace: Workspace, val modelID: Int) {
   def frame: Option[JFrame]
 
   def setSpeed(d: Double): Unit
-  def workspace: AbstractWorkspaceScala
+  def workspace: AbstractWorkspace
 
   // can't change once model is loaded
   lazy val usesLevelSpace: Boolean =

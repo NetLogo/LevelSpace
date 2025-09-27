@@ -13,13 +13,13 @@ import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.fileformat.FileFormat
 import org.nlogo.swing.{ FileDialog, Menu, MenuItem }
-import org.nlogo.workspace.{ AbstractWorkspaceScala, ModelsLibrary, ModelTracker, SaveModel }
+import org.nlogo.workspace.{ AbstractWorkspace, ModelsLibrary, ModelTracker, SaveModel }
 
 trait ModelManager {
   def removeTab(tab: ModelCodeTab): Unit
   def existingTab(filePath: String): Option[CodeTab]
   def registerTab(filePath: String)
-                 (f: AbstractWorkspaceScala => ModelCodeTab): Option[ModelCodeTab]
+                 (f: AbstractWorkspace => ModelCodeTab): Option[ModelCodeTab]
 }
 
 trait LevelSpaceMenu extends JMenu

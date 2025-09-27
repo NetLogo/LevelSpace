@@ -11,11 +11,11 @@ import org.nlogo.core.{ I18N, Model }
 import org.nlogo.fileformat.{ FailedConversionResult, FileFormat }
 import org.nlogo.swing.OptionPane
 import org.nlogo.window.Events.ModelSavedEvent
-import org.nlogo.workspace.{ AbstractWorkspaceScala, OpenModel, OpenModelFromURI, SaveModel, ModelsLibrary }
+import org.nlogo.workspace.{ AbstractWorkspace, ModelsLibrary, ModelTracker, OpenModel, OpenModelFromURI, SaveModel }
 
 import java.nio.file.Paths
 
-class ModelCodeTab(workspace: AbstractWorkspaceScala, tabManager: TabManager, modelManager: ModelManager)
+class ModelCodeTab(workspace: AbstractWorkspace, tabManager: TabManager, modelManager: ModelManager)
 extends CodeTab(workspace, tabManager)
 with ModelSavedEvent.Handler {
   val tabName      = workspace.getModelFileName
@@ -105,11 +105,16 @@ with ModelSavedEvent.Handler {
     }
     currentModel = currentModel.map(_.copy(code = innerSource)) orElse Some(Model(code = innerSource))
     currentModel.foreach { model =>
-      SaveModel(model, loader, controller, workspace, Version).foreach {
-        _.apply().foreach { _ =>
-          changedSourceWarning()
-          dirty = false
-        }
+      workspace match {
+        case tracker: ModelTracker =>
+          SaveModel(model, loader, controller, workspace.asInstanceOf[ModelTracker], Version).foreach {
+            _.apply().foreach { _ =>
+              changedSourceWarning()
+              dirty = false
+            }
+          }
+
+        case _ =>
       }
     }
   }
