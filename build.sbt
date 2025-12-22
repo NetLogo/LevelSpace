@@ -15,7 +15,7 @@ netLogoTestExtras   += (baseDirectory.value / "test")
 
 Compile / scalaSource := baseDirectory.value / "src" / "main"
 Test / scalaSource    := baseDirectory.value / "src" / "test"
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature", "-release", "11", "-Wunused:linted")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xfatal-warnings", "-encoding", "us-ascii", "-feature", "-release", "17", "-Wunused:linted")
 
 libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "18.0",
