@@ -9,15 +9,15 @@ import org.nlogo.app.codetab.CodeTab
 import org.nlogo.awt.UserCancelException
 import org.nlogo.core.{ I18N, Model }
 import org.nlogo.fileformat.{ FailedConversionResult, FileFormat }
-import org.nlogo.swing.OptionPane
+import org.nlogo.swing.{ CloseableTab, OptionPane }
 import org.nlogo.window.Events.ModelSavedEvent
 import org.nlogo.workspace.{ AbstractWorkspace, ModelsLibrary, ModelTracker, OpenModel, OpenModelFromURI, SaveModel }
 
 import java.nio.file.Paths
 
 class ModelCodeTab(workspace: AbstractWorkspace, tabManager: TabManager, modelManager: ModelManager)
-extends CodeTab(workspace, tabManager)
-with ModelSavedEvent.Handler {
+  extends CodeTab(workspace, tabManager) with CloseableTab with ModelSavedEvent.Handler {
+
   val tabName      = workspace.getModelFileName
   val filePath     = workspace.getModelPath
   var modelSource  = ""
