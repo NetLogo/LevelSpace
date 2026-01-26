@@ -14,7 +14,6 @@ import org.nlogo.awt.EventQueue
 import org.nlogo.compile.Compiler
 import org.nlogo.core.{ AgentKind, Model }
 import org.nlogo.gl.view.ViewManager
-import org.nlogo.lite.ProceduresLite
 import org.nlogo.sdm.AggregateManagerLite
 import org.nlogo.theme.InterfaceColors
 import org.nlogo.window.Events.{ CompiledEvent, LoadModelEvent }
@@ -66,7 +65,7 @@ with ControlSet {
   workspace.init(viewManager)
   addLinkComponent(viewManager)
 
-  val procedures = new ProceduresLite(workspace, workspace)
+  val procedures = new Procedures(workspace)
   val liteEditorFactory = new DefaultEditorFactory(workspace)
   val interfacePanel: InterfacePanelLite = createInterfacePanel(workspace)
 
