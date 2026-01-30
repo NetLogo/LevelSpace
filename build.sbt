@@ -10,7 +10,7 @@ isSnapshot := true
 
 netLogoExtName      := "ls"
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
-netLogoVersion      := "7.0.0-2486d1e"
+netLogoVersion      := "7.0.3-823cd07"
 netLogoTestExtras   += (baseDirectory.value / "test")
 
 Compile / scalaSource := baseDirectory.value / "src" / "main"
