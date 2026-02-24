@@ -59,6 +59,7 @@ extends JPanel with Events.OutputEvent.Handler {
     controlStrip.setBackground(InterfaceColors.toolbarBackground())
     scrollPane.setBackground(InterfaceColors.interfaceBackground())
 
+    splitPane.syncTheme()
     tickCounterLabel.syncTheme()
     cc.syncTheme()
 
