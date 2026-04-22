@@ -3,7 +3,8 @@ package org.nlogo.ls
 import java.awt._
 import java.awt.event.{ WindowAdapter, WindowEvent }
 import javax.swing.{ JFrame, JMenuBar, WindowConstants }
-import java.io.IOException
+import java.io.{ FileNotFoundException, IOException }
+import java.nio.file.{ Files, Paths }
 
 import org.nlogo.api._
 import org.nlogo.app.{ App, ZoomMenu }
@@ -18,6 +19,10 @@ import scala.util.{ Failure, Try }
 class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[ExtensionException]) @throws(classOf[HaltException]) @throws(classOf[IOException])
 (ls: LevelSpace, parentWorkspace: Workspace, path: String, modelID: Int)
   extends ChildModel(parentWorkspace, modelID) {
+
+  if (!Files.exists(Paths.get(path))) {
+    throw new FileNotFoundException(path)
+  }
 
   val (component, panel, frame) = UnlockAndBlock.onEDT(parentWorkspace.world) {
     val f = new JFrame with NetLogoIcon with ModalProgress
