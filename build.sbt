@@ -5,12 +5,12 @@ enablePlugins(NetLogoExtension, ExtensionDocumentationPlugin)
 scalaVersion := "3.7.0"
 
 name       := "LevelSpace"
-version    := "2.4.4"
+version    := "2.4.5"
 isSnapshot := true
 
 netLogoExtName      := "ls"
 netLogoClassManager := "org.nlogo.ls.LevelSpace"
-netLogoVersion      := "7.0.3-823cd07"
+netLogoVersion      := "7.1.0-internal1-0194cd8"
 netLogoTestExtras   += (baseDirectory.value / "test")
 
 Compile / scalaSource := baseDirectory.value / "src" / "main"
