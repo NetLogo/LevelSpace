@@ -130,7 +130,7 @@ primitives:
     ls:ask ls:models [ create-turtles 5 ]
     ```
 
-    You may supply the command with arguments, just like you would with anonymous commands:
+    You may supply the command with arguments, just like you would with arrow commands:
 
     ```NetLogo
     let turtle-id 0
