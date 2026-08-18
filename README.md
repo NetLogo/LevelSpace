@@ -137,7 +137,7 @@ Hjorth, A.  Head, B. & Wilensky, U. (2015). “LevelSpace NetLogo extension”. 
 
 ```NetLogo
 ls:create-models *number* *path*
-(ls:create-models *number* *path* *anonymous-command*)
+(ls:create-models *number* *path* *arrow-command*)
 ```
 
 
@@ -160,7 +160,7 @@ Use the `ls:random-seed` primitive to seed the model system's RNGs after child m
 
 ```NetLogo
 ls:create-interactive-models *number* *path*
-(ls:create-interactive-models *number* *path* *anonymous-command*)
+(ls:create-interactive-models *number* *path* *arrow-command*)
 ```
 
 
@@ -215,7 +215,7 @@ You can also ask a list of models to all do the same thing:
 ls:ask ls:models [ create-turtles 5 ]
 ```
 
-You may supply the command with arguments, just like you would with anonymous commands:
+You may supply the command with arguments, just like you would with arrow commands:
 
 ```NetLogo
 let turtle-id 0

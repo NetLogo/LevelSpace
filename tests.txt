@@ -109,8 +109,8 @@ ls-path-of
   /
   hi /
   error while observer running ERROR /
-    called by (anonymous command: [ error "hi" ]) /
-    called by (anonymous command: [ [__lsargs] -> __apply [ error "hi" ] __lsargs ]) /
+    called by (arrow command: [ error "hi" ]) /
+    called by (arrow command: [ [__lsargs] -> __apply [ error "hi" ] __lsargs ]) /
     called by procedure __EVALUATOR /
   error while observer running LS:ASK /
     called by procedure __EVALUATOR
