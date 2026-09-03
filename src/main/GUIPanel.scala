@@ -5,7 +5,7 @@ import javax.swing.{ JLabel, JPanel, JSlider, JSplitPane, ScrollPaneConstants }
 import javax.swing.event.ChangeEvent
 
 import org.nlogo.app.interfacetab.CommandCenter
-import org.nlogo.swing.{ ScrollPane, SplitPane, Transparent }
+import org.nlogo.swing.{ ScrollPane, SplitPane, Transparent, Zoomable }
 import org.nlogo.theme.InterfaceColors
 import org.nlogo.window.{ Events, GUIWorkspace, TickCounterLabel }
 import org.nlogo.workspace.AbstractWorkspace
@@ -75,7 +75,7 @@ extends JPanel with Events.OutputEvent.Handler {
 class GUIPanel(ws: GUIWorkspace, panel: JPanel)
 extends ModelPanel(ws, panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, 1) {
   val speedSliderPanel = new JPanel with Transparent
-  val label = new JLabel("speed: ")
+  val label = new JLabel("speed: ") with Zoomable
   speedSliderPanel.add(label)
   val speedSlider = new JSlider(-110, 112, ws.speedSliderPosition().toInt)
   speedSlider.addChangeListener((_: ChangeEvent) => {

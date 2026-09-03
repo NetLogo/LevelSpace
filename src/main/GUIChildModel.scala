@@ -8,7 +8,7 @@ import java.nio.file.{ Files, Paths }
 
 import org.nlogo.api._
 import org.nlogo.app.{ App, ZoomMenu }
-import org.nlogo.ls.gui.{ GUIPanel, InterfaceComponent, ZoomableInterfaceComponent }
+import org.nlogo.ls.gui.{ GUIPanel, InterfaceComponent }
 import org.nlogo.nvm.HaltException
 import org.nlogo.swing.{ ModalProgress, NetLogoIcon, Utils }
 import org.nlogo.theme.InterfaceColors
@@ -26,7 +26,7 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 
   val (component, panel, frame) = UnlockAndBlock.onEDT(parentWorkspace.world) {
     val f = new JFrame with NetLogoIcon with ModalProgress
-    val component: InterfaceComponent = new ZoomableInterfaceComponent(f)
+    val component = new InterfaceComponent(f)
     val panel = new GUIPanel(component.workspace, component)
     (component, panel, Some(f))
   }
@@ -97,9 +97,6 @@ class GUIChildModel @throws(classOf[InterruptedException]) @throws(classOf[Exten
 }
 
 class SyncedMenuBar extends JMenuBar {
-  // val zoomMenuClass = Class.forName("org.nlogo.app.ZoomMenu")
-  // add(zoomMenuClass.getDeclaredConstructor().newInstance().asInstanceOf[Menu])
-
   private val zoomMenu = new ZoomMenu
 
   add(zoomMenu)
