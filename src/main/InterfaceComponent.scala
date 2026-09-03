@@ -3,7 +3,7 @@ package org.nlogo.ls.gui
 import java.awt.EventQueue.isDispatchThread
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
-import javax.swing.{ JFrame, JPanel }
+import javax.swing.JFrame
 
 import org.nlogo.agent.{ Agent, CompilationManagement, World, World2D, World3D }
 import org.nlogo.api.{ Agent => APIAgent, ControlSet, LabProtocol, ModelType, NetLogoLegacyDialect,
@@ -15,6 +15,7 @@ import org.nlogo.compile.Compiler
 import org.nlogo.core.{ AgentKind, Model }
 import org.nlogo.gl.view.ViewManager
 import org.nlogo.sdm.AggregateManagerLite
+import org.nlogo.swing.{ BoxAlign, BoxRow }
 import org.nlogo.theme.InterfaceColors
 import org.nlogo.window.Events.{ CompiledEvent, LoadModelEvent }
 import org.nlogo.window.{ CompilerManager, DefaultEditorFactory, ErrorDialogManager, Event, FileController,
@@ -26,15 +27,17 @@ import org.nlogo.fileformat.FileFormat
 import scala.concurrent.{ Future, Promise }
 import scala.util.Try
 
-abstract class InterfaceComponent(frame: JFrame) extends JPanel
-with Event.LinkParent
-with LinkRoot
-with ControlSet {
+class InterfaceComponent(frame: JFrame)
+  extends BoxRow(BoxAlign.Start) with Event.LinkParent with LinkRoot with ControlSet {
+
   val listenerManager = new NetLogoListenerManager
   val world: World = if(Version.is3D) new World3D() else new World2D()
 
   // KioskLevel.None - We want a 3d button
-  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.None, frame, frame, null, new ExternalFileManager, listenerManager, new ErrorDialogManager(frame), this) {
+  val workspace: GUIWorkspace = new GUIWorkspace(world, GUIWorkspace.KioskLevel.None, frame, frame, null,
+                                                 new ExternalFileManager, listenerManager,
+                                                 new ErrorDialogManager(frame), this) {
+
     val compiler = new Compiler(if (Version.is3D) NetLogoThreeDDialect else NetLogoLegacyDialect)
 
     lazy val updateManager = new UpdateManager {
@@ -67,12 +70,14 @@ with ControlSet {
 
   val procedures = new Procedures(workspace)
   val liteEditorFactory = new DefaultEditorFactory(workspace)
-  val interfacePanel: InterfacePanelLite = createInterfacePanel(workspace)
+  val interfacePanel = new InterfacePanelLite(workspace.viewWidget, workspace, workspace, workspace.plotManager,
+                                              liteEditorFactory, workspace.getExtensionManager)
 
   addLinkComponent(workspace.aggregateManager)
   addLinkComponent(workspace)
   addLinkComponent(procedures)
-  addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World & CompilationManagement], procedures))
+  addLinkComponent(new CompilerManager(workspace, workspace.world.asInstanceOf[World & CompilationManagement],
+                                       procedures))
   addLinkComponent(new CompiledEvent.Handler {
     override def handle(e: CompiledEvent): Unit = {
       if (e.error != null)
@@ -84,7 +89,6 @@ with ControlSet {
   }})
   addLinkComponent(listenerManager)
 
-  setBackground(java.awt.Color.WHITE)
   add(interfacePanel)
 
   def open(path: String) = {
@@ -101,8 +105,6 @@ with ControlSet {
     }).getOrElse(Seq[LabProtocol]())
     workspace.getExperimentManager.setGUIExperiments(protocols)
   }
-
-  protected def createInterfacePanel(workspace: GUIWorkspace): InterfacePanelLite
 
   def userInterface: Future[BufferedImage] = {
     if (isDispatchThread)
